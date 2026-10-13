@@ -1,6 +1,6 @@
 # 📡 Especificación de Contratos y Endpoints de la API REST
 
-Esta guía define formalmente todos los endpoints REST, parámetros, estructuras de payload, esquemas de autenticación, validaciones de seguridad y códigos de estado HTTP expuestos por el backend **Pokémon API** (Node.js 24 LTS + Express 4.22 + TypeScript 7.x).
+Esta guía define formalmente todos los endpoints REST, parámetros, estructuras de payload, esquemas de autenticación, validaciones de seguridad y códigos de estado HTTP expuestos por el backend **Pokémon API** (Node.js 24 LTS + Express 5.x + TypeScript 7.x).
 
 ---
 
@@ -24,9 +24,9 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
 
 - **Base URL Local:** `http://localhost:3000` (Backend API) / `http://localhost:8080` (vía Nginx Ingress Proxy).
 - **Formato de Comunicación:** `application/json; charset=utf-8`.
-- **Runtime:** Node.js 24 LTS compilado con esbuild sobre contenedor Alpine endurecido (UID no-root: `1001`).
+- **Runtime:** Node.js 24 LTS compilado con esbuild sobre contenedor Alpine endurecido (`USER 1000:1000` en imagen, `runAsUser: 10001` en Kubernetes).
 - **Límite de Payload:** Máximo de 250 KB (`express.json({ limit: '250kb' })`) para prevenir ataques DoS por saturación de memoria.
-- **Cabeceras de Seguridad:** Inyección automática de `Content-Security-Policy`, `Strict-Transport-Security`, `Permissions-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection: 1; mode=block` y `Referrer-Policy: strict-origin-when-cross-origin`. Supresión de `X-Powered-By`.
+- **Cabeceras de Seguridad:** Inyección automática de `Content-Security-Policy`, `Strict-Transport-Security`, `Permissions-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection: 0` y `Referrer-Policy: strict-origin-when-cross-origin`. Supresión de `X-Powered-By`.
 - **Políticas CORS:** Configuración en modo *fail-closed*. En producción exige definición explícita de `CORS_ORIGINS`; en desarrollo restringe estrictamente a loopback (`localhost:3000`, `localhost:8080`, `127.0.0.1`).
 - **Estrategia de Caché y Validación Condicional:** Catálogo en memoria y Redis 7 con resolución sub-3ms mediante claves `pokedex:list:*` e invalidación automática ante mutaciones. Validación condicional de clientes mediante cabeceras `ETag` y `Cache-Control: public, max-age=60, stale-while-revalidate=300`.
 
@@ -84,7 +84,6 @@ El backend implementa un esquema de autenticación **timing-safe** de doble capa
    ```json
    {
      "role": "admin",
-     "iat": 1725800000,
      "exp": 1725814400,
      "jti": "5a7f9b0c2e3d4a1b"
    }
@@ -321,8 +320,8 @@ Servicios de IA generativa integrados nativamente con **Google AI Studio (`@goog
 | Endpoint | Método | Autenticación | SLA / Propósito | Respuesta Típica |
 | :--- | :---: | :--- | :--- | :--- |
 | **`/healthz`** | `GET` | Pública | **Liveness Probe**: Verifica que el proceso Express responda al event loop. | `healthy\n` (`200 OK`) |
-| **`/readyz`** | `GET` | Pública | **Readiness Probe**: Verifica conectividad activa contra PostgreSQL (`SELECT 1`) y Redis (`PING`). | `{"status":"ready","database":"connected","redis":"connected"}` (`200 OK` o `503 Service Unavailable`) |
-| **`/metrics`** | `GET` | Pública | **Prometheus Scrape Endpoint**: Expone contadores, histogramas de latencia y uptime en formato OpenMetrics. | Texto plano de métricas estándar |
+| **`/readyz`** | `GET` | Pública | **Readiness Probe**: Verifica conectividad contra PostgreSQL (*fail-closed*) y reporta el estado de Redis (*fail-open*, ADR-027). | `{"status":"ready","database":"connected","redis":"connected"}` (`200 OK` o `503 Service Unavailable`) |
+| **`/metrics`** | `GET` | Opcional (`Bearer <METRICS_BEARER_TOKEN>`) | **Prometheus Scrape Endpoint**: Expone contadores, histogramas de latencia y uptime en formato OpenMetrics. | Texto plano de métricas estándar |
 
 ---
 
@@ -420,7 +419,7 @@ export interface Pokemon {
 ## 11. Referencia Canónica de Rate Limiters
 
 > [!NOTE]
-> Estos valores deben mantenerse sincronizados con las constantes en `apps/backend/server.ts`.
+> Estos valores deben mantenerse sincronizados con las definiciones en `apps/backend/src/middleware/rate-limiter.ts`.
 > Si se modifica un límite en el código, actualizar la tabla correspondiente en este documento.
 
 | Middleware | Endpoint(s) | Límite | Ventana | Fail-Closed en Redis? |
@@ -430,4 +429,4 @@ export interface Pokemon {
 | `aiRateLimiter` | `POST /api/v1/ai/*` | **10 req** | 1 min | **Sí** (503 si Redis offline) |
 | `aiDailyQuotaLimiter` | `POST /api/v1/ai/*` | **200 req** | 24 h | **Sí** (503 si Redis offline) |
 
-**Fuente de verdad:** [`apps/backend/server.ts` — líneas 247–250](../../apps/backend/server.ts)
+**Fuente de verdad:** [`apps/backend/src/middleware/rate-limiter.ts`](../../apps/backend/src/middleware/rate-limiter.ts)

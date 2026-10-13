@@ -47,15 +47,14 @@ flowchart LR
         GITLEAKS["🔐 Gitleaks"]
         SEMGREP["🔍 Semgrep SAST"]
         DEP_REV["📦 Dependency Review"]
-        TRIVY["🛡️ Trivy SCA"]
-        SYFT["📋 Syft (SBOM)"]
+        TRIVY["🛡️ Trivy (SCA & SBOM)"]
         COSIGN["✍️ Cosign Keyless\n(Sigstore OIDC)"]
     end
 
     subgraph DEPLOY["4. GitOps & Admission"]
         GHCR["📦 GitHub Packages\n(ghcr.io)"]
         ARGO["☸️ ArgoCD"]
-        HELM["⎈ Helm 3.17"]
+        HELM["⎈ Helm 3.22"]
         KYVERNO["🛡️ Kyverno Enforcer"]
         ESO["🔐 External Secrets Operator\n& HashiCorp Vault CE"]
     end
@@ -93,8 +92,8 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Node.js** | `22 LTS` | Runtime del servidor de aplicaciones backend | [`apps/backend/Dockerfile`](../../apps/backend/Dockerfile), [`package.json`](../../package.json) |
-| **Express** | `4.22+` | Framework HTTP para rutas REST, middlewares y validaciones | [`apps/backend/server.ts`](../../apps/backend/server.ts) |
+| **Node.js** | `24 LTS` | Runtime del servidor de aplicaciones backend | [`apps/backend/Dockerfile`](../../apps/backend/Dockerfile), [`package.json`](../../package.json) |
+| **Express** | `5.x` | Framework HTTP para rutas REST, middlewares y validaciones | [`apps/backend/server.ts`](../../apps/backend/server.ts) |
 | **TypeScript** | `7.x` | Lenguaje de tipado estático estricto y modelos de dominio | [`tsconfig.json`](../../tsconfig.json), [`apps/backend/src/types.ts`](../../apps/backend/src/types.ts) |
 | **esbuild** | `0.28+` | Empaquetador ultrarrápido a formato CommonJS para producción | [`package.json`](../../package.json) |
 
@@ -102,7 +101,7 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **TypeScript + Vite / HTML5 / CSS3** | `Vite 8 / TS 7` | Interfaz reactiva SPA con TypeScript, sanitización DOMPurify y filtros | [`apps/frontend/`](../../apps/frontend) |
+| **TypeScript + Vite / HTML5 / CSS3** | `Vite 8 / TS 7` | Interfaz web MPA con TypeScript, sanitización DOMPurify y filtros | [`apps/frontend/`](../../apps/frontend) |
 | **Nginx** | `1.31 Alpine` | Servidor web proxy inverso con gzip, cabeceras CSP y digest pinned | [`apps/frontend/nginx.conf`](../../apps/frontend/nginx.conf), [`apps/frontend/Dockerfile`](../../apps/frontend/Dockerfile) |
 
 ### 2.3. Persistencia, Caché & Connection Pooling
@@ -123,10 +122,11 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Node Test Runner (`node:test`)** | Nativo Node 24 | Suite de 300 pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](../../tests) |
+| **Node Test Runner (`node:test`)** | Nativo Node 24 | Suite de pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](../../tests) |
 | **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzz/fuzzing.test.ts`](../../tests/fuzz/fuzzing.test.ts) |
+| **Playwright & Axe-core** | `1.64+` | Pruebas E2E multi-navegador y auditoría automatizada de accesibilidad WCAG | [`playwright.config.ts`](../../playwright.config.ts), [`tests/e2e/`](../../tests/e2e) |
 | **k6 (Grafana k6)** | Latest | Pruebas de estrés y benchmarking declarativo de endpoints | [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js) |
-| **TypeScript Compiler (`tsc`)** | `7.x` | Quality gate de verificación estricta de tipos (`npm run lint`) | [`package.json`](../../package.json) |
+| **Biome (`@biomejs/biome`) & `tsc`** | `2.5.x / TS 7.x` | Linter estático, formateador y verificación estricta de tipos (`npm run lint`) | [`biome.json`](../../biome.json), [`package.json`](../../package.json) |
 
 ### 2.6. Seguridad & Supply Chain
 
@@ -134,7 +134,7 @@ flowchart LR
 | :--- | :--- | :--- | :--- |
 | **Cosign (Sigstore)** | `2.x+` | Firmado criptográfico Keyless de imágenes OCI mediante OIDC de GitHub Actions | [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
 | **Kyverno** | `1.12+` | Control de admisión en Kubernetes para exigir imágenes firmadas válidas | [`infra/k8s/kyverno-cosign-policy.yaml`](../../infra/k8s/kyverno-cosign-policy.yaml) |
-| **Syft (Anchore)** | Latest | Generación automatizada de SBOM en estándar CycloneDX | [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
+| **Trivy SBOM (Aqua Security)** | Latest | Generación automatizada de SBOM en estándar CycloneDX y atestación OCI | [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
 | **Gitleaks** | `8.x` | Detección preventiva de credenciales y tokens en commits y PRs | [`.gitleaks.toml`](../../.gitleaks.toml), [`.github/workflows/security-gitleaks.yaml`](../../.github/workflows/security-gitleaks.yaml) |
 | **Semgrep** | Latest | Análisis estático SAST bloqueante para detección de OWASP Top 10 | [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
 | **Dependency Review** | GitHub Action | Gate bloqueante en PRs para vulnerabilidades de dependencias (HIGH+) | [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
@@ -146,19 +146,19 @@ flowchart LR
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **Docker & Buildx** | `27+` | Compilación multi-stage en Alpine con usuario no-root UID 1001 | [`apps/backend/Dockerfile`](../../apps/backend/Dockerfile) |
+| **Docker & Buildx** | `27+` | Compilación multi-stage en Alpine con usuarios no-root (`1000:1000` API / `101:101` Web) | [`apps/backend/Dockerfile`](../../apps/backend/Dockerfile), [`apps/frontend/Dockerfile`](../../apps/frontend/Dockerfile) |
 | **Docker Compose** | `v2` | Orquestación local multicontenedor (Web, API, Postgres, Redis) | [`docker-compose.yaml`](../../docker-compose.yaml) |
-| **Helm** | `3.17` | Empaquetado y parametrización de despliegue en Kubernetes | [`infra/helm/pokedex/`](../../infra/helm/pokedex) |
+| **Helm** | `3.22` | Empaquetado y parametrización de despliegue en Kubernetes | [`infra/helm/pokedex/`](../../infra/helm/pokedex) |
 | **Argo CD** | Latest | Motor GitOps para sincronización declarativa continua en clúster | [`gitops/apps/`](../../gitops/apps) |
 
 ### 2.8. Infraestructura como Código (IaC) & Virtualización
 
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
-| **OpenTofu** | `1.8+` | Aprovisionamiento declarativo de infraestructura híbrida (Proxmox VE & Cloud Template) | [`infra/opentofu/`](../../infra/opentofu) |
-| **Checkov** | Latest | Análisis estático de seguridad para IaC, Helm y OpenTofu | [`.github/workflows/infra.yaml`](../../.github/workflows/infra.yaml), [`.github/workflows/ci.yaml`](../../.github/workflows/ci.yaml) |
+| **OpenTofu** | `1.13+` | Aprovisionamiento declarativo de infraestructura híbrida (Proxmox VE & Cloud Template) | [`infra/opentofu/`](../../infra/opentofu) |
+| **Checkov** | Latest | Análisis estático de seguridad para IaC, Helm y OpenTofu | [`.github/workflows/infra.yaml`](../../.github/workflows/infra.yaml) |
 | **Proxmox VE** | `8.x` | Virtualización on-premise de pre-prod en LXC (ADR-030) gestionada por OpenTofu | [`infra/opentofu/environments/proxmox/`](../../infra/opentofu/environments/proxmox) |
-| **Ansible** | `2.16+` | Automatización de configuración de OS/nodos, dependencias de runtime y hardening de firewall UFW | [`infra/ansible/`](../../infra/ansible) |
+| **Ansible** | `2.17+` | Automatización de configuración de OS/nodos, dependencias de runtime y hardening de firewall UFW | [`infra/ansible/`](../../infra/ansible) |
 
 ### 2.9. Observabilidad & Monitoreo
 
@@ -197,13 +197,13 @@ Para evitar duplicidad y clarificar el origen de cada señal hacia Grafana Cloud
 
 ## 3. Hoja de Ruta Tecnológica y Evoluciones Recomendadas
 
-Tomando como base las características identificadas en el repositorio, se establecen las herramientas, mejoras a nivel de lenguaje y evoluciones de arquitectura recomendadas para subsanar riesgos remanentes y elevar la madurez operacional de la plataforma Pokédex:
+Tomando como base las características identificadas en el repositorio, se detallan tanto las evoluciones ya consolidadas como las mejoras adicionales recomendadas para elevar la madurez operacional de la plataforma Pokédex:
 
 ### 3.1. Nuevas Herramientas y Librerías
 
 #### Gestión de Base de Datos y Ciclo de Vida del Esquema
 
-- **Drizzle ORM**: Adoptado como estándar y única fuente de verdad (SSOT) para la base de datos (ADR-011). Provee tipado estricto extremo a extremo (`type-safe SQL`), parametrización garantizada contra SQLi y migraciones declarativas versionadas en `apps/backend/src/db/migrations/`, habiéndose retirado los scripts estáticos `init.sql`.
+- **Drizzle ORM (Adoptado)**: Adoptado como estándar y única fuente de verdad (SSOT) para la base de datos (ADR-011). Provee tipado estricto extremo a extremo (`type-safe SQL`), parametrización garantizada contra SQLi y migraciones declarativas versionadas en `apps/backend/src/db/migrations/`, habiéndose retirado los scripts estáticos `init.sql`.
 - **Atlas / Flyway**: Herramientas complementarias para verificación avanzada de migraciones en CI/CD si se requiere inspección de linter DDL antes del despliegue productivo.
 
 #### Resiliencia y Manejo de Integraciones Externas
@@ -214,12 +214,12 @@ Tomando como base las características identificadas en el repositorio, se estab
 #### Observabilidad y Telemetría
 
 - **OpenTelemetry SDK para Node.js**: Complementa los scrapers de Prometheus (`infra/monitoring/alerts.yaml`) inyectando instrumentación distribuida de traces con propagación de `traceId` desde el Ingress de Nginx hasta las consultas de PostgreSQL y Redis.
-- **Pino**: Reemplazo de logs estándar de consola por registros JSON estructurados con niveles jerárquicos y correlación de contexto por petición HTTP.
+- **Pino (Adoptado)**: Implementado en [`apps/backend/src/utils/logger.ts`](../../apps/backend/src/utils/logger.ts) para emitir registros JSON estructurados con niveles jerárquicos y correlación de contexto por petición HTTP.
 
 #### Herramientas de Monorepo y Build
 
-- **npm workspaces**: Orquestación de los espacios de trabajo `apps/backend` y `apps/frontend` mediante los scripts raíz de `package.json`.
-- **Vite**: Empaquetador ultrarrápido para modernizar la capa de presentación web, habilitando minificación, módulos ES nativos, tree-shaking y sustitución de scripts directos en el DOM.
+- **npm workspaces (Adoptado)**: Orquestación activa de los espacios de trabajo `apps/backend` y `apps/frontend` mediante los scripts raíz de `package.json`.
+- **Vite (Adoptado)**: Empaquetador ultrarrápido activo en `apps/frontend/` (Vite 8), habilitando minificación, módulos ES nativos y tree-shaking para las vistas MPA (`index.html` y `backoffice.html`).
 
 ---
 
@@ -227,12 +227,12 @@ Tomando como base las características identificadas en el repositorio, se estab
 
 #### Frontend Type-Safe y Contratos Compartidos
 
-- **Migración a TypeScript Estricto en Frontend**: Conversión de `pokedex.js`, `backoffice.js` y `theme.js` a TypeScript bajo `"strict": true`, eliminando errores de acceso a propiedades no definidas (`undefined` / `null`) en tiempo de ejecución.
+- **Migración a TypeScript Estricto en Frontend (Adoptado)**: Conversión completada a TypeScript (`apps/frontend/src/pokedex.ts`, `backoffice.ts` y `theme.ts`) bajo `"strict": true`, eliminando errores de acceso a propiedades no definidas (`undefined` / `null`) en tiempo de ejecución.
 - **Paquete Compartido de Contratos (`@pokedex/contracts`)**: Extracción de interfaces y tipos de datos desde [`apps/backend/src/types.ts`](../../apps/backend/src/types.ts) hacia un módulo interno reutilizable por frontend y backend, garantizando sincronización exacta de modelos de datos.
 
 #### Validación Universal de Esquemas en Runtime
 
-- **Zod / Valibot**: Reemplazo de las validaciones ad-hoc en [`apps/backend/src/validation/pokemon.ts`](../../apps/backend/src/validation/pokemon.ts) por esquemas Zod con inferencia automática (`type Pokemon = z.infer<typeof PokemonSchema>`), filtrado estricto de campos no declarados (*strip unknown*) y reutilización bidireccional en formularios web y API.
+- **Zod (Adoptado)**: Implementado en [`apps/backend/src/validation/pokemon.ts`](../../apps/backend/src/validation/pokemon.ts) (`zod ^4.x`) para validación declarativa con filtrado estricto de campos y garantías de esquema en runtime.
 
 #### Manejo de Errores con Tipos Algebraicos
 
@@ -261,5 +261,5 @@ Tomando como base las características identificadas en el repositorio, se estab
 
 #### Endurecimiento de la Gestión de Estado de Infraestructura (IaC)
 
-- **Backend Remoto Cifrado para OpenTofu**: Configuración de backend centralizado (S3 / MinIO con cifrado en reposo SSE y bloqueo de concurrencia) en `infra/opentofu/environments/`, evitando la retención de secretos de infraestructura en archivos `.tfstate` locales.
-- **Inyección Efímera de Secretos**: Retiro de scripts Bash imperativos en favor de Ansible con [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt) y External Secrets Operator (ESO) con HashiCorp Vault CE en Kubernetes para consumir credenciales únicamente vía variables de entorno efímeras y vaults centralizados.
+- **Backend Remoto Cifrado para OpenTofu (Adoptado)**: Configurado mediante backend S3 cifrado con `use_lockfile = true` en `infra/opentofu/environments/*/backend.tf` (ADR-021), evitando la retención de secretos de infraestructura en archivos `.tfstate` locales.
+- **Inyección Efímera de Secretos (Adoptado)**: Retiro de scripts Bash imperativos en favor de Ansible con [`infra/ansible/deploy_excludes.txt`](../../infra/ansible/deploy_excludes.txt) y External Secrets Operator (ESO) con HashiCorp Vault CE en Kubernetes para consumir credenciales únicamente vía variables de entorno efímeras y vaults centralizados.

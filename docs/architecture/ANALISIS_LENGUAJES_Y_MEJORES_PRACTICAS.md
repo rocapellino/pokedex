@@ -25,28 +25,28 @@ La plataforma está construida bajo un ecosistema unificado y tipado de extremo 
 
 | Capa / Dominio | Tecnología Seleccionada | Versión / Especificación | Propósito Principal |
 | :--- | :--- | :--- | :--- |
-| **Runtime & Servidor** | Node.js | 22 LTS | Servidor HTTP unificado, API REST y servicios auxiliares |
+| **Runtime & Servidor** | Node.js | 24 LTS | Servidor HTTP, API REST y servicios auxiliares |
 | **Lenguaje Core** | TypeScript | 7.x (NodeNext / ES2022) | Seguridad de tipos estática extremo a extremo |
 | **Framework HTTP** | Express | 5.x | Ruteo declarativo, middlewares de seguridad y telemetría |
-| **Frontend Web** | HTML5 Semántico + Vanilla TypeScript / CSS | Modern Web APIs | Catálogo interactivo (Bento Grid) y Backoffice administrativo |
+| **Frontend Web** | HTML5 Semántico + Vanilla TypeScript / CSS | Modern Web APIs (MPA) | Catálogo interactivo (Bento Grid) y Backoffice administrativo |
 | **Bundler / Tooling** | esbuild / tsx / Vite | Modern ESM | Compilación ultrarrápida y recarga instantánea en desarrollo |
 | **Persistencia Principal** | PostgreSQL | 16 | Almacenamiento relacional duradero con soporte JSONB |
-| **Caché y Coordinación** | Redis | 7 (Alpine) | Caché de segundo nivel, rate limiting distribuido y revocación de JWT |
+| **Caché y Coordinación** | Redis | 7 (Alpine) | Caché de segundo nivel, rate limiting distribuido y revocación de sesiones |
 | **Integración IA** | Google GenAI SDK | `@google/genai` (Gemini 2.5 Flash) | Generación dinámica de diagramas y asistencia contextual |
-| **Contenerización** | Docker Multi-Stage | `node:24-alpine` | Contenedores ultraligeros con usuario no root (`USER` numérico por imagen) |
-| **Orquestación** | Kubernetes & Helm | Helm 3 | Despliegue declarativo y gestión de configuración por entornos |
+| **Contenerización** | Docker Multi-Stage | `node:24-alpine` / `nginx:1.31-alpine` | Contenedores ultraligeros con usuario no root (`1000:1000` API / `101:101` Web) |
+| **Orquestación** | Kubernetes & Helm | Helm 3.22 | Despliegue declarativo y gestión de configuración por entornos |
 
 ---
 
 ## 2. Decisiones Arquitectónicas Activas
 
-1. **Backend y API Unificada:** Un único proceso de servidor en Node.js/TypeScript atiende la API REST, sirve los activos estáticos del frontend, expone los endpoints de telemetría y ejecuta las integraciones externas.
+1. **Separación de Contenedores en Producción y Servidor Unificado en Dev:** En producción y Docker Compose, el frontend estático compilado por Vite se sirve desde `nginx:1.31-alpine` (`pokemon-web`) y la API REST corre en `node:24-alpine` (`pokemon-api`); en desarrollo local sin contenedores (`npm run dev`), Express también puede servir los activos estáticos directamente.
 2. **Modelos Compartidos y Type Safety:** Los contratos de datos (`Pokemon`, `PokemonStats`, `PokemonEvolution`) residen como interfaces canónicas en TypeScript (`apps/backend/src/types.ts`), compartidas entre controladores, servicios y validadores.
 3. **Persistencia Híbrida Relacional + JSONB:**
    - PostgreSQL 16 actúa como la única fuente de verdad transaccional (ACID).
    - Columnas relacionales indexadas (`id`, `nombre`, `tipo`) para filtros de alta cardinalidad.
    - Columna binaria `data JSONB` para flexibilidad total de atributos sin migraciones DDL disruptivas.
-4. **Contenedor Único Multi-Stage:** Compilación limpia en etapa de build con `esbuild` y empaquetado final mínimo en `node:24-alpine`, ejecutado bajo un usuario de mínimos privilegios (`node`).
+4. **Contenedores Multi-Stage Endurecidos:** Compilación limpia en etapa de build (`esbuild` para backend, `Vite` para frontend) y empaquetado final mínimo sobre imágenes Alpine fijadas por digest SHA-256 bajo usuarios sin privilegios.
 
 ---
 
@@ -80,7 +80,7 @@ src/
 
 ### 3.4. Seguridad Integral (Defense-in-Depth)
 
-- **Cabeceras HTTP:** Implementación de Content-Security-Policy (CSP), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` y protección contra Clickjacking.
+- **Cabeceras HTTP:** Implementación de Content-Security-Policy (CSP), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN` y protección contra Clickjacking.
 - **Rate Limiting:** Control de abusos y mitigación de DoS mediante ventanas deslizantes con scripts Lua atómicos en Redis.
 - **Principio de Mínimo Privilegio:** Contenedores de producción ejecutados como usuarios no privilegiados y sistemas de archivos raíz en modo de solo lectura cuando sea aplicable.
 
@@ -91,7 +91,7 @@ src/
   - `pokedex_total_pokemons`: Cantidad de especímenes registrados.
   - `pokedex_http_requests_total`: Contador por método, ruta y código de estado.
   - `pokedex_http_request_duration_seconds`: Histogramas de latencia (p50, p95, p99).
-- **Healthchecks Estandarizados:** `/healthz` responde `healthy` para `livenessProbe` y `readinessProbe` de Kubernetes, verificando la conectividad de dependencias críticas antes de recibir tráfico.
+- **Healthchecks Estandarizados:** `/healthz` responde `healthy` para `livenessProbe` y `/readyz` para `readinessProbe` de Kubernetes, verificando la conectividad de dependencias críticas antes de recibir tráfico.
 - **Logs Estructurados:** Emisión de eventos en formato JSON estructurado para facilitar la ingesta y trazabilidad en sistemas de agregación de logs.
 
 ### 3.6. Estrategia de Testing Automatizado
@@ -111,5 +111,5 @@ La plataforma implementa una estrategia de validación multi-nivel:
 | :--- | :--- | :--- |
 | **Unificación en TypeScript** | Dualidad Python + Frontend independiente | Elimina la duplicación de esquemas (Pydantic vs JS), reduce el consumo de memoria en más del 60% por pod y permite reutilizar tipos entre capas. |
 | **PostgreSQL + JSONB** | NoSQL puro (MongoDB) / SQL normalizado estricto | Combina la solidez de transacciones ACID y secuencias atómicas con la agilidad de evolucionar especificaciones de atributos sin alterar el esquema relacional. |
-| **Contenedor Único de Producción** | Arquitectura multi-contenedor (Nginx + API) | Reduce la sobrecarga de orquestación, simplifica los manifiestos Helm y disminuye la superficie de ataque y los puntos de fallo en red. |
+| **Contenedores Multi-Stage Desacoplados (API + Web)** | Contenedor monolítico con toolchain de compilación | Aísla la superficie de exposición del proxy estático Nginx (`101:101`) frente al runtime de la API (`1000:1000`), permitiendo escalado y políticas de red independientes. |
 | **Assets vía CDN / URL Externa** | Almacenamiento local de binarios / Object Storage dedicado | Evita la degradación del rendimiento de la base de datos y aprovecha infraestructuras globales de distribución de contenidos con compresión WebP automática. |

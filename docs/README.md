@@ -48,6 +48,8 @@ flowchart TD
     RUN --> R4["🖥️ PROXMOX_DEPLOYMENT_GUIDE.md"]
     RUN --> R5["📋 DISASTER_RECOVERY_PLAN.md"]
     RUN --> R6["🚨 BREAK_GLASS_PROCEDURE.md"]
+    RUN --> R7["🔑 VAULT_OPERATOR_ACCESS.md"]
+    RUN --> R8["📡 ALLOY_K8S_MONITORING_MIGRATION.md"]
 
     SEC --> S1["🛡️ SECURITY.md (Root)"]
     SEC --> S2["🚨 SECURITY_RUNBOOK.md"]
@@ -75,7 +77,7 @@ flowchart TD
 
     class PORTAL main;
     class ARCH,API,DEVOPS,BEST,RUN,SEC,ADR,OPS,TEST section;
-    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8,OP9,OP10,OP11,OP12,OP13,T1 doc;
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,AP1,D1,D2,D3,B1,R1,R2,R3,R4,R5,R6,R7,R8,S1,S2,S3,AD1,OP1,OP2,OP3,OP4,OP5,OP6,OP7,OP8,OP9,OP10,OP11,OP12,OP13,T1 doc;
 ```
 
 ---
@@ -118,7 +120,7 @@ flowchart TD
 
 ### 4. 🌿 Estándares y Mejores Prácticas ([`docs/best-practices/`](./best-practices/))
 
-- 🐳 [**MEJORES_PRACTICAS_DOCKERFILE.md**](./best-practices/MEJORES_PRACTICAS_DOCKERFILE.md): Construcción multi-stage en Alpine, reducción de superficie de ataque (usuario no-root UID 1001), orden de capas y cacheo eficiente.
+- 🐳 [**MEJORES_PRACTICAS_DOCKERFILE.md**](./best-practices/MEJORES_PRACTICAS_DOCKERFILE.md): Construcción multi-stage en Alpine, reducción de superficie de ataque (usuarios no-root `1000:1000` y `101:101`), orden de capas y cacheo eficiente.
 
 ---
 
@@ -174,7 +176,7 @@ flowchart TD
 
 ### 8. 🚨 Excelencia Operacional y Runbooks de Plataforma ([`docs/operations/`](./operations/))
 
-- 📊 [**observability-alerts.md**](./operations/observability-alerts.md): Runbook operacional y procedimientos de mitigación para las 6 alertas de Prometheus.
+- 📊 [**observability-alerts.md**](./operations/observability-alerts.md): Runbook operacional y procedimientos de mitigación para las 24 alertas de Prometheus.
 - 💾 [**backup-restore.md**](./operations/backup-restore.md): Ciclo de vida operativo de copias de seguridad PostgreSQL, cifrado AES-256 y restauración manual y automatizada.
 - 🚀 [**deployment.md**](./operations/deployment.md): Procedimiento estándar de entrega continua, verificación previa y sincronización con ArgoCD.
 - 🚑 [**incident-response.md**](./operations/incident-response.md): Matriz de escalado por severidad (SEV-1 a SEV-3), diagnóstico rápido y triage operativo.

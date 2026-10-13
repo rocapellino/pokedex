@@ -76,7 +76,7 @@ Proveer los procedimientos operativos estándar (SOP) para investigar, contener 
 2. **Diagnóstico de Conectividad**:
 
    ```bash
-   kubectl exec -it -n pokemon-app deployment/pokemon-api -- nc -zv redis-service 6379
+   kubectl exec -it -n pokemon-app deployment/pokemon-api -- nc -zv pokemon-redis-svc 6379
    ```
 
 3. **Acciones de Remediación**:

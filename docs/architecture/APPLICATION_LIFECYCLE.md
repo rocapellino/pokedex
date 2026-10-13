@@ -64,7 +64,7 @@ flowchart TD
         AUTO_TAG --> PROMOTE_MERGE["🔀 Merge del PR release/promote-vX.Y.Z"]
         PROMOTE_MERGE --> TAG["🏷️ Fase tag: Git Tag (v1.x.x) + GitHub Release<br/>sobre el commit de promoción"]
         MERGE --> DOCKER_BUILD["🐳 Compilación Imagen OCI Multi-Stage"]
-        DOCKER_BUILD --> SBOM_GEN["📋 Generación SBOM CycloneDX (Syft)"]
+        DOCKER_BUILD --> SBOM_GEN["📋 Generación SBOM CycloneDX (Trivy)"]
         SBOM_GEN --> COSIGN_SIGN["✍️ Cosign Keyless Signing (Sigstore OIDC)\nRegistrado en Rekor"]
         COSIGN_SIGN --> GHCR_PUB["📦 Publicar Imagen + Firma + SBOM en GHCR"]
     end
@@ -211,7 +211,7 @@ Usa `if: always()` para ejecutarse aunque alguna dependencia haya fallado u sido
   - Al mergear ese PR de promoción, el mismo workflow ejecuta la fase **tag**: verifica la coherencia 1:1 (`package.json` == `package-lock.json` == `Chart.yaml` == GitOps; gate contractual en `tests/contracts/governance/version_consistency.test.ts`), crea el **Git Tag** firmado con Gitsign **sobre ese commit de promoción** y publica el **GitHub Release** oficial. El tag nunca se crea antes de que `main` contenga la versión (garantía de trazabilidad versión → commit → Chart → GitOps).
   - El workflow **`ci.yaml`** ejecuta el proceso de **Supply Chain Security**:
     1. Compila la imagen Docker de producción para arquitecturas `linux/amd64`.
-    2. Genera el **Software Bill of Materials (SBOM)** en estándar CycloneDX usando **Syft**.
+    2. Genera el **Software Bill of Materials (SBOM)** en estándar CycloneDX usando **Trivy**.
     3. Emplea **Cosign** en modo **Keyless** a través del proveedor OIDC de GitHub Actions para firmar criptográficamente la imagen del contenedor.
     4. Registra la transparencia criptográfica de la firma en el ledger público **Rekor** (`https://rekor.sigstore.dev`).
     5. Publica la imagen, su firma y el SBOM en GitHub Container Registry (`ghcr.io/rocapellino/pokedex`).
@@ -220,7 +220,7 @@ Usa `if: always()` para ejecutarse aunque alguna dependencia haya fallado u sido
 
 - **ArgoCD** detecta los cambios en el directorio `gitops/`:
   - **On-Premise (Proxmox VE)**: [`gitops/apps/app-proxmox-preprod.yaml`](../../gitops/apps/app-proxmox-preprod.yaml) aplicando `values.yaml` específicos de pre-prod (único entorno Proxmox, ADR-030).
-  - **Blueprint prod cloud (inactivo, ADR-030)**: [`gitops/apps/app-cloud.yaml`](../../gitops/apps/app-cloud.yaml) queda **excluido del App-of-Apps** (GITOPS-001); ArgoCD no lo sincroniza. Proxmox y Proxmox-preprod son los únicos targets desplegados.
+  - **Blueprint prod cloud (inactivo, ADR-030)**: [`gitops/apps/app-cloud.yaml`](../../gitops/apps/app-cloud.yaml) queda **excluido del App-of-Apps** (GITOPS-001); ArgoCD no lo sincroniza. Pre-producción en Proxmox (`pokedex-preprod`) es el único target desplegado.
 - **Control de Admisión con Kyverno:**
   - La política de clúster [`infra/k8s/kyverno-cosign-policy.yaml`](../../infra/k8s/kyverno-cosign-policy.yaml) intercepta la creación de Pods en modo `Enforce`.
   - Verifica que la imagen provenga de `ghcr.io/rocapellino/pokedex:*`, que esté firmada con el emisor OIDC `https://token.actions.githubusercontent.com` y que la identidad del workflow firmante sea exactamente `https://github.com/rocapellino/pokedex/.github/workflows/ci.yaml@refs/heads/main`.

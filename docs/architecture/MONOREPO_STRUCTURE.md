@@ -85,30 +85,30 @@ pokedex/
 │       └── public/               # Assets estáticos servidos al navegador (CSS, favicon)
 │           ├── css/              # Estilos visuales con variables CSS y glassmorphism
 │           └── favicon.*         # Iconografía y branding
-├── Dockerfile                    # Construcción multi-stage de producción (Node.js 24 Alpine, UID 1001)
 ├── docker-compose.yaml            # Orquestación multicontenedor local (API, Web, Postgres, Redis)
 ├── package.json                  # Manifiesto, dependencias y scripts de ejecución
 ├── package-lock.json             # Lockfile determinista de npm
 ├── tsconfig.json                 # Configuración del compilador TypeScript en modo estricto
-├── Taskfile.yaml                  # Automatización de tareas de desarrollo y operaciones (go-task)
-├── renovate.json                 # Renovate Bot: multi-gestor con cooldown de 7 días y auto-merge de parches npm
+├── Taskfile.yaml                 # Automatización de tareas de desarrollo y operaciones (go-task)
+├── taskfiles/                    # Submódulos modulares de Taskfile (dev, ci, k8s, infra, obs, dr, gitops)
+├── renovate.json                 # Renovate Bot: multi-gestor con minimumReleaseAge de 7 días y agrupación
 ├── SECURITY.md                   # Política de seguridad y divulgación responsable de vulnerabilidades
-├── SECURITY_RUNBOOK.md           # Guías de respuesta ante incidentes y rotación criptográfica de claves
 ├── infra/                        # Infraestructura como Código (IaC) y Manifiestos Cloud-Native
 │   ├── helm/pokedex/             # Chart oficial de Helm 3 (Deployments, PgBouncer, HPA, NetPols)
-│   ├── k8s/                      # ClusterPolicy de Kyverno para verificación de firmas Cosign
+│   ├── k8s/                      # ClusterPolicy de Kyverno para verificación de firmas Cosign y ESO
 │   ├── opentofu/                 # Entornos Proxmox VE (on-premise), lab y cloud-template (blueprint prod)
 │   ├── proxmox/                  # Plantillas Cloud-Init y contenedores LXC on-premise
 │   └── ansible/                  # Playbooks de baseline de nodos y hardening de firewall UFW
 ├── gitops/                       # GitOps con ArgoCD
-│   ├── apps/                     # Definiciones de ArgoCD Applications (app-proxmox, app-cloud)
-│   └── environments/             # Sobrescrituras de valores por clúster (proxmox, cloud)
+│   ├── apps/                     # Definiciones de ArgoCD Applications (app-proxmox-preprod, app-cloud)
+│   └── environments/             # Sobrescrituras de valores por clúster (proxmox-preprod, cloud)
 ├── docs/                         # Portal de documentación técnica centralizada
 │   ├── README.md                 # Índice general de documentación
 │   ├── architecture/             # Diseños de arquitectura, seguridad, persistencia y escalabilidad
-│   ├── best-practices/           # Guías de Git Flow y Dockerfiles seguros
+│   ├── best-practices/           # Guías de Dockerfiles seguros y estándares de ingeniería
 │   ├── api/                      # Especificación formal de contratos REST
-│   └── runbooks/                 # Manuales operativos de Helm, HPA y pruebas de estrés
+│   ├── security/                 # Runbooks de respuesta ante incidentes y auditoría DevSecOps
+│   └── runbooks/                 # Manuales operativos de Helm, Proxmox, DR, HPA y pruebas de estrés
 ├── tests/                        # Suite de pruebas automatizadas
 │   ├── unit/                     # Pruebas unitarias de modelos y validaciones
 │   ├── security/                 # Pentests lógicos, evasión de auth y validación fail-closed
@@ -179,7 +179,7 @@ El gate opera con dos listas:
 
 ### 4.4. Deuda Técnica Vigente y Plan de Drenaje
 
-El repositorio mantiene **1 archivo `.yml` heredado** frente a 102 archivos `.yaml` tras la Wave 3. La migración por waves queda **completa**: `.yaml` es la única extensión en uso, salvo la excepción permanente documentada.
+El repositorio mantiene **0 archivos `.yml` heredados** (`LEGACY_YML_ALLOWLIST` vacío) tras completar la Wave 3. La migración por waves queda **completa**: `.yaml` es la única extensión en uso en todo el repositorio.
 
 | Wave | Alcance | Estado | Riesgo principal |
 | --- | --- | --- | --- |

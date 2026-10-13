@@ -48,7 +48,7 @@ flowchart TD
 
     subgraph DesarrolloLocal ["2. Entorno Local Git"]
         SyncMain["git checkout main<br/>git pull origin main"]
-        CreateBranch["git checkout -b rocapellino/pex-7-upgrade-python-3-13"]
+        CreateBranch["git checkout -b rocapellino/pex-7-upgrade-node-24"]
         Coding["Desarrollo de código y pruebas locales"]
         LocalAudit["task test && task lint"]
         CommitChanges["git add .<br/>git commit -m 'feat(scope): mensaje'"]
@@ -57,7 +57,7 @@ flowchart TD
 
     subgraph RevisionGitHub ["3. GitHub Pull Request & CI/CD"]
         OpenPR["Abrir Pull Request en GitHub"]
-        CIWorkflow["Disparo automático de GitHub Actions<br/>ci.yaml / security-gitleaks.yaml"]
+        CIWorkflow["Disparo automático de GitHub Actions<br/>change-impact.yaml / security-gitleaks.yaml"]
         CheckCI{"¿Pasan todos<br/>los checks de CI?"}
         FixLocally["Corregir localmente y hacer git push"]
         ReviewCopilot{"Code Review &<br/>Aprobación"}
@@ -130,7 +130,7 @@ gitGraph
 
     branch rocapellino/pex-7-upgrade
     checkout rocapellino/pex-7-upgrade
-    commit id: "feat(docker): python 3.13"
+    commit id: "feat(docker): node 24 lts"
     commit id: "feat(ai): google ai studio"
     commit id: "test(ai): mock unit tests"
     checkout main
@@ -147,10 +147,10 @@ Para mantener consistencia con Linear y la trazabilidad del equipo, se utiliza l
 
 | Tipo | Formato de Rama | Ejemplo Real |
 | :--- | :--- | :--- |
-| **Linear Ticket (Recomendado)** | `<usuario>/<ticket-id>-<descripcion-kebab>` | `rocapellino/pex-7-upgrade-python-3-13-and-features` |
+| **Linear Ticket (Recomendado)** | `<usuario>/<ticket-id>-<descripcion-kebab>` | `rocapellino/pex-7-upgrade-node-24-and-features` |
 | **Nueva Característica** | `feat/<nombre-funcionalidad>` | `feat/google-ai-studio-endpoints` |
 | **Corrección de Bug** | `fix/<nombre-del-error>` | `fix/postgres-docker-connection-refused` |
-| **Mantenimiento / Deps** | `chore/<descripcion>` | `chore/update-ruff-config` |
+| **Mantenimiento / Deps** | `chore/<descripcion>` | `chore/update-biome-config` |
 | **Documentación** | `docs/<tema>` | `docs/git-branching-guide` |
 | **Refactorización** | `refactor/<modulo>` | `refactor/evolution-tree-parser` |
 
@@ -210,7 +210,7 @@ Organiza los cambios en commits claros siguiendo la especificación [Conventiona
 
 ```bash
 # Agregar archivos específicos al área de preparación (staging)
-git add server.ts src/services/ai.ts
+git add apps/backend/server.ts apps/backend/src/services/ai.ts
 
 # Crear el commit con mensaje semántico
 git commit -m "feat(ai): add google ai studio flowchart generator"

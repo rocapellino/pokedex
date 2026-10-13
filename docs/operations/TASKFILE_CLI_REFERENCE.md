@@ -38,7 +38,7 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task test:a11y` | Auditoría de accesibilidad WCAG 2.1 con Axe-core. |
 | | `task test:coverage` | Generación de reporte de cobertura LCOV. |
 | | `task perf:lighthouse` | Auditoría de Core Web Vitals y rendimiento con Lighthouse CI sobre nginx real y una API simulada con el catálogo completo (ver `apps/frontend/README.md`). |
-| **Entorno Local** | `task dev:compose` | Levanta el stack interactivo con Docker Compose (Postgres, Redis, PgBouncer). |
+| **Entorno Local** | `task dev:compose` | Levanta el stack interactivo con Docker Compose (`pokemon-web`, `pokemon-api`, `postgres`, `redis`). |
 | | `task dev:compose:down` | Detiene y desmantela los contenedores locales de Compose. |
 | | `task dev:catalog:generate` | Regenera el catálogo nacional completo de Pokémon desde PokeAPI. |
 | | `task dev:k8s:up` | Despliega clúster Kind local con ingress y namespaces configurados. |
@@ -53,7 +53,7 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task ansible:prepare` | Aprovisiona baseline de sistema y configuración de nodo Proxmox. |
 | | `task ansible:harden` | Aplica blindaje perimetral y reglas de firewall UFW en hosts. |
 | | `task ansible:validate` | Auditoría y compliance de hosts sin alterar estado. |
-| | `task k3s:setup:proxmox` | Aprovisiona K3s y Cilium CNI en Proxmox mediante Ansible (`setup_k3s.yaml`). |
+| | `task k3s:setup:proxmox` | Aprovisiona K3s (Flannel por defecto en LXC 800; Cilium CNI opcional) en Proxmox mediante Ansible (`setup_k3s.yaml`). |
 | | `task vault:setup:proxmox` | Aprovisiona e inicializa HashiCorp Vault CE en Proxmox (`setup_vault.yaml`). |
 | **Empaquetado (Helm)** | `task helm:lint` | Valida sintaxis y buenas prácticas del Chart de Helm. |
 | | `task helm:template` | Renderiza manifiestos Kubernetes generados por el Chart. |

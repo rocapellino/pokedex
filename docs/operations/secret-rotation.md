@@ -55,7 +55,7 @@ kubectl rollout status deployment/pokemon-api -n pokemon-app
 
 ## 4. Auditoría Automatizada de Rotación (ADR-005)
 
-Conforme a [ADR-005](../decisions/ADR-005-secret-management.md), todos los despliegues de Kubernetes que consumen secretos están obligados a incorporar la anotación de recarga dinámica `reloader.stakater.com/auto: "true"`, y los manifiestos `ExternalSecret` aplican un `refreshInterval: 1h`.
+Conforme a [ADR-005](../decisions/ADR-005-secret-management.md), cuando `reloader.enabled: true` (perfil base / producción cloud), los despliegues de Kubernetes que consumen secretos incorporan la anotación de recarga dinámica `reloader.stakater.com/auto: "true"`, y los manifiestos `ExternalSecret` aplican un `refreshInterval: 1h` (en Proxmox pre-prod, donde `reloader.enabled: false`, la recarga se ejecuta mediante `rollout restart` gobernado).
 
 Para auditar la conformidad de toda la plataforma en CI o localmente:
 

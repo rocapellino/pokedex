@@ -59,8 +59,8 @@ graph TD
    ```bash
    kubectl create secret generic pokemon-secrets \
      -n pokemon-app \
-     --from-literal=admin-api-key="$NEW_API_KEY" \
-     --from-literal=admin-session-secret="$NEW_SESSION_SECRET" \
+     --from-literal=ADMIN_API_KEY="$NEW_API_KEY" \
+     --from-literal=ADMIN_SESSION_SECRET="$NEW_SESSION_SECRET" \
      --dry-run=client -o yaml | kubectl apply -f -
    ```
 
@@ -72,7 +72,7 @@ graph TD
 
    ```bash
    # Limpieza granular selectiva (NO usar FLUSHDB para evitar pérdida de métricas/rate-limits):
-   kubectl exec -it deployment/redis -n pokemon-app -- sh -c "redis-cli --scan --pattern 'pokedex:revoked:*' | xargs -r redis-cli del"
+   kubectl exec -it deployment/redis -n pokemon-app -- sh -c "redis-cli --scan --pattern 'revoked:*' | xargs -r redis-cli del"
    ```
 
 4. **Reiniciar los Pods de la API para cargar las nuevas credenciales:**
@@ -105,7 +105,7 @@ graph TD
 
    ```bash
    # Si el token expira en 900 segundos:
-   kubectl exec -it deployment/redis -n pokemon-app -- redis-cli SETEX "pokedex:revoked:<JTI>" 900 "1"
+   kubectl exec -it deployment/redis -n pokemon-app -- redis-cli SETEX "revoked:<JTI>" 900 "1"
    ```
 
 3. **Verificar revocación:**
@@ -164,7 +164,7 @@ graph TD
 1. **Reproducir el hallazgo localmente con Trivy:**
 
    ```bash
-   docker build -t pokedex:local-audit .
+   docker build -f apps/backend/Dockerfile -t pokedex:local-audit .
    trivy image --severity HIGH,CRITICAL pokedex:local-audit
    ```
 

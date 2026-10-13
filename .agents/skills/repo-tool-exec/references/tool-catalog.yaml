@@ -122,7 +122,7 @@ tools:
       version_args: ["version", "--short"]
       version_regex: 'v(\d+\.\d+\.\d+)'
     container:
-      image: "alpine/helm:3.22.0"
+      image: "alpine/helm:3.22.0@sha256:70ed3f7b02ab2eee12aa520ad6870305db8a82516b07aff62f5656c657a26e2a"
       mount_mode: "ro"
       workdir: "/repo"
       default_args: []
@@ -170,7 +170,7 @@ tools:
       version_args: ["--version"]
       version_regex: '(\d+\.\d+\.\d+)'
     container:
-      image: "renovate/renovate:44.151.5@sha256:f811c0d1ff65c36903923a8a522a035ff40254f7be6dd169ab868627494f2c95"
+      image: "renovate/renovate:44.155.1@sha256:f5796f26088c0f5debb07c16fa9e801145e4d3ba9717d9cc22ca8cd265e2a0eb"
       entrypoint: "renovate-config-validator"
       mount_mode: "ro"
       workdir: "/repo"

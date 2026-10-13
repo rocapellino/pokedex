@@ -87,7 +87,7 @@ En Kubernetes, los `Secrets` nativos están codificados en Base64, lo que **no c
   - **Producción:** no corre en Proxmox ([ADR-030](../decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md)); `pokedex/prod` queda reservada para el blueprint cloud.
   - *Principio de Blast Radius Reducido:* Se eliminó el rol global genérico `pokedex-role` y su política comodín `secret/data/pokedex/*`. Las credenciales comprometidas en pre-producción no tienen alcance ni visibilidad sobre los secretos de producción.
 - **Manifiesto:**
-  - Proxmox (Prod y Pre-prod): [`infra/k8s/eso/cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml) (`ClusterSecretStore/vault-backend` y `ClusterSecretStore/vault-backend-preprod`).
+  - Proxmox (Pre-prod): [`infra/k8s/eso/cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml) (`ClusterSecretStore/vault-backend-preprod`).
 
 ### 3.2. Prod Cloud (Blueprint Agnóstico): Backend a Elegir
 

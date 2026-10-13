@@ -103,7 +103,7 @@ k6 run tests/performance/k6_stress_test.js
 
 ### Paso 3: Observación del Comportamiento
 
-1. **Scale-Up:** Las métricas de CPU subirán de `5%/70%` a `120%/70%`. En 15 segundos, el HPA aumentará las réplicas de 2 a 5 o más pods automáticamente.
+1. **Scale-Up:** Las métricas de CPU subirán de `5%/70%` a `120%/70%`. En 15 segundos, el HPA aumentará las réplicas de 2 hasta 6 pods (`pokemon-api`, `maxReplicas: 6`) o 5 pods (`pokemon-web`, `maxReplicas: 5`) automáticamente.
 2. **Distribución:** El `Service` de Kubernetes balanceará las solicitudes entre todos los nuevos pods activos.
 3. **Scale-Down:** Al terminar la prueba de carga y pasar la ventana de estabilización (300 segundos / 5 minutos), el HPA reducirá gradualmente las réplicas de regreso a 2.
 

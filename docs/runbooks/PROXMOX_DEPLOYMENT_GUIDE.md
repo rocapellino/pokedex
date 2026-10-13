@@ -17,7 +17,7 @@ De acuerdo con **[ADR-030](../decisions/ADR-030-environment-model-local-dev-prox
 4. [Bastion Host como Management Plane On-Premise (LXC 820)](#4-bastion-host-como-management-plane-on-premise-lxc-820)
 5. [Hardening del Sistema Operativo y Firewall con Ansible](#5-hardening-del-sistema-operativo-y-firewall-con-ansible)
 6. [Aprovisionamiento y Configuración Endurecida de Vault CE con Ansible](#6-aprovisionamiento-y-configuración-endurecida-de-vault-ce-con-ansible)
-7. [Instalación de Kubernetes Runtime (K3s) y CNI Cilium](#7-instalación-de-kubernetes-runtime-k3s-y-cni-cilium)
+7. [Instalación de Kubernetes Runtime (K3s) y CNI](#7-instalación-de-kubernetes-runtime-k3s-y-cni)
 8. [Despliegue y Sincronización GitOps con ArgoCD](#8-despliegue-y-sincronización-gitops-con-argocd)
 9. [Verificación en Vivo de Aislamiento Egress y Anti-SSRF](#9-verificación-en-vivo-de-aislamiento-egress-y-anti-ssrf)
 10. [Procedimiento de Rotación de Secretos y Reinicio Progresivo (Rollout Restart)](#10-procedimiento-de-rotación-de-secretos-y-reinicio-progresivo-rollout-restart)
@@ -70,24 +70,24 @@ De acuerdo con **[ADR-030](../decisions/ADR-030-environment-model-local-dev-prox
     Proxmox (LXC 810: Vault CE @ 10.10.13.110:8200)
        ↓ (k8s auth method / pokedex-preprod-role [Least Privilege])
     ESO (External Secrets Operator en K3s)
-       ↓ (ClusterSecretStore / vault-backend)
-    ExternalSecret (pokedex-secrets @ secret/data/pokedex/prod)
+       ↓ (ClusterSecretStore / vault-backend-preprod)
+    ExternalSecret (pokedex-secrets @ secret/data/pokedex/preprod)
        ↓
     pokemon-secrets (K8s Secret nativo consumido vía envFrom)
        ↓
-    Deployment Pods (pokedex-api / pokedex-web)
+    Deployment Pods (pokemon-api / pokemon-web)
     ```
 
   - **Instancia de Vault en Proxmox:** Desplegada en un contenedor LXC dedicado (ID `810`, IP `10.10.13.110`, hostname `vault`) gestionado por OpenTofu y configurado por Ansible.
-  - **Definición Canónica ESO:** [`infra/k8s/eso/cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml) (`ClusterSecretStore/vault-backend`).
+  - **Definición Canónica ESO:** [`infra/k8s/eso/cluster-secret-store.yaml`](../../infra/k8s/eso/cluster-secret-store.yaml) (`ClusterSecretStore/vault-backend-preprod`).
   - **Secret Generado en Clúster:** `v1/Secret` llamado `pokemon-secrets` en el namespace `pokemon-app`.
 
 ### ¿Es necesario un redeploy de la app para que utilice el Vault?
 
 **SÍ, ES ESTRICTAMENTE NECESARIO.** Las razones arquitectónicas y técnicas son:
 
-1. **Snapshot de Variables de Entorno en Linux (`execve`):** Los servicios Node.js (`pokedex-api`, `pokedex-web`) leen sus credenciales desde `process.env` (inyectadas vía `envFrom: secretRef: name: pokemon-secrets`). En sistemas operativos basados en Linux, las variables de entorno se copian al espacio de memoria del proceso en el momento exacto de su ejecución inicial (`execve()`). Las modificaciones en Secrets de Kubernetes **no mutan** el entorno de procesos ya en ejecución.
-2. **Ausencia Intencional de Stakater Reloader en Proxmox:** Conforme al ADR-030 (perfil Lean de pre-prod), el controlador de Stakater Reloader está expresamente **desactivado** (`reloader.enabled: false`) en Proxmox para ahorrar recursos (CPU/RAM y overhead de RBAC). Si bien el chart de Helm renderiza transversalmente la anotación `reloader.stakater.com/auto: "true"` en los Deployments ([ADR-005](../decisions/ADR-005-secret-management.md)), esta resulta **completamente inocua/inerte** en Proxmox al no existir el daemon observador en ejecución. Por ende, no existe ningún proceso automático forzando reinicios ante mutaciones de Secrets externos.
+1. **Snapshot de Variables de Entorno en Linux (`execve`):** Los servicios Node.js (`pokemon-api`, `pokemon-web`) leen sus credenciales desde `process.env` (inyectadas vía `envFrom: secretRef: name: pokemon-secrets`). En sistemas operativos basados en Linux, las variables de entorno se copian al espacio de memoria del proceso en el momento exacto de su ejecución inicial (`execve()`). Las modificaciones en Secrets de Kubernetes **no mutan** el entorno de procesos ya en ejecución.
+2. **Ausencia Intencional de Stakater Reloader en Proxmox:** Conforme al ADR-030 (perfil Lean de pre-prod), el controlador de Stakater Reloader está expresamente **desactivado** (`reloader.enabled: false`) en Proxmox para ahorrar recursos (CPU/RAM y overhead de RBAC), por lo que el chart omite la anotación `reloader.stakater.com/auto: "true"` en los Deployments ([ADR-005](../decisions/ADR-005-secret-management.md)). Por ende, no existe ningún proceso automático forzando reinicios ante mutaciones de Secrets externos.
 3. **Invisibilidad del Hash `checksum/config`:** El mecanismo nativo de Helm `checksum/config` calcula únicamente el hash de ConfigMaps renderizados estáticamente durante `helm upgrade`. No tiene visibilidad sobre cambios asíncronos generados por ESO en el Secret `pokemon-secrets`.
 4. **Garantía Zero-Downtime:** El reinicio progresivo (`kubectl rollout restart`) asegura que los nuevos pods carguen las credenciales frescas de Vault pasando exitosamente las sondas de salud (`liveness` y `readiness`) antes de terminar los pods antiguos, garantizando cero tiempo de inactividad.
 
@@ -230,7 +230,7 @@ El playbook [`infra/ansible/playbooks/setup_vault.yaml`](../../infra/ansible/pla
    - Se garantiza la eliminación permanente de cualquier archivo `vault-init.json` en el contenedor LXC.
    - Las credenciales se entregan al operador en el nodo de control (Bastion) como `~/vault-init-vault-01.json` con permisos `0600` auditados (`vault_init_export_path`). El playbook incluye una guarda que previene la sobrescritura destructiva si ya existiera un archivo previo. El contrato operacional estipula que este archivo existe estrictamente durante el bootstrap: el operador debe resguardar las 5 llaves Shamir y el root token en custodia offline y purgarlo inmediatamente con `shred -u ~/vault-init-vault-01.json`. Sin esta entrega, Vault queda sellado sin recuperación tras el primer reinicio.
 6. **Integración con External Secrets Operator (ESO):**
-   - El certificado público de la CA interna se exporta a `infra/k8s/eso/vault-ca.crt` y se enlaza al `ClusterSecretStore/vault-backend` mediante `caProvider: { type: ConfigMap, name: vault-ca, key: ca.crt, namespace: external-secrets }`, garantizando validación TLS completa sin ignorar certificados.
+   - El certificado público de la CA interna se exporta a `infra/k8s/eso/vault-ca.crt` y se enlaza al `ClusterSecretStore/vault-backend-preprod` mediante `caProvider: { type: ConfigMap, name: vault-ca, key: ca.crt, namespace: external-secrets }`, garantizando validación TLS completa sin ignorar certificados.
 
 ```bash
 # Ejecutar el playbook de aprovisionamiento endurecido de Vault:
@@ -245,16 +245,16 @@ curl --cacert infra/k8s/eso/vault-ca.crt https://10.10.13.110:8200/v1/sys/health
 
 ---
 
-## 7. Instalación de Kubernetes Runtime (K3s) y CNI Cilium
+## 7. Instalación de Kubernetes Runtime (K3s) y CNI
 
-Para garantizar la política **Zero-Trust L7 Egress (FQDN Allowlist)** y bloquear destinos públicos no autorizados (como `https://example.com`) al tiempo que se permite el acceso a `generativelanguage.googleapis.com` y `pokeapi.co`, K3s se instala delegando el CNI a **Cilium eBPF**.
+En el contenedor LXC 800 de pre-producción, K3s opera por defecto con su CNI integrado (**Flannel** + `kube-router` para `NetworkPolicy` L3/L4 estándar, `cilium_enabled: false` en [`infra/ansible/playbooks/setup_k3s.yaml`](../../infra/ansible/playbooks/setup_k3s.yaml)), dado que un contenedor LXC comparte el kernel del host y no monta bpf/cgroupv2 para Cilium eBPF L7 ([ADR-013](../decisions/ADR-013-zero-trust-network-architecture.md)). Para entornos en VM KVM completa o el blueprint de producción cloud donde se requiere filtrado **Zero-Trust L7 Egress (`toFQDNs`)**, el playbook admite activar **Cilium eBPF** (`-e "cilium_enabled=true"`).
 
 ### Opción A (Recomendada): Provisión Declarativa con Ansible Playbook
 
 El proceso está totalmente automatizado y es idempotente mediante el playbook [`infra/ansible/playbooks/setup_k3s.yaml`](../../infra/ansible/playbooks/setup_k3s.yaml):
 
 ```bash
-# Ejecutar el playbook de aprovisionamiento desatendido de K3s + Cilium CNI:
+# Ejecutar el playbook de aprovisionamiento desatendido de K3s:
 ansible-playbook -i infra/ansible/inventories/proxmox/hosts.yaml infra/ansible/playbooks/setup_k3s.yaml
 
 # O canónicamente vía Taskfile:
@@ -264,14 +264,15 @@ task k3s:setup:proxmox
 Este playbook ejecuta de forma desatendida:
 
 1. Verificación del binario y servicio de K3s preexistente.
-2. Descarga e instalación de K3s con `--flannel-backend=none --disable-network-policy --disable servicelb --disable local-storage`.
-3. Verificación de salud del Kube-apiserver en `https://127.0.0.1:6443/readyz`.
-4. Instalación de Cilium CNI v1.16.1 mediante Helm en el namespace `kube-system` (modo optimizado en memoria RAM sin Hubble UI).
-5. Espera activa hasta que el nodo reporte estado `Ready`.
+2. Configuración de la redirección global HTTP → HTTPS (301) en Traefik (`/var/lib/rancher/k3s/server/manifests/traefik-config.yaml`).
+3. Descarga e instalación de K3s con Flannel por defecto en LXC 800 (o con `--flannel-backend=none --disable-network-policy` si `cilium_enabled=true`).
+4. Verificación de salud del Kube-apiserver en `https://127.0.0.1:6443/readyz`.
+5. Si `cilium_enabled=true`, instalación de Cilium CNI v1.16.1 mediante Helm en el namespace `kube-system` (modo optimizado en memoria RAM sin Hubble UI).
+6. Espera activa hasta que el nodo reporte estado `Ready`.
 
-### Opción B: Instalación Manual Paso a Paso
+### Opción B: Instalación Manual con Cilium (Solo en VM KVM / Cloud)
 
-Si se requiere realizar la instalación manual para depuración o laboratorio:
+Si se requiere instalar manualmente con Cilium en una VM KVM completa o laboratorio con soporte eBPF:
 
 ```bash
 # 1. Instalación de K3s con Flannel desactivado (preparado para Cilium)
@@ -446,9 +447,9 @@ npm run k8s:rollout-restart -- --live
 task k8s:rollout-restart -- --live
 
 # Opción 3: Comandos nativos de kubectl directos
-kubectl rollout restart deployment pokedex-api pokedex-web -n pokemon-app
-kubectl rollout status deployment pokedex-api -n pokemon-app --timeout=120s
-kubectl rollout status deployment pokedex-web -n pokemon-app --timeout=120s
+kubectl rollout restart deployment pokemon-api pokemon-web -n pokemon-app
+kubectl rollout status deployment pokemon-api -n pokemon-app --timeout=120s
+kubectl rollout status deployment pokemon-web -n pokemon-app --timeout=120s
 ```
 
 ### Verificación de Arquitectura y Simulación de Contrato

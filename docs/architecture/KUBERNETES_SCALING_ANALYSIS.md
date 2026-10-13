@@ -21,10 +21,9 @@ La plataforma se adapta a diferentes modelos de ejecución según el contexto op
 
 | Entorno | Modelo de Ejecución | Estrategia de Réplicas | Dimensionamiento / Recursos |
 | :--- | :--- | :--- | :--- |
-| **Local (Dev)** | Docker Compose / Kind | 1 réplica unificada | Recursos locales directos, recarga en vivo con `tsx` o `docker compose up` |
-| **Pre-producción (Lab)** | LXC / K8s ligero | 1 réplica fija | Capacidad acotada para validación funcional e integración continua |
-| **Proxmox VE (On-Premise)** | Kubernetes (K3s) | Réplicas fijas (2 pods) | **Capacidad fija por diseño lean**: garantiza alta disponibilidad local sin sobrecargar la CPU/RAM del host físico |
-| **Cloud (Enterprise)** | EKS / GKE / AKS | HPA Elástico (2 a 10 pods) | Escalado automático reactivo a picos de tráfico basado en CPU y memoria |
+| **Local (Dev)** | Docker Compose / Kind | 1 réplica por servicio | Recursos locales directos, recarga en vivo con `tsx` o `docker compose up` |
+| **Proxmox Pre-prod (LXC 800)** | Kubernetes (K3s) | Réplica fija (`1` pod por servicio, ADR-030) | **Capacidad fija por diseño lean**: validación funcional e integración continua sin sobrecargar la CPU/RAM del host físico |
+| **Cloud (Blueprint Prod)** | Kubernetes gestionado (EKS / GKE / AKS) | HPA Elástico (`2` a `6` pods API / `2` a `5` pods Web) | Escalado automático reactivo a picos de tráfico basado en CPU (70%) y memoria (80%) |
 
 ---
 
@@ -41,7 +40,7 @@ flowchart TD
     subgraph K8sCluster["Clúster Kubernetes (Perfil Cloud HPA)"]
         MS["Metrics Server (kube-state-metrics)"]
         HPA["Horizontal Pod Autoscaler (HPA Controller)"]
-        DEP["Deployment (pokedex-api)"]
+        DEP["Deployment (pokemon-api)"]
 
         P1["Pod 1 (35% CPU)"]
         P2["Pod 2 (80% CPU)"]
@@ -80,7 +79,7 @@ flowchart TD
 
     subgraph ConfigLayer["Inyección Declarativa de Configuración"]
         CM["ConfigMap (DATABASE_HOST, PORT)"]
-        SEC["Secret / ExternalSecret (POSTGRES_USER, PASSWORD, JWT_SECRET)"]
+        SEC["Secret / ExternalSecret (POSTGRES_USER, PASSWORD, ADMIN_SESSION_SECRET)"]
     end
 
     subgraph StatefulLayer["Capa de Persistencia Centralizada (SSOT)"]
@@ -152,16 +151,20 @@ La orquestación declarativa se centraliza en `infra/helm/pokedex/`:
 ```text
 infra/helm/pokedex/
 ├── Chart.yaml                     # Metadatos del Chart y versionado semántico
-├── values.yaml                    # Configuración base (perfil local/desarrollo)
-├── values.prod.yaml               # Overrides de producción para clúster Proxmox
+├── values.yaml                    # Configuración base segura (Secure by Default)
+├── values.dev.yaml                # Overrides para desarrollo local / Kind
+├── values.prod.yaml               # Overrides para perfil de producción (HA, Zero-Trust, PgBouncer)
 └── templates/
     ├── configmap.yaml             # Variables de entorno no sensibles
-    ├── secret.yaml                # Credenciales y secretos sincronizados
+    ├── secret.yaml                # Secret condicional para entornos locales
+    ├── externalsecret.yaml        # Sincronización de secretos con ESO / Vault
     ├── postgres-statefulset.yaml  # PostgreSQL con PVC persistente
-    ├── pgbouncer-deployment.yaml  # Pooler opcional para alta escala
-    ├── redis-deployment.yaml      # Redis Caché con ClusterIP
-    ├── deployment.yaml            # Deployment unificado de Node.js/Express
-    ├── hpa.yaml                   # Autoscaler v2 condicionado por autoscaling.enabled
+    ├── pgbouncer-deployment.yaml  # Pooler transaccional para alta escala
+    ├── redis-deployment.yaml      # Redis Caché con ClusterIP y PVC
+    ├── api-deployment.yaml        # Deployment de API (Node.js/Express)
+    ├── web-deployment.yaml        # Deployment de Frontend (Nginx)
+    ├── api-hpa.yaml               # Autoscaler v2 de API condicionado por api.autoscaling.enabled
+    ├── web-hpa.yaml               # Autoscaler v2 de Web condicionado por web.autoscaling.enabled
     ├── ingress.yaml               # Reglas de enrutamiento Ingress
     └── network-policies.yaml      # Políticas Zero-Trust de aislamiento de tráfico
 ```

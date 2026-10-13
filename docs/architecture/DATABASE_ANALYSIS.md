@@ -53,7 +53,7 @@ La arquitectura en producción activa (incluyendo el perfil Proxmox VE) implemen
    - Gestiona reconexiones automáticas, timeouts y liberación de sockets tras cada consulta.
    - Elimina la sobrecarga de capas intermedias en despliegues con topología de recursos acotados (diseño lean de Proxmox).
 3. **Redis 7 (Capa de Aceleración y Coordinación Distribuida):**
-   - **Caché de Listados:** Almacena respuestas completas serializadas bajo claves `pokedex:list:*` con TTL de 300 segundos.
+   - **Caché de Listados y Detalle:** Almacena respuestas completas serializadas bajo claves `pokedex:list:*` con TTL de 60 segundos y detalle individual bajo `pokedex:item:*` con TTL de 300 segundos.
    - **Revocación Distribuida de Sesiones:** Registra identificadores de sesión revocados `revoked:<jti>` con expiración exacta.
    - **Rate Limiting Atómico:** Ejecuta scripts Lua en memoria para ventanas deslizantes sin condiciones de carrera.
 
@@ -80,7 +80,7 @@ flowchart TD
         R_REDIS -->|Cache Hit| R_HIT["⚡ Retorno Inmediato desde Redis\nLatencia sub-3ms"]
         R_REDIS -->|Cache Miss| R_POOL["🔌 Conexión via pg.Pool (o PgBouncer opcional)"]
         R_POOL --> R_PG[("🗄️ Query a PostgreSQL 16\nSELECT data FROM pokedex_entries WHERE...")]
-        R_PG --> R_SET_REDIS["Guardar resultado en Redis\nSETEX pokedex:list:* 300s"]
+        R_PG --> R_SET_REDIS["Guardar resultado en Redis\nSETEX pokedex:list:* 60s"]
         R_SET_REDIS --> R_RESP["Retornar JSON al Cliente con cabecera ETag"]
         R_HIT --> R_RESP
     end
@@ -148,9 +148,8 @@ SELECT setval(
 ## 7. Estrategia de Caché, Revocación y Rate Limiting en Redis
 
 1. **Caché de Consultas Frecuentes:**
-   - Clave: `pokedex:list:<query_hash>`
-   - TTL: **300 segundos** (5 minutos).
-   - Invalidación proactiva: Toda operación de mutación (`savePokemon`, `deletePokemon`) ejecuta una invalidación de claves coincidentes con `pokedex:list:*`.
+   - Clave de listados: `pokedex:list:<query_hash>` con TTL de **60 segundos**; clave de detalle individual: `pokedex:item:<id>` con TTL de **300 segundos** (5 minutos).
+   - Invalidación proactiva: Toda operación de mutación (`savePokemon`, `deletePokemon`) ejecuta una invalidación de claves coincidentes con `pokedex:list:*` y `pokedex:item:<id>`.
 2. **Revocación Distribuida de Sesiones:**
    - Clave: `revoked:<jti>`
    - Valor: `"1"`

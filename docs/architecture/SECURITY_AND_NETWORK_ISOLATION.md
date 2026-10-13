@@ -44,24 +44,22 @@ Este documento describe el modelo de **Defensa en Profundidad (*Defense in Depth
 ```mermaid
 flowchart TD
     subgraph PUBLIC_ZONE["🌐 CAPA 1: ZONA DMZ / PÚBLICA (pokedex-frontend-net)"]
-        CLIENT["👤 Usuarios / Navegadores"] -->|HTTP :8080| WEB["🌐 pokemon-web (Nginx Reverse Proxy)\n• Servido de HTML/CSS/JS estáticos\n• Cabeceras de seguridad CSP\n• Ejecución no-root (nginx)"]
+        CLIENT["👤 Usuarios / Navegadores"] -->|HTTP :8080| WEB["🌐 pokemon-web (Nginx Reverse Proxy)\n• Servido de HTML/CSS/JS estáticos\n• Cabeceras de seguridad CSP\n• Ejecución no-root (UID 101)"]
     end
 
     subgraph APP_ZONE["⚙️ CAPA 2: ZONA DE APLICACIÓN (pokedex-backend-net)"]
-        WEB -->|HTTP interno :3000\nProxy /api/*, /pokemons| API["⚙️ pokemon-api (Node.js 24 + Express)\n• Escucha en puerto 3000\n• Validador XSS y anti-DoS\n• Rate limiting Lua y timing-safe auth\n• Usuario no-root UID 1001"]
+        WEB -->|HTTP interno :3000\nProxy /api/*, /pokemons| API["⚙️ pokemon-api (Node.js 24 + Express)\n• Escucha en puerto 3000\n• Validador XSS y anti-DoS\n• Rate limiting Lua y timing-safe auth\n• Usuario no-root UID 1000 (OCI) / 10001 (K8s)"]
     end
 
     subgraph DATA_ZONE["🗄️ CAPA 3: ZONA DE DATOS AISLADA (internal: true)"]
         API -->|TCP :5432| PGB["🛡️ PgBouncer (Pooler)\n• Mediador obligatorio en prod\n• Rate limit de sockets"]
         PGB -->|TCP :5432| DB[("🗄️ pokemon-postgres (PostgreSQL 16)\n• Tabla pokedex_entries JSONB\n• Secuencia atómica pokedex_id_seq\n• Ingress exclusivo de PgBouncer/Seeder")]
-        API -->|TCP :6379\nRESP Protocol| REDIS[("⚡ pokemon-redis (Redis 7)\n• Caché pokedex:list:*\n• Revocación distribuida revoked:jti\n• Rate limiter scripts Lua")]
+        API -->|TCP :6379\nRESP Protocol| REDIS[("⚡ pokemon-redis-svc (Redis 7)\n• Caché pokedex:list:*\n• Revocación distribuida revoked:jti\n• Rate limiter scripts Lua")]
     end
 
-    subgraph OBS_ZONE["📊 CAPA 4: ZONA DE OBSERVABILIDAD (monitoring-net)"]
-        API -->|HTTP interno :3000\nScrape /metrics| PROM["📈 Prometheus Server (:9090)"]
-        PROM -->|Datasource HTTP| GRAFANA["📉 Grafana Dashboard (:3000)"]
-        API -->|Logs JSON stdout| LOKI["🗄️ Grafana Loki (:3100)"]
-        LOKI -->|Datasource LogQL| GRAFANA
+    subgraph OBS_ZONE["📊 CAPA 4: ZONA DE OBSERVABILIDAD (Grafana Alloy / Cloud)"]
+        API -->|HTTP interno :3000\nScrape /metrics + OTLP :4317| ALLOY["📡 Grafana Alloy (Agente K8s)\n• Scrape Prometheus /metrics\n• Logs JSON stdout y trazas OTLP"]
+        ALLOY -->|HTTPS :443 Egress| GCLOUD["📈 Grafana Cloud (Mimir / Loki / Tempo)"]
     end
 
     subgraph EGRESS_OUT["🌍 EGRESS EXTERNO (Internet / Gemini AI)"]
@@ -98,11 +96,11 @@ flowchart TD
 
 | Componente | Repositorio | Redes Asignadas | Puerto Interno | Puerto Host | Accesible Desde | Bloqueado Para |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| **Frontend (`pokemon-web`)** | `pokedex` | `pokedex-frontend-net` | `80` (HTTP) | `8080` | Internet / Clientes | `pokedex-backend-net` |
+| **Frontend (`pokemon-web`)** | `pokedex` | `pokedex-frontend-net` | `8080` (HTTP) | `8080` | Internet / Clientes | `pokedex-backend-net` |
 | **Backend API (`pokemon-api`)** | `pokedex` | `pokedex-frontend-net` / `pokedex-backend-net` | `3000` | `3000` *(dev)* | `pokemon-web` | Acceso directo sin proxy en producción |
 | **PgBouncer (`pgbouncer`)** | `pokedex` | `pokedex-backend-net` | `5432` | — | `pokemon-api` | `pokemon-web`, Internet |
 | **PostgreSQL 16** | `pokedex` | `pokedex-backend-net` | `5432` | `5432` *(dev)* | `pgbouncer`, `db-seeder` | `pokemon-web`, `pokemon-api` *(en prod)*, Internet |
-| **Redis 7** | `pokedex` | `pokedex-backend-net` | `6379` | `6379` *(dev)* | `pokemon-api` | `pokemon-web`, Internet |
+| **Redis 7 (`pokemon-redis-svc`)** | `pokedex` | `pokedex-backend-net` | `6379` | `6379` *(dev)* | `pokemon-api` | `pokemon-web`, Internet |
 | **Grafana Cloud / Alloy** | N/A (SaaS) | Egress HTTPS (443) | — | — | Agentes de telemetría K8s / host | Tráfico Ingress no solicitado |
 
 ---
