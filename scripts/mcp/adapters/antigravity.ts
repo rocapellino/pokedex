@@ -12,13 +12,19 @@
  * ==============================================================================
  */
 
-import { type McpAdapter, type McpClientDefinition, type McpServerDefinition, resolveEnvExpression } from './types.js';
+import {
+  type McpAdapter,
+  type McpClientDefinition,
+  type McpServerDefinition,
+  resolveClientEnv,
+  resolveEnvExpression,
+} from './types.js';
 
 export const antigravityAdapter: McpAdapter = {
   clientId: 'antigravity',
   format: 'antigravity-mcp-json',
 
-  generateConfig(servers: McpServerDefinition[], _clientDef: McpClientDefinition): Record<string, unknown> {
+  generateConfig(servers: McpServerDefinition[], clientDef: McpClientDefinition): Record<string, unknown> {
     const mcpServers: Record<string, unknown> = {};
 
     for (const server of servers) {
@@ -28,8 +34,9 @@ export const antigravityAdapter: McpAdapter = {
           args: server.args || [],
         };
 
-        if (server.env && Object.keys(server.env).length > 0) {
-          srvConfig.env = server.env;
+        const resolvedEnv = resolveClientEnv(server, clientDef);
+        if (resolvedEnv) {
+          srvConfig.env = resolvedEnv;
         }
 
         mcpServers[server.id] = srvConfig;

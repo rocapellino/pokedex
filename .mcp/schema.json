@@ -63,7 +63,9 @@
             "github",
             "infrastructure-readonly",
             "infrastructure-write",
-            "ci"
+            "ci",
+            "security-readonly",
+            "documentation-readonly"
           ]
         },
         "enabled": {

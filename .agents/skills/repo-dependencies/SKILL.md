@@ -38,3 +38,4 @@ Reglas propias de esta skill:
 
 - **Planes de Cambio:** Todo cambio en `package.json` o lockfile requiere modelado previo con [change-plan.md](../_shared/change-plan.md) y validación de impacto con `repo-impact`.
 - **Referencias Externas Aprobadas (AAS):** para auditoría y evaluación de riesgos en la cadena de suministro de dependencias, consultar `dependency-scanning` en [aas-references.md](../_shared/aas-references.md).
+- **Integración MCP (`context7`):** Para consultar documentación técnica de versiones específicas de dependencias y firmas de API, consultar el servidor gobernado `context7` (`documentation-readonly`, `.mcp/registry.yaml`).

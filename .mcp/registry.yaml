@@ -149,3 +149,48 @@ servers:
       filesystem: "none"
       network: "none"
     notes: "DESHABILITADO POR DEFECTO. Servidor placeholder aislado (--network=none) que requiere runtime de servidor MCP y aprobación explícita de arquitectura para evitar eludir GitOps."
+
+  - id: "trivy"
+    name: "Trivy Security Vulnerability MCP Server"
+    description: "Escaneo de vulnerabilidades en dependencias, imágenes de contenedores y configuraciones de infraestructura"
+    transport: "stdio"
+    execution_mode: "local"
+    package: "trivy-mcp"
+    version: "0.1.0"
+    license: "Apache-2.0"
+    profile: "security-readonly"
+    enabled: true
+    command: "trivy"
+    args:
+      - "mcp"
+    env:
+      GITHUB_TOKEN: "${TRIVY_GITHUB_TOKEN}"
+    permissions:
+      read: true
+      write: false
+      filesystem: "read-only-repo"
+      network: "outbound-allowed"
+    notes: "Ejecutado localmente mediante el plugin 'trivy mcp' (Aqua Security). Requiere Trivy CLI y plugin en el host verificado por mcp:doctor. La delimitación de filesystem (read-only-repo) y red es un contrato declarativo de catálogo y gobernanza del cliente; la ejecución stdio local hereda los privilegios del usuario del host."
+
+  - id: "context7"
+    name: "Context7 Documentation MCP Server"
+    description: "Consulta de documentación técnica actualizada y ejemplos de código versionados (Upstash Context7)"
+    transport: "stdio"
+    execution_mode: "local"
+    package: "@upstash/context7-mcp"
+    version: "4.4.0"
+    license: "MIT"
+    profile: "documentation-readonly"
+    enabled: true
+    command: "npx"
+    args:
+      - "-y"
+      - "@upstash/context7-mcp@4.4.0"
+    env:
+      CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"
+    permissions:
+      read: true
+      write: false
+      filesystem: "none"
+      network: "outbound-allowed"
+    notes: "Provee contexto técnico oficial y documentación actualizada (Upstash). La delimitación de filesystem (none) es contractual del catálogo; el subproceso npx se ejecuta bajo los permisos del entorno local."

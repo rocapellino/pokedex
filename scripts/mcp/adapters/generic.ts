@@ -6,7 +6,13 @@
  * ==============================================================================
  */
 
-import { type McpAdapter, type McpClientDefinition, type McpServerDefinition, resolveEnvExpression } from './types.js';
+import {
+  type McpAdapter,
+  type McpClientDefinition,
+  type McpServerDefinition,
+  resolveClientEnv,
+  resolveEnvExpression,
+} from './types.js';
 
 export const genericAdapter: McpAdapter = {
   clientId: 'generic',
@@ -22,8 +28,9 @@ export const genericAdapter: McpAdapter = {
           args: server.args || [],
         };
 
-        if (server.env && Object.keys(server.env).length > 0) {
-          srvConfig.env = server.env;
+        const resolvedEnv = resolveClientEnv(server, clientDef);
+        if (resolvedEnv) {
+          srvConfig.env = resolvedEnv;
         }
 
         mcpServers[server.id] = srvConfig;

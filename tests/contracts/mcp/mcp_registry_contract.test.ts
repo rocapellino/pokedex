@@ -62,3 +62,36 @@ test('🛡️ MCP Contrato: El validador test-config aprueba todos los adaptador
     );
   }
 });
+
+test('🛡️ MCP Contrato: Servidores trivy y context7 están registrados con metadatos y permisos completos', () => {
+  const registry: any = yaml.load(fs.readFileSync(path.join(ROOT_DIR, '.mcp', 'registry.yaml'), 'utf-8'));
+  const servers = registry.servers || [];
+
+  const trivy = servers.find((s: any) => s.id === 'trivy');
+  assert.ok(trivy, "El servidor 'trivy' debe estar registrado en registry.yaml");
+  assert.strictEqual(trivy.profile, 'security-readonly');
+  assert.strictEqual(trivy.transport, 'stdio');
+  assert.strictEqual(trivy.execution_mode, 'local');
+  assert.strictEqual(trivy.enabled, true);
+  assert.strictEqual(trivy.command, 'trivy');
+  assert.deepStrictEqual(trivy.args, ['mcp']);
+  assert.strictEqual(trivy.version, '0.1.0');
+  assert.strictEqual(trivy.permissions?.write, false);
+  assert.strictEqual(trivy.permissions?.read, true);
+  assert.strictEqual(trivy.permissions?.filesystem, 'read-only-repo');
+  assert.strictEqual(trivy.permissions?.network, 'outbound-allowed');
+
+  const context7 = servers.find((s: any) => s.id === 'context7');
+  assert.ok(context7, "El servidor 'context7' debe estar registrado en registry.yaml");
+  assert.strictEqual(context7.profile, 'documentation-readonly');
+  assert.strictEqual(context7.transport, 'stdio');
+  assert.strictEqual(context7.execution_mode, 'local');
+  assert.strictEqual(context7.enabled, true);
+  assert.strictEqual(context7.command, 'npx');
+  assert.deepStrictEqual(context7.args, ['-y', '@upstash/context7-mcp@4.4.0']);
+  assert.strictEqual(context7.version, '4.4.0');
+  assert.strictEqual(context7.permissions?.write, false);
+  assert.strictEqual(context7.permissions?.read, true);
+  assert.strictEqual(context7.permissions?.filesystem, 'none');
+  assert.strictEqual(context7.permissions?.network, 'outbound-allowed');
+});

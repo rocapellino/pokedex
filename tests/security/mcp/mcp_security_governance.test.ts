@@ -155,3 +155,44 @@ test('🔒 MCP Seguridad: URLs remotas en configuraciones generadas están compl
     }
   }
 });
+
+test('🔒 MCP Seguridad: Perfiles security-readonly y documentation-readonly restringen escritura e infraestructura', () => {
+  const policies: any = yaml.load(fs.readFileSync(path.join(ROOT_DIR, '.mcp', 'policies.yaml'), 'utf-8'));
+  const profiles = policies.profiles || {};
+
+  const secReadonly = profiles['security-readonly'];
+  assert.ok(secReadonly, "El perfil 'security-readonly' debe existir en policies.yaml");
+  assert.strictEqual(secReadonly.write_access, false, 'security-readonly DEBE prohibir write_access');
+  assert.strictEqual(secReadonly.infra_access, 'none', 'security-readonly no debe permitir acceso a infraestructura');
+  assert.strictEqual(
+    secReadonly.allow_production_secrets,
+    false,
+    'security-readonly no debe permitir secretos de producción',
+  );
+  assert.strictEqual(secReadonly.filesystem, 'read-only-repo', 'security-readonly debe delimitarse a read-only-repo');
+  assert.strictEqual(
+    secReadonly.network,
+    'outbound-allowed',
+    'security-readonly requiere outbound-allowed para CVE DB',
+  );
+
+  const docReadonly = profiles['documentation-readonly'];
+  assert.ok(docReadonly, "El perfil 'documentation-readonly' debe existir en policies.yaml");
+  assert.strictEqual(docReadonly.write_access, false, 'documentation-readonly DEBE prohibir write_access');
+  assert.strictEqual(
+    docReadonly.infra_access,
+    'none',
+    'documentation-readonly no debe permitir acceso a infraestructura',
+  );
+  assert.strictEqual(
+    docReadonly.allow_production_secrets,
+    false,
+    'documentation-readonly no debe permitir secretos de producción',
+  );
+  assert.strictEqual(docReadonly.filesystem, 'none', 'documentation-readonly no debe acceder al filesystem');
+  assert.strictEqual(
+    docReadonly.network,
+    'outbound-allowed',
+    'documentation-readonly requiere outbound-allowed para APIs de docs',
+  );
+});
