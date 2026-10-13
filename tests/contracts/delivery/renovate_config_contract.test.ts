@@ -296,7 +296,7 @@ test('🛡️ RENOVATE-005: las herramientas con checksum fijado no generan PRs 
   assert.deepEqual([...names].sort(), [...CHECKSUM_PINNED].sort());
 });
 
-test('🛡️ RENOVATE-005: las imágenes con digest de Config Linters las ve el gestor custom.regex', () => {
+test('🛡️ RENOVATE-005: las imágenes con digest de Config Linters y tool-catalog las ve el gestor custom.regex', () => {
   const config = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'renovate.json'), 'utf-8')) as {
     customManagers: Array<{ managerFilePatterns: string[]; matchStrings: string[]; datasourceTemplate?: string }>;
   };
@@ -305,6 +305,10 @@ test('🛡️ RENOVATE-005: las imágenes con digest de Config Linters las ve el
   );
   assert.ok(manager, 'RENOVATE-005: falta el gestor de las imágenes de config-linters.yaml');
   assert.equal(manager.datasourceTemplate, 'docker');
+  assert.ok(
+    manager.managerFilePatterns.some((p) => p.includes('tool-catalog')),
+    'RENOVATE-005: el gestor debe incluir tool-catalog.yaml para mantener paridad en los PRs de linters',
+  );
 
   const content = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/config-linters.yaml'), 'utf-8');
   // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
@@ -312,4 +316,14 @@ test('🛡️ RENOVATE-005: las imágenes con digest de Config Linters las ve el
     (match) => match.groups?.depName ?? '',
   );
   assert.deepEqual(images.sort(), ['ghcr.io/zizmorcore/zizmor', 'renovate/renovate', 'rhysd/actionlint']);
+
+  const catalogContent = fs.readFileSync(
+    path.join(ROOT_DIR, '.agents/skills/repo-tool-exec/references/tool-catalog.yaml'),
+    'utf-8',
+  );
+  // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
+  const catalogImages = [...catalogContent.matchAll(new RegExp(manager.matchStrings[0], 'g'))].map(
+    (match) => match.groups?.depName ?? '',
+  );
+  assert.deepEqual(catalogImages.sort(), ['ghcr.io/zizmorcore/zizmor', 'renovate/renovate', 'rhysd/actionlint']);
 });

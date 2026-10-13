@@ -149,4 +149,18 @@ test('🛡️ CI Tooling Parity: la versión de OpenTofu de infra.yaml y tool-ca
     toolCatalog.includes(renovateMatch[0]),
     `tool-catalog.yaml debe mantener paridad con config-linters.yaml (${renovateMatch[0]})`,
   );
+
+  const actionlintMatch = configLinters.match(/rhysd\/actionlint:\d[\w.-]*@sha256:[a-f0-9]{64}/);
+  assert.ok(actionlintMatch, 'config-linters.yaml debe fijar rhysd/actionlint por digest');
+  assert.ok(
+    toolCatalog.includes(actionlintMatch[0]),
+    `tool-catalog.yaml debe mantener paridad con config-linters.yaml (${actionlintMatch[0]})`,
+  );
+
+  const zizmorMatch = configLinters.match(/ghcr\.io\/zizmorcore\/zizmor:\d[\w.-]*@sha256:[a-f0-9]{64}/);
+  assert.ok(zizmorMatch, 'config-linters.yaml debe fijar ghcr.io/zizmorcore/zizmor por digest');
+  assert.ok(
+    toolCatalog.includes(zizmorMatch[0]),
+    `tool-catalog.yaml debe mantener paridad con config-linters.yaml (${zizmorMatch[0]})`,
+  );
 });
