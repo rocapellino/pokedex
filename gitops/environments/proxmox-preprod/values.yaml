@@ -24,7 +24,7 @@ api:
   podAnnotations: {}
   image:
     repository: ghcr.io/rocapellino/pokedex-api
-    digest: "sha256:0fefd6d41957d20ae92de94e0f45f4999c6de31c85676f4ba82e883c843c94ca" # SHA256 digest pinning inmutable (SSOT)
+    digest: "sha256:f2af1ca03e3897d2b23c758b90a4db67be64b5e4de243e30fb639a0fe15a6b22" # SHA256 digest pinning inmutable (SSOT)
     pullPolicy: IfNotPresent
   resources:
     limits:
@@ -48,7 +48,7 @@ web:
   podAnnotations: {}
   image:
     repository: ghcr.io/rocapellino/pokedex-web
-    digest: "sha256:02cb1505f3d7232860532c576a550f4437f06832897673ece23dda7c196d4967" # SHA256 digest pinning inmutable (SSOT)
+    digest: "sha256:0f31cae38058faa577687302a59419a2fedc988c55917163724023d1371c6581" # SHA256 digest pinning inmutable (SSOT)
     pullPolicy: IfNotPresent
   resources:
     limits:
