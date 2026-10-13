@@ -3,6 +3,7 @@
 // ==============================================================================
 import { eq, ilike, and, asc, count, sql } from 'drizzle-orm';
 import type { MegaEvolution, Pokemon, PokemonClassification } from '../types.js';
+import type { SampleTextAlignment, SampleTextSnapshot } from '../data/seed-catalog.js';
 import { initialPokemons } from '../data/initialPokemons.js';
 import { logger } from '../utils/logger.js';
 import { pokedexEntries } from '../db/index.js';
@@ -275,6 +276,97 @@ export async function setPokemonClassification(id: number, clasificacion: Pokemo
 
   const inMemory = memoryMap.get(id);
   if (inMemory) memoryMap.set(id, { ...inMemory, clasificacion });
+  await invalidateCache(id);
+  return true;
+}
+
+/**
+ * Textos (`descripcion`, `categoria` y `habilidades`) persistidos por ID. Lo usa el seed job
+ * para detectar filas que aún conservan valores heredados de la muestra inicial.
+ */
+export async function listPersistedSampleTexts(): Promise<Map<number, SampleTextSnapshot>> {
+  const drizzleDb = getDrizzleDb();
+  const result = new Map<number, SampleTextSnapshot>();
+  if (isPgConnectedStatus() && drizzleDb) {
+    const rows = await drizzleDb
+      .select({
+        id: pokedexEntries.id,
+        descripcion: sql<string | null>`${pokedexEntries.data}->'caracteristicas'->>'descripcion'`,
+        categoria: sql<string | null>`${pokedexEntries.data}->'caracteristicas'->>'categoria'`,
+        habilidades: sql<string[] | null>`${pokedexEntries.data}->'habilidades'`,
+      })
+      .from(pokedexEntries);
+    for (const row of rows) {
+      result.set(row.id, {
+        ...(typeof row.descripcion === 'string' ? { descripcion: row.descripcion } : {}),
+        ...(typeof row.categoria === 'string' ? { categoria: row.categoria } : {}),
+        ...(Array.isArray(row.habilidades) ? { habilidades: row.habilidades } : {}),
+      });
+    }
+    return result;
+  }
+  for (const [id, pokemon] of memoryMap) {
+    result.set(id, {
+      ...(pokemon.caracteristicas.descripcion !== undefined
+        ? { descripcion: pokemon.caracteristicas.descripcion }
+        : {}),
+      ...(pokemon.caracteristicas.categoria !== undefined ? { categoria: pokemon.caracteristicas.categoria } : {}),
+      ...(pokemon.habilidades !== undefined ? { habilidades: pokemon.habilidades } : {}),
+    });
+  }
+  return result;
+}
+
+/**
+ * Actualiza SOLO los campos de texto indicados (`descripcion`, `categoria`, `habilidades`) de una
+ * entrada ya persistida con `jsonb_set`, conservando cualquier edición del resto de la fila e
+ * invalidando la caché en Redis. Devuelve `false` si no hay campos a actualizar o si el ID no existe.
+ */
+export async function setPokemonSampleTexts(alignment: SampleTextAlignment): Promise<boolean> {
+  const { id, descripcion, categoria, habilidades } = alignment;
+  if (descripcion === undefined && categoria === undefined && habilidades === undefined) return false;
+
+  const drizzleDb = getDrizzleDb();
+  if (isPgConfigured() && (!isPgConnectedStatus() || !drizzleDb)) {
+    throw new Error('Almacenamiento persistente (PostgreSQL) no disponible para escritura. Operación cancelada.');
+  }
+
+  if (isPgConnectedStatus() && drizzleDb) {
+    let dataExpr = sql`${pokedexEntries.data}`;
+    if (descripcion !== undefined) {
+      dataExpr = sql`jsonb_set(${dataExpr}, '{caracteristicas,descripcion}', ${JSON.stringify(descripcion)}::jsonb, true)`;
+    }
+    if (categoria !== undefined) {
+      dataExpr = sql`jsonb_set(${dataExpr}, '{caracteristicas,categoria}', ${JSON.stringify(categoria)}::jsonb, true)`;
+    }
+    if (habilidades !== undefined) {
+      dataExpr = sql`jsonb_set(${dataExpr}, '{habilidades}', ${JSON.stringify(habilidades)}::jsonb, true)`;
+    }
+    const updatedRows = await drizzleDb
+      .update(pokedexEntries)
+      .set({
+        data: dataExpr,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(eq(pokedexEntries.id, id))
+      .returning({ id: pokedexEntries.id });
+    if (updatedRows.length === 0) return false;
+  } else if (!memoryMap.has(id)) {
+    return false;
+  }
+
+  const inMemory = memoryMap.get(id);
+  if (inMemory) {
+    memoryMap.set(id, {
+      ...inMemory,
+      ...(habilidades !== undefined ? { habilidades } : {}),
+      caracteristicas: {
+        ...inMemory.caracteristicas,
+        ...(descripcion !== undefined ? { descripcion } : {}),
+        ...(categoria !== undefined ? { categoria } : {}),
+      },
+    });
+  }
   await invalidateCache(id);
   return true;
 }

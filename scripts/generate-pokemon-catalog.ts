@@ -507,17 +507,22 @@ async function buildEntry(
   const habilidades = await extractAbilities(pokemon, translator);
   const stats = extractStats(pokemon);
 
+  const sampleFallback = sampleBasePokemons.find((p) => p.id === species.id)?.caracteristicas;
+
   const genusEs = species.genera.find((g) => g.language.name === 'es')?.genus;
   const genusEn = species.genera.find((g) => g.language.name === 'en')?.genus;
-  // Sin traducción, el texto en inglés informa más que un marcador vacío; queda reportado como degradado.
-  const categoria = genusEs ? stripGenusPrefix(genusEs) : genusEn ? stripGenusSuffixEn(genusEn) : 'Desconocida';
-  if (!genusEs) motivos.push('categoría en inglés (sin traducción al español)');
+  // Sin traducción en PokeAPI, usa primero la traducción curada de la muestra antes de caer al inglés.
+  const categoria = genusEs
+    ? stripGenusPrefix(genusEs)
+    : (sampleFallback?.categoria ?? (genusEn ? stripGenusSuffixEn(genusEn) : 'Desconocida'));
+  if (!genusEs && !sampleFallback?.categoria) motivos.push('categoría en inglés (sin traducción al español)');
 
   const flavorOf = (lang: string) =>
     species.flavor_text_entries.filter((f) => f.language.name === lang).at(-1)?.flavor_text;
-  const flavor = flavorOf('es') ?? flavorOf('en');
+  const flavorEs = flavorOf('es');
+  const flavor = flavorEs ?? sampleFallback?.descripcion ?? flavorOf('en');
   const descripcion = flavor ? truncate(normalizeFlavorText(flavor), 1000) : 'Sin descripción disponible.';
-  if (!flavorOf('es')) motivos.push('descripción en inglés (sin traducción al español)');
+  if (!flavorEs && !sampleFallback?.descripcion) motivos.push('descripción en inglés (sin traducción al español)');
 
   const habitat = species.habitat
     ? (HABITAT_NAMES_ES[species.habitat.name] ?? titleCaseSlug(species.habitat.name))

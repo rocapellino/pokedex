@@ -5,6 +5,7 @@ import {
   loadSeedCatalog,
   planClassificationEnrichment,
   planMegaEnrichment,
+  planSampleTextAlignment,
   planSeed,
   resolveSeedDataset,
 } from './data/seed-catalog.js';
@@ -15,8 +16,10 @@ import {
   listPersistedClassifications,
   listPersistedMegaEvolutions,
   listPersistedPokemonIds,
+  listPersistedSampleTexts,
   setPokemonClassification,
   setPokemonMegaEvolutions,
+  setPokemonSampleTexts,
   syncPokedexIdSequence,
 } from './services/db.js';
 import { errorMessage } from './utils/errors.js';
@@ -55,16 +58,24 @@ async function main() {
       );
     }
 
-    // 3. Enriquecer filas existentes con megaevoluciones y clasificación (legendario/mítico): solo esos
-    // campos, sin pisar ediciones. Con force-sync el catálogo completo se reescribe en el paso 4.
+    // 3. Enriquecer filas existentes con megaevoluciones, clasificación (legendario/mítico) y textos
+    // canónicos sobre filas heredadas de la muestra: solo esos campos, sin pisar ediciones.
+    // Con force-sync el catálogo completo se reescribe en el paso 4.
     const enrichment =
       plan.mode === 'force-sync' ? [] : planMegaEnrichment(catalog, await listPersistedMegaEvolutions(), existingIds);
     const classification =
       plan.mode === 'force-sync'
         ? []
         : planClassificationEnrichment(catalog, await listPersistedClassifications(), existingIds);
+    const textAlignment =
+      plan.mode === 'force-sync' ? [] : planSampleTextAlignment(catalog, await listPersistedSampleTexts(), existingIds);
 
-    if (plan.toSeed.length === 0 && enrichment.length === 0 && classification.length === 0) {
+    if (
+      plan.toSeed.length === 0 &&
+      enrichment.length === 0 &&
+      classification.length === 0 &&
+      textAlignment.length === 0
+    ) {
       console.log('✅ [Seed Job] El catálogo ya se encuentra completo. No se requieren cambios.');
       process.exit(0);
     }
@@ -106,11 +117,22 @@ async function main() {
       );
     }
 
+    // 5c. Alinear descripciones, categorías y habilidades heredadas de la muestra inicial
+    let alignedTexts = 0;
+    for (const item of textAlignment) {
+      if (await setPokemonSampleTexts(item)) alignedTexts++;
+    }
+    if (textAlignment.length > 0) {
+      console.log(
+        `📝 [Seed Job] Textos canónicos alineados en ${alignedTexts} de ${textAlignment.length} Pokémon heredados de la muestra (ediciones conservadas).`,
+      );
+    }
+
     // 6. Alinear la secuencia de IDs con los IDs explícitos recién sembrados
     await syncPokedexIdSequence();
 
     console.log(
-      `🎉 [Seed Job] ¡Siembra finalizada con éxito! Pokémon sembrados: ${count}; enriquecidos con megaevoluciones: ${enriched}; clasificados: ${classified}.`,
+      `🎉 [Seed Job] ¡Siembra finalizada con éxito! Pokémon sembrados: ${count}; enriquecidos con megaevoluciones: ${enriched}; clasificados: ${classified}; textos alineados: ${alignedTexts}.`,
     );
     process.exit(0);
   } catch (err) {

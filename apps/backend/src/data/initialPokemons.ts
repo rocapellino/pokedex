@@ -21,8 +21,7 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 49,
       edad: 3,
       categoria: 'Semilla',
-      descripcion:
-        'A Bulbasaur es fácil verle echándose una siesta al sol. La semilla que tiene en el lomo va creciendo cada vez más a medida que absorbe los rayos del sol.',
+      descripcion: 'Desde que nace, crece alimentándose de los nutrientes que contiene la semilla de su lomo.',
       habitat: 'Praderas',
     },
     habilidades: ['Espesura', 'Clorofila'],
@@ -65,8 +64,7 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 62,
       edad: 4,
       categoria: 'Semilla',
-      descripcion:
-        'Este Pokémon tiene un bulbo en el lomo. Dicen que, al absorber nutrientes, el bulbo se transforma en una flor grande.',
+      descripcion: 'La luz del sol lo fortalece y hace que le crezca el capullo que tiene en el lomo.',
       habitat: 'Praderas',
     },
     habilidades: ['Espesura', 'Clorofila'],
@@ -109,8 +107,7 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 82,
       edad: 7,
       categoria: 'Semilla',
-      descripcion:
-        'La flor que tiene en el lomo libera un aroma embriagador que calma los ánimos de aquellos que están librando un combate.',
+      descripcion: 'La flor que tiene en el lomo libera un delicado aroma, que tiene un efecto relajante en combate.',
       habitat: 'Praderas',
     },
     habilidades: ['Espesura', 'Clorofila'],
@@ -153,11 +150,10 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 52,
       edad: 3,
       categoria: 'Lagartija',
-      descripcion:
-        'La llama que tiene en la punta de la cola arde según sus sentimientos. Llamea levemente si está alegre y arde con fuerza si se enfada.',
+      descripcion: 'Este Pokémon nace con una llama en la punta de la cola. Si se le apagara, fallecería.',
       habitat: 'Montañas',
     },
-    habilidades: ['Mar llamas', 'Poder solar'],
+    habilidades: ['Mar Llamas', 'Poder Solar'],
     stats: { hp: 39, attack: 52, defense: 43, sp_attack: 60, sp_defense: 50, speed: 65 },
     evoluciones: [
       {
@@ -197,10 +193,10 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 64,
       edad: 4,
       categoria: 'Llama',
-      descripcion: 'Tiene una naturaleza agresiva. En combate agita su cola llameante y arremete con afiladas garras.',
+      descripcion: 'Si se exalta en combate, expulsa intensas llamaradas que incineran todo a su alrededor.',
       habitat: 'Montañas',
     },
-    habilidades: ['Mar llamas', 'Poder solar'],
+    habilidades: ['Mar Llamas', 'Poder Solar'],
     stats: { hp: 58, attack: 64, defense: 58, sp_attack: 80, sp_defense: 65, speed: 80 },
     evoluciones: [
       {
@@ -240,10 +236,11 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 84,
       edad: 8,
       categoria: 'Llama',
-      descripcion: 'Escupe un fuego tan caliente que funde las rocas. Causa incendios forestales sin querer.',
+      descripcion:
+        'Sus potentes alas le permiten volar a una altura de 1400 m. Escupe llamaradas que llegan a alcanzar temperaturas elevadísimas.',
       habitat: 'Montañas',
     },
-    habilidades: ['Mar llamas', 'Poder solar'],
+    habilidades: ['Mar Llamas', 'Poder Solar'],
     stats: { hp: 78, attack: 84, defense: 78, sp_attack: 109, sp_defense: 85, speed: 100 },
     evoluciones: [
       {
@@ -283,10 +280,10 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 48,
       edad: 3,
       categoria: 'Tortuguita',
-      descripcion: 'Cuando se siente amenazado, esconde las extremidades en el caparazón y dispara agua a presión.',
+      descripcion: 'Cuando se siente en peligro, se esconde en su caparazón y escupe chorros de agua por la boca.',
       habitat: 'Ríos y Lagos',
     },
-    habilidades: ['Torrente', 'Cura lluvia'],
+    habilidades: ['Torrente', 'Cura Lluvia'],
     stats: { hp: 44, attack: 48, defense: 65, sp_attack: 50, sp_defense: 64, speed: 43 },
     evoluciones: [
       {
@@ -326,10 +323,10 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 63,
       edad: 5,
       categoria: 'Tortuga',
-      descripcion: 'Se le considera un símbolo de longevidad. El pelaje de su cola va oscureciéndose con la edad.',
+      descripcion: 'Utiliza hábilmente sus peludas orejas y la cola para mantener el equilibrio al nadar.',
       habitat: 'Ríos y Lagos',
     },
-    habilidades: ['Torrente', 'Cura lluvia'],
+    habilidades: ['Torrente', 'Cura Lluvia'],
     stats: { hp: 59, attack: 63, defense: 80, sp_attack: 65, sp_defense: 80, speed: 58 },
     evoluciones: [
       {
@@ -370,10 +367,10 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 9,
       categoria: 'Armazón',
       descripcion:
-        'Dispara potentes chorros de agua por los cañones de su caparazón con una fuerza capaz de perforar el acero macizo.',
+        'Dispara chorros de agua a través de los cañones de su caparazón, capaces de agujerear incluso el acero.',
       habitat: 'Ríos y Lagos',
     },
-    habilidades: ['Torrente', 'Cura lluvia'],
+    habilidades: ['Torrente', 'Cura Lluvia'],
     stats: { hp: 79, attack: 83, defense: 100, sp_attack: 85, sp_defense: 105, speed: 78 },
     evoluciones: [
       {
@@ -414,10 +411,10 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 5,
       categoria: 'Ratón',
       descripcion:
-        'Las bolsas de las mejillas están llenas de electricidad que libera cuando se asusta o cuando ataca.',
+        'Los miembros de esta especie se saludan entre sí uniendo sus colas y transmitiéndose corriente eléctrica.',
       habitat: 'Bosques',
     },
-    habilidades: ['Electricidad estática', 'Pararrayos'],
+    habilidades: ['Electricidad Estática', 'Pararrayos'],
     stats: { hp: 35, attack: 55, defense: 40, sp_attack: 50, sp_defense: 50, speed: 90 },
     evoluciones: [
       {
@@ -461,10 +458,10 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 6,
       categoria: 'Ratón',
       descripcion:
-        'Su larga cola le sirve de toma de tierra para protegerse de sus propias e intensas descargas eléctricas.',
+        'Cuando ha descargado las bolsas de las mejillas, levanta la cola y absorbe la carga eléctrica que hay en el ambiente.',
       habitat: 'Bosques',
     },
-    habilidades: ['Electricidad estática', 'Pararrayos'],
+    habilidades: ['Electricidad Estática', 'Pararrayos'],
     stats: { hp: 60, attack: 90, defense: 55, sp_attack: 90, sp_defense: 80, speed: 110 },
     evoluciones: [
       {
@@ -507,11 +504,10 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 65,
       edad: 7,
       categoria: 'Sombra',
-      descripcion:
-        'Para quitarle la vida a su presa, se desliza en su sombra y espera su oportunidad en silencio sepulcral.',
+      descripcion: 'Dicen que sale de la oscuridad para robarles el alma a los que se pierden por las montañas.',
       habitat: 'Cuevas',
     },
-    habilidades: ['Cuerpo maldito'],
+    habilidades: ['Cuerpo Maldito'],
     stats: { hp: 60, attack: 65, defense: 60, sp_attack: 130, sp_defense: 75, speed: 110 },
     evoluciones: [
       {
@@ -555,7 +551,7 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 2,
       categoria: 'Evolución',
       descripcion:
-        'Su genética es tan irregular que contiene la clave para evolucionar en multitud de formas diferentes según su entorno.',
+        'Su irregular estructura genética alberga el secreto de la capacidad que posee este Pokémon tan especial para adoptar evoluciones muy variadas.',
       habitat: 'Praderas',
     },
     habilidades: ['Fuga', 'Adaptable', 'Anticipación'],
@@ -610,9 +606,9 @@ export const sampleBasePokemons: Pokemon[] = [
       altura: 2.1,
       fuerza: 110,
       edad: 10,
-      categoria: 'Dormilón',
+      categoria: 'Dormir',
       descripcion:
-        'No se siente satisfecho hasta que se zampa 400 kilos de comida cada día. Cuando termina, se queda dormido de golpe.',
+        'Este Pokémon tiene un estómago a prueba de bomba, por lo que es capaz de ingerir incluso comida podrida o mohosa.',
       habitat: 'Montañas',
     },
     habilidades: ['Inmunidad', 'Sebo', 'Gula'],
@@ -633,8 +629,7 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 110,
       edad: 20,
       categoria: 'Genético',
-      descripcion:
-        'Fue creado por científicos manipulando los genes de Mew. Dicen que posee el corazón más salvaje de entre todos los Pokémon.',
+      descripcion: 'Su ADN es casi el mismo que el de Mew. Sin embargo, su tamaño y carácter son muy diferentes.',
       habitat: 'Área Cero',
     },
     habilidades: ['Presión', 'Nerviosismo'],
@@ -655,12 +650,12 @@ export const sampleBasePokemons: Pokemon[] = [
       altura: 0.3,
       fuerza: 40,
       edad: 1,
-      categoria: 'Ratón Pequeño',
+      categoria: 'Ratoncito',
       descripcion:
-        'Aún no domina el almacenamiento eléctrico. Ante cualquier susto o sorpresa, libera una pequeña descarga involuntaria.',
+        'Las bolsas de electricidad de sus mejillas son muy pequeñas y, a poco que se desborden, recibe una fuerte descarga.',
       habitat: 'Bosques',
     },
-    habilidades: ['Electricidad estática', 'Pararrayos'],
+    habilidades: ['Electricidad Estática', 'Pararrayos'],
     stats: { hp: 20, attack: 40, defense: 15, sp_attack: 35, sp_defense: 35, speed: 60 },
     evoluciones: [
       {
@@ -704,10 +699,10 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 2,
       categoria: 'Ratón Fuego',
       descripcion:
-        'Es tímido y suele enroscarse en una bola. Cuando se asusta, las llamas de su lomo arden con más intensidad.',
+        'Cyndaquil se protege soltando llamas por el lomo. Cuando está enfadado, las llamas son fieras, pero, si está cansado, solo consigue echar algunas chispas que no llegan a cuajar en una completa combustión.',
       habitat: 'Montañas',
     },
-    habilidades: ['Mar llamas', 'Absorbe fuego'],
+    habilidades: ['Mar Llamas', 'Absorbe Fuego'],
     stats: { hp: 39, attack: 52, defense: 43, sp_attack: 60, sp_defense: 50, speed: 65 },
   },
   {
@@ -725,10 +720,10 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 2,
       categoria: 'Fauces',
       descripcion:
-        'A pesar de su menudo tamaño, sus mandíbulas son muy poderosas. Muerde cualquier cosa que se mueva por puro juego.',
+        'Totodile tiene cuerpo pequeño, pero fuertes mandíbulas. A veces, piensa que solo está dando un mordisquito y hace unas heridas bastante considerables.',
       habitat: 'Ríos y Lagos',
     },
-    habilidades: ['Torrente', 'Potencia bruta'],
+    habilidades: ['Torrente', 'Potencia Bruta'],
     stats: { hp: 50, attack: 65, defense: 64, sp_attack: 44, sp_defense: 48, speed: 43 },
   },
   {
@@ -745,10 +740,11 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 134,
       edad: 15,
       categoria: 'Coraza',
-      descripcion: 'Tan imponente que puede destruir una montaña entera con una sola pata para hacer allí su nido.',
+      descripcion:
+        'Sus estrepitosos pasos derrumban montañas y hacen que el terreno a su alrededor cambie drásticamente.',
       habitat: 'Montañas',
     },
-    habilidades: ['Chorro arena', 'Nerviosismo'],
+    habilidades: ['Chorro Arena', 'Nerviosismo'],
     stats: { hp: 100, attack: 134, defense: 110, sp_attack: 95, sp_defense: 100, speed: 61 },
   },
 
@@ -768,7 +764,7 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 8,
       categoria: 'Monte',
       descripcion:
-        'Las hojas que le crecen en los brazos son tan afiladas como katanas. Se mueve de rama en rama con una agilidad pasmosa.',
+        'A Sceptile le crecen en la espalda unas semillas llenas de nutrientes que sirven para revitalizar los árboles. De hecho, se dedica a cuidarlos con mimo para que crezcan bien.',
       habitat: 'Bosques',
     },
     habilidades: ['Espesura', 'Liviano'],
@@ -789,10 +785,10 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 9,
       categoria: 'Llameante',
       descripcion:
-        'En combate, desprende llamas abrasadoras por las muñecas y propina patadas devastadoras a sus oponentes.',
+        'Blaziken tiene unas piernas tan fuertes que puede saltar por encima de un edificio de 30 pisos con facilidad. Además, da unos puñetazos fulminantes que dejan al oponente chamuscado y lleno de tizne.',
       habitat: 'Praderas',
     },
-    habilidades: ['Mar llamas', 'Impulso'],
+    habilidades: ['Mar Llamas', 'Impulso'],
     stats: { hp: 80, attack: 120, defense: 70, sp_attack: 110, sp_defense: 70, speed: 80 },
   },
   {
@@ -811,10 +807,10 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 1000,
       categoria: 'Cielo',
       descripcion:
-        'Vive en la capa de ozono desde hace cientos de millones de años, alimentándose de meteoritos y partículas en el aire.',
+        'Rayquaza ha vivido en la capa de ozono durante millones de años, alimentándose de meteoritos. La energía de estos meteoritos se acumula en su cuerpo y le permite megaevolucionar.',
       habitat: 'Cielos',
     },
-    habilidades: ['Bucle aire'],
+    habilidades: ['Bucle Aire'],
     stats: { hp: 105, attack: 150, defense: 90, sp_attack: 150, sp_defense: 90, speed: 95 },
   },
 
@@ -834,10 +830,10 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 6,
       categoria: 'Aura',
       descripcion:
-        'Capta el aura de todas las cosas. Es capaz de comprender los sentimientos humanos a través de ella.',
+        'Puede leer los pensamientos de la gente, por lo que establece lazos afectivos únicamente con Entrenadores de corazón noble.',
       habitat: 'Montañas',
     },
-    habilidades: ['Impasible', 'Foco interno', 'Justiciero'],
+    habilidades: ['Impasible', 'Fuerza Mental', 'Justiciero'],
     stats: { hp: 70, attack: 110, defense: 70, sp_attack: 115, sp_defense: 70, speed: 90 },
   },
   {
@@ -854,10 +850,11 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 130,
       edad: 10,
       categoria: 'Mach',
-      descripcion: 'Vuela a velocidades supersónicas plegando sus alas. Nunca deja escapar a su presa en combate.',
+      descripcion:
+        'Se mueve a gran velocidad incluso por tierra. Es capaz de cazar una presa en una montaña nevada y volver a su guarida sin llegar a pasar frío.',
       habitat: 'Cuevas',
     },
-    habilidades: ['Velo arena', 'Piel tosca'],
+    habilidades: ['Velo Arena', 'Piel Tosca'],
     stats: { hp: 108, attack: 130, defense: 95, sp_attack: 80, sp_defense: 85, speed: 102 },
   },
 
@@ -877,7 +874,7 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 7,
       categoria: 'Disfrazorro',
       descripcion:
-        'Crea ilusiones tan vívidas que resultan indistinguibles de la realidad para engañar y proteger su manada.',
+        'Los Entrenadores solitarios le piden a Zoroark que les muestre ilusiones con las que combatir la desazón de la soledad.',
       habitat: 'Bosques',
     },
     habilidades: ['Ilusión'],
@@ -897,10 +894,11 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 55,
       edad: 8,
       categoria: 'Señuelo',
-      descripcion: 'Absorbe las almas de sus víctimas para alimentar sus extrañas llamas espectrales.',
+      descripcion:
+        'Cuentan que, en las mansiones donde se usaba para la iluminación, los funerales se sucedían de forma incesante.',
       habitat: 'Zonas Urbanas',
     },
-    habilidades: ['Absorbe fuego', 'Cuerpo llama', 'Allanamiento'],
+    habilidades: ['Absorbe Fuego', 'Cuerpo Llama', 'Allanamiento'],
     stats: { hp: 60, attack: 55, defense: 90, sp_attack: 145, sp_defense: 90, speed: 80 },
   },
 
@@ -920,10 +918,10 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 5,
       categoria: 'Ninja',
       descripcion:
-        'Comprime agua para crear shurikens que lanza a gran velocidad. Desaparece y reaparece cual ninja veloz.',
+        'Aparece y desaparece de improvisto, cual ninja. Marea al oponente con su soberbia agilidad y lo hace trizas con sus Shuriken de Agua.',
       habitat: 'Zonas Húmedas',
     },
-    habilidades: ['Torrente', 'Mutatipo', 'Fuerte afecto'],
+    habilidades: ['Torrente', 'Mutatipo'],
     stats: { hp: 72, attack: 95, defense: 67, sp_attack: 103, sp_defense: 71, speed: 122 },
   },
   {
@@ -940,10 +938,11 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 65,
       edad: 4,
       categoria: 'Vínculo',
-      descripcion: 'Envía ondas tranquilizadoras mediante sus apéndices sensitivos para disipar cualquier hostilidad.',
+      descripcion:
+        'En un cuento infantil de Galar se narra la victoria de un Sylveon de extraordinaria belleza sobre un temible Pokémon de tipo Dragón.',
       habitat: 'Praderas',
     },
-    habilidades: ['Gran encanto', 'Piel feérica'],
+    habilidades: ['Gran Encanto', 'Piel Feérica'],
     stats: { hp: 95, attack: 65, defense: 65, sp_attack: 110, sp_defense: 130, speed: 60 },
   },
 
@@ -963,7 +962,7 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 6,
       categoria: 'Pluma Flecha',
       descripcion:
-        'Dispara sus plumas como flechas con una puntería milimétrica. Oculta su presencia en la espesura del follaje.',
+        'Tan solo le lleva una décima de segundo sacar una pluma y disparar al rival, a quien acierta en un punto vital antes de que pueda darse cuenta.',
       habitat: 'Bosques',
     },
     habilidades: ['Espesura', 'Remoto'],
@@ -984,7 +983,7 @@ export const sampleBasePokemons: Pokemon[] = [
       edad: 4,
       categoria: 'Disfraz',
       descripcion:
-        'Lleva un disfraz hecho a mano parecido a Pikachu porque se siente solitario y busca el afecto humano.',
+        'Un investigador que miró dentro del saco para estudiar a este Pokémon perdió la vida a causa de una misteriosa enfermedad.',
       habitat: 'Zonas Urbanas',
     },
     habilidades: ['Disfraz'],
@@ -1006,10 +1005,11 @@ export const sampleBasePokemons: Pokemon[] = [
       fuerza: 116,
       edad: 5,
       categoria: 'Delantero',
-      descripcion: 'Convierte piedras en balones ígneos con sus increíbles habilidades de regate y remate.',
+      descripcion:
+        'Destaca tanto en ataque como en defensa. Se crece cuando recibe una ovación, pero a veces se luce tanto que termina viéndose en apuros.',
       habitat: 'Campos',
     },
-    habilidades: ['Mar llamas', 'Líbero'],
+    habilidades: ['Mar Llamas', 'Líbero'],
     stats: { hp: 80, attack: 116, defense: 75, sp_attack: 65, sp_defense: 75, speed: 119 },
   },
   {
@@ -1025,11 +1025,12 @@ export const sampleBasePokemons: Pokemon[] = [
       altura: 3.0,
       fuerza: 120,
       edad: 12,
-      categoria: 'Sigiloso',
-      descripcion: 'Lleva dos Dreepy en sus cuernos y los dispara a velocidad de combate como torpedos vivos.',
+      categoria: 'Furtivo',
+      descripcion:
+        'Al parecer, los Dreepy que residen en sus cuernos esperan con ilusión el momento de ser propulsados a velocidad supersónica.',
       habitat: 'Mares y Cielos',
     },
-    habilidades: ['Cuerpo puro', 'Allanamiento', 'Bucle aire'],
+    habilidades: ['Cuerpo Puro', 'Allanamiento', 'Cuerpo Maldito'],
     stats: { hp: 88, attack: 120, defense: 75, sp_attack: 100, sp_defense: 75, speed: 142 },
   },
 
@@ -1074,7 +1075,7 @@ export const sampleBasePokemons: Pokemon[] = [
         'Conocido como el Rey Alado en libros ancestrales. Parte la tierra con sus garras e invoca el sol más radiante.',
       habitat: 'Área Cero',
     },
-    habilidades: ['Latido paleo'],
+    habilidades: ['Latido Oricalco'],
     stats: { hp: 100, attack: 135, defense: 115, sp_attack: 85, sp_defense: 100, speed: 135 },
   },
   {
@@ -1096,7 +1097,7 @@ export const sampleBasePokemons: Pokemon[] = [
         'Conocido como la Serpiente Férrea. Surca el aire a propulsión electromagnética generando rayos de energía pura.',
       habitat: 'Área Cero',
     },
-    habilidades: ['Motor hadrónico'],
+    habilidades: ['Motor Hadrónico'],
     stats: { hp: 100, attack: 85, defense: 100, sp_attack: 135, sp_defense: 115, speed: 135 },
   },
 ];

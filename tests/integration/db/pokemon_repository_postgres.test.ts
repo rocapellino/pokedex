@@ -16,9 +16,11 @@ import {
   listPersistedClassifications,
   listPersistedMegaEvolutions,
   listPersistedPokemonIds,
+  listPersistedSampleTexts,
   savePokemon,
   setPokemonClassification,
   setPokemonMegaEvolutions,
+  setPokemonSampleTexts,
 } from '../../../apps/backend/src/services/pokemon.repository.js';
 import type { MegaEvolution, Pokemon } from '../../../apps/backend/src/types.js';
 import { createTestDatabase, postgresSkip, queryRows, type TestDatabase } from '../../helpers/services.js';
@@ -184,6 +186,27 @@ describe('🐘 Repositorio de Pokémon sobre PostgreSQL real', { skip: postgresS
 
     assert.equal(await setPokemonMegaEvolutions(9_999_999, [mega]), false);
     assert.equal(await setPokemonClassification(9_999_999, 'legendario'), false);
+
+    assert.equal(
+      await setPokemonSampleTexts({
+        id: 5003,
+        descripcion: 'Descripción alineada en PG',
+        habilidades: ['Llama', 'Absorbe Fuego'],
+      }),
+      true,
+    );
+    const [updatedRow] = await queryRows<{ data: Pokemon }>(
+      database.url,
+      'SELECT data FROM pokedex_entries WHERE id = 5003',
+    );
+    assert.equal(updatedRow.data.nombre, 'Probamon 5003');
+    assert.equal(updatedRow.data.caracteristicas.descripcion, 'Descripción alineada en PG');
+    assert.deepEqual(updatedRow.data.habilidades, ['Llama', 'Absorbe Fuego']);
+    assert.deepEqual((await listPersistedSampleTexts()).get(5003), {
+      descripcion: 'Descripción alineada en PG',
+      habilidades: ['Llama', 'Absorbe Fuego'],
+    });
+    assert.equal(await setPokemonSampleTexts({ id: 9_999_999, descripcion: 'No existe' }), false);
   });
 
   test('sin conexión y con DATABASE_URL configurada, las escrituras fallan cerradas', async () => {
@@ -193,5 +216,6 @@ describe('🐘 Repositorio de Pokémon sobre PostgreSQL real', { skip: postgresS
     await assert.rejects(savePokemon(makePokemon(5004)), /PostgreSQL\) no disponible para escritura/);
     await assert.rejects(deletePokemon(1), /no disponible para eliminación/);
     await assert.rejects(setPokemonClassification(1, 'legendario'), /no disponible para escritura/);
+    await assert.rejects(setPokemonSampleTexts({ id: 1, descripcion: 'Nueva' }), /no disponible para escritura/);
   });
 });
