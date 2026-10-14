@@ -49,3 +49,17 @@ Esta regla aplica a todos los agentes de IA (Antigravity, Claude Code, Cursor, V
    - Todo servidor MCP con acceso al filesystem debe restringir sus operaciones al mínimo directorio necesario.
    - Cuando un servidor MCP genere artefactos temporales, debe configurarse para usar `<repository-root>/tmp/`, conforme a la regla transversal [`repository-hygiene.md`](repository-hygiene.md).
    - **Principio de No Asunción Pasiva:** Ningún agente puede asumir que un servidor MCP cumple esta política solo porque la instrucción esté documentada; las capacidades de escritura, rutas de trabajo y destinos temporales deben verificarse activamente cuando sean controlables.
+
+---
+
+## 5. Pautas Operativas para Servidores Especializados (Trivy y Context7)
+
+1. **Servidor Trivy (`security-readonly`):**
+   - Su consumo se reserva a la auditoría de seguridad de dependencias (`package.json`), contenedores (`Dockerfile`) e infraestructura ([`infra/`](../../infra/)).
+   - No debe invocarse en tareas estrictamente documentales o refactorizaciones internas sin cambios en dependencias o empaquetado.
+   - Todo hallazgo de severidad `CRITICAL` o `HIGH` es bloqueante. Falsos positivos o excepciones justificadas deben registrarse formalmente bajo principio Zero-Trust en la configuración canónica de excepciones (conforme a [`repo-security`](../skills/repo-security/SKILL.md)).
+
+2. **Servidor Context7 (`documentation-readonly`):**
+   - Su consumo se orienta a la consulta de documentación técnica oficial, firmas de API y breaking changes de librerías externas versionadas.
+   - No debe invocarse para código propio del monorepo ni para funcionalidades nativas del lenguaje ya tipadas en el runtime.
+   - Las consultas deben ser acotadas y quirúrgicas, utilizando la versión semver exacta declarada en el monorepo para optimizar la ventana de contexto (conforme a [`repo-dependencies`](../skills/repo-dependencies/SKILL.md)).
