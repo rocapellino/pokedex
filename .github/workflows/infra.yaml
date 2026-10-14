@@ -113,8 +113,8 @@ jobs:
       - name: 5. Instalar y Ejecutar Kubeconform (Validación de esquemas OpenAPI K8s)
         run: |
           # renovate: datasource=github-releases depName=yannh/kubeconform
-          KUBECONFORM_VERSION="v0.6.7"
-          KUBECONFORM_SHA256="95f14e87aa28c09d5941f11bd024c1d02fdc0303ccaa23f61cef67bc92619d73"
+          KUBECONFORM_VERSION="v0.8.0"
+          KUBECONFORM_SHA256="9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883"
           curl -sL --proto '=https' --tlsv1.2 \
             "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" \
             -o /tmp/kubeconform.tar.gz
@@ -127,8 +127,8 @@ jobs:
       - name: 6. Instalar y Ejecutar Kube-Linter (Buenas Prácticas K8s)
         run: |
           # renovate: datasource=github-releases depName=stackrox/kube-linter
-          KUBELINTER_VERSION="v0.7.2"
-          KUBELINTER_SHA256="8a0f8ba6c28910acd4886cc4d501ed32f3d404a53ac5e72c45a0dd893fcadb03"
+          KUBELINTER_VERSION="v0.8.3"
+          KUBELINTER_SHA256="1a6d8419b11971372971fdbc22682b684ebfb7cf1c39591662d1b6ca736c41df"
           curl -sL --proto '=https' --tlsv1.2 \
             "https://github.com/stackrox/kube-linter/releases/download/${KUBELINTER_VERSION}/kube-linter-linux.tar.gz" \
             -o /tmp/kube-linter.tar.gz
@@ -143,8 +143,8 @@ jobs:
       - name: 7. Instalar y Ejecutar Kyverno CLI (Tests de Políticas de Admisión)
         run: |
           # renovate: datasource=github-releases depName=kyverno/kyverno
-          KYVERNO_VERSION="v1.12.5"
-          KYVERNO_SHA256="962c396cdb149eadc7d6cc0cb345d3c01b6980d5265c8bb585c55ecd4b8a76b9"
+          KYVERNO_VERSION="v1.19.1"
+          KYVERNO_SHA256="b38228f367fc0fdc2b08f4c83ea50ac5f16c60ff8d62d76a66157c33c47b70ae"
           curl -sL --proto '=https' --tlsv1.2 \
             "https://github.com/kyverno/kyverno/releases/download/${KYVERNO_VERSION}/kyverno-cli_${KYVERNO_VERSION}_linux_x86_64.tar.gz" \
             -o /tmp/kyverno.tar.gz
