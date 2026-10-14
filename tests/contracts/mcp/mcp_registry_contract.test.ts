@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { generateAllClientConfigs } from '../../../scripts/mcp/generate.js';
 import { testAllMcpConfigs } from '../../../scripts/mcp/test-config.js';
 import { ROOT_DIR } from '../../helpers/repo.js';

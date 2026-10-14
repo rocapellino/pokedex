@@ -1,5 +1,5 @@
 import path from 'node:path';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { runHelm } from '../../scripts/lib/helm.js';
 import { ROOT_DIR } from './repo.js';
 

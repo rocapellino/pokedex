@@ -1,4 +1,4 @@
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 
 /**
  * Devuelve los archivos que excluye `spec.source.directory.exclude` de una

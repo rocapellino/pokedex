@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { getCompleteTaskfileContent } from '../helpers/taskfile.js';
 import { type K8sDoc, PROFILES, podSpecOf, renderChart } from '../helpers/helm-render.js';
 import { ROOT_DIR } from '../helpers/repo.js';

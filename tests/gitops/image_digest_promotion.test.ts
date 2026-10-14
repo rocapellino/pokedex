@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { IMAGE_VALUES_FILES, applyImageDigests, replaceComponentDigest } from '../../scripts/update-image-digests.ts';
 import { ROOT_DIR } from '../helpers/repo.js';
 

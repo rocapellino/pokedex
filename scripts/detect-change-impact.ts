@@ -20,7 +20,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import picomatch from 'picomatch';
 
 const __filename = fileURLToPath(import.meta.url);
