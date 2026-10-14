@@ -157,9 +157,9 @@ pgbouncer:
   replicaCount: 1
   image:
     repository: pgbouncer/pgbouncer
-    tag: "1.22.0"
+    tag: "1.25.2"
     # INFRA-005: digest en campo dedicado (antes incrustado en `tag`).
-    digest: "sha256:b736de2483bfb5263f3ba243415b20d1d2e1246e5f408e6ff53cd8e07b2d4164"
+    digest: "sha256:c0c55b277858ca308eb5df7baf8b83fbaea60b2c666604f29d8fe25e9decac68"
     pullPolicy: IfNotPresent
   port: 5432
   poolMode: transaction

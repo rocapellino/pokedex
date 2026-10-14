@@ -109,7 +109,7 @@ flowchart LR
 | Herramienta | Versión | Rol Arquitectónico | Archivo / Configuración |
 | :--- | :--- | :--- | :--- |
 | **PostgreSQL** | `16` | Base de datos ACID relacional con almacenamiento JSONB indexado | [`apps/backend/src/services/db.ts`](../../apps/backend/src/services/db.ts), [`docker-compose.yaml`](../../docker-compose.yaml) |
-| **PgBouncer** | `1.22.0` | Connection pooler transaccional mediador obligatorio en producción (digest pinned) | [`infra/helm/pokedex/templates/pgbouncer-deployment.yaml`](../../infra/helm/pokedex/templates/pgbouncer-deployment.yaml) |
+| **PgBouncer** | `1.25.2` | Connection pooler transaccional mediador obligatorio en producción (digest pinned) | [`infra/helm/pokedex/templates/pgbouncer-deployment.yaml`](../../infra/helm/pokedex/templates/pgbouncer-deployment.yaml) |
 | **Redis** | `7` | Caché en memoria sub-3ms, revocación de sesiones y rate limit Lua | [`apps/backend/src/services/db.ts`](../../apps/backend/src/services/db.ts), [`apps/backend/src/services/auth.ts`](../../apps/backend/src/services/auth.ts) |
 
 ### 2.4. Inteligencia Artificial Generativa
