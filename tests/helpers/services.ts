@@ -11,8 +11,8 @@ import pg from 'pg';
  *
  * Local, con las imágenes del compose (el puerto 55432 y el 56379 son arbitrarios):
  *
- *   docker run -d --rm --name pokedex-test-pg -e POSTGRES_PASSWORD=pokedex_test -p 55432:5432 postgres:16-alpine
- *   docker run -d --rm --name pokedex-test-redis -p 56379:6379 redis:7-alpine
+ *   docker run -d --rm --name pokedex-test-pg -e POSTGRES_PASSWORD=pokedex_test -p 55432:5432 postgres:17-alpine
+ *   docker run -d --rm --name pokedex-test-redis -p 56379:6379 valkey/valkey:8-alpine
  *   POKEDEX_TEST_DATABASE_URL=postgresql://postgres:pokedex_test@127.0.0.1:55432/postgres \
  *   POKEDEX_TEST_REDIS_URL=redis://127.0.0.1:56379 npm run test:integration:db
  *
