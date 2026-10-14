@@ -291,7 +291,7 @@ test('🛡️ Disaster Recovery: dr_verify_restore.sh implementa protocolo autom
   // Validar pinning de imagen efímera y bandera --syntax-only
   assert.match(
     content,
-    /postgres:16-alpine@sha256:[a-f0-9]{64}/,
+    /postgres:17-alpine@sha256:[a-f0-9]{64}/,
     'PostgreSQL efímero debe estar fijado por digest criptográfico SHA-256',
   );
   assert.ok(content.includes('--syntax-only'), 'Debe soportar bandera explícita --syntax-only');

@@ -32,7 +32,7 @@
       "description": "Chart de Helm: postgres, pgbouncer, redis y rclone fijan el digest en un campo `digest` aparte del `tag` (INFRA-005) y el gestor helm-values solo ve el tag. Este gestor lee tag y digest de cada bloque (incluidos los comentarios al final de línea de rclone) para que Renovate cambie ambos en el mismo PR; los bloques que no se listan aquí no se tocan. helm-values queda excluido para esas imágenes y así no se duplican las propuestas",
       "managerFilePatterns": ["/^infra/helm/pokedex/values\\.yaml$/"],
       "matchStrings": [
-        "repository: (?<depName>postgres|redis|pgbouncer/pgbouncer|rclone/rclone)\\s+tag: \"(?<currentValue>[^\"]+)\"[ \\t]*(?:#[^\\n]*)?\\s+(?:#[^\\n]*\\s+)*digest: \"(?<currentDigest>sha256:[a-f0-9]{64})\"[ \\t]*(?:#[^\\n]*)?"
+        "repository: (?<depName>postgres|valkey/valkey|redis|pgbouncer/pgbouncer|rclone/rclone)\\s+tag: \"(?<currentValue>[^\"]+)\"[ \\t]*(?:#[^\\n]*)?\\s+(?:#[^\\n]*\\s+)*digest: \"(?<currentDigest>sha256:[a-f0-9]{64})\"[ \\t]*(?:#[^\\n]*)?"
       ],
       "datasourceTemplate": "docker"
     },
@@ -139,7 +139,7 @@
     {
       "description": "Chart de Helm: postgres, pgbouncer, redis y rclone fijan el digest en un campo aparte del tag (INFRA-005) y el gestor helm-values solo ve el tag, así que un PR cambiaría la etiqueta y dejaría el digest anterior: el despliegue seguiría usando la imagen vieja con una etiqueta que no la refleja. Se excluyen de helm-values porque el gestor custom.regex las actualiza leyendo tag y digest juntos",
       "matchManagers": ["helm-values"],
-      "matchPackageNames": ["postgres", "pgbouncer/pgbouncer", "redis", "rclone/rclone"],
+      "matchPackageNames": ["postgres", "pgbouncer/pgbouncer", "redis", "valkey/valkey", "rclone/rclone"],
       "enabled": false,
       "minimumReleaseAge": "7 days"
     },

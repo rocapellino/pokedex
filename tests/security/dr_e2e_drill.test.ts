@@ -135,10 +135,10 @@ test('🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en c
   try {
     const metrics = await runDrDrill({
       verbose: false,
-      skipPostgresContainer: false, // Ejecuta contra contenedor PostgreSQL 16 Alpine real
+      skipPostgresContainer: false, // Ejecuta contra contenedor PostgreSQL 17 Alpine real
     });
 
-    assert.equal(metrics.drillPassed, true, 'El simulacro con PostgreSQL 16 real debe ser exitoso');
+    assert.equal(metrics.drillPassed, true, 'El simulacro con PostgreSQL 17 real debe ser exitoso');
     assert.equal(
       metrics.cantidadRegistrosRestaurados,
       5,
@@ -149,7 +149,7 @@ test('🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en c
     assert.ok(metrics.tiempoRestoreMs > 0, 'tiempoRestoreMs en BD real debe ser mayor a 0');
   } catch (err: any) {
     // En entornos de CI (como GitHub Actions), el daemon de Docker puede estar activo pero
-    // fallar al descargar postgres:16-alpine por rate limit de Docker Hub (toomanyrequests),
+    // fallar al descargar postgres:17-alpine por rate limit de Docker Hub (toomanyrequests),
     // restricciones de red o timeout de inicio del contenedor. En tal caso se degrada con advertencia.
     if (
       err?.message?.includes('docker run') ||

@@ -17,7 +17,7 @@ Este directorio alberga los **Architecture Decision Records (ADR)** oficiales qu
 
 ## 📋 Catálogo de Decisiones Arquitectónicas Activas
 
-Actualmente rigen **23 decisiones arquitectónicas activas**:
+Actualmente rigen **24 decisiones arquitectónicas activas**:
 
 | Identificador | Título Canónico | Estado | Alcance / Dominio |
 | :--- | :--- | :--- | :--- |
@@ -44,6 +44,7 @@ Actualmente rigen **23 decisiones arquitectónicas activas**:
 | [**ADR-025**](./ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md) | Segregación del Plano de Gestión, Plano de Runtime y Separación Cloud-Ready | **Activo** | Arquitectura de Red |
 | [**ADR-027**](./ADR-027-resilience-fail-open-vs-fail-closed-contracts.md) | Formalización de Contratos de Resiliencia: Fail-Open vs. Fail-Closed | **Activo** | Resiliencia de Software |
 | [**ADR-030**](./ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md) | Modelo de Entornos: Dev Local, Pre-Prod en Proxmox LXC y Prod Cloud Agnóstico | **Activo** | Plataforma / Entornos |
+| [**ADR-031**](./ADR-031-adopcion-valkey-y-actualizacion-postgresql-17.md) | Adopción de Valkey 8 y Actualización a PostgreSQL 17 | **Activo** | Persistencia / Base de Datos |
 
 ---
 

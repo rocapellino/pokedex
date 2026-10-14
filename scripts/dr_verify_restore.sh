@@ -237,8 +237,8 @@ if [[ -n "${DR_POSTGRES_URL:-}" ]] && command -v psql >/dev/null 2>&1; then
 
 # Caso B: Runtime Docker disponible para instanciar PostgreSQL efímero con imagen inmutable fijada por digest
 elif command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-  # Imagen oficial PostgreSQL 16 Alpine fijada por digest SHA-256 criptográficamente verificable
-  POSTGRES_IMAGE="postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea"
+  # Imagen oficial PostgreSQL 17 Alpine fijada por digest SHA-256 criptográficamente verificable
+  POSTGRES_IMAGE="postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
   echo "🐳 [DR Verification] Creando contenedor PostgreSQL efímero (${POSTGRES_IMAGE}) vía Docker..."
   EPHEMERAL_CONTAINER="pokedex_dr_verify_$$"
   docker run -d --name "${EPHEMERAL_CONTAINER}" \
