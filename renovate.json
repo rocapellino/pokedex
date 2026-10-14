@@ -129,9 +129,9 @@
       "minimumReleaseAge": "7 days"
     },
     {
-      "description": "docker-compose, chart de Helm y GitHub Actions: PostgreSQL 16 y Redis 7 son contrato documentado y un major de PostgreSQL exige migrar el volumen de datos; se bloquean los major en todos los gestores que ven esas imágenes (docker-compose, helm-values, custom.regex y github-actions) y se mantienen los digests y parches",
+      "description": "docker-compose, chart de Helm y GitHub Actions: PostgreSQL 17 y Valkey 8 / Redis 7 son contrato documentado y un major de PostgreSQL exige migrar el volumen de datos; se bloquean los major en todos los gestores que ven esas imágenes (docker-compose, helm-values, custom.regex y github-actions) y se mantienen los digests y parches",
       "matchManagers": ["docker-compose", "helm-values", "custom.regex", "github-actions"],
-      "matchPackageNames": ["postgres", "redis"],
+      "matchPackageNames": ["postgres", "redis", "valkey/valkey"],
       "matchUpdateTypes": ["major"],
       "enabled": false,
       "minimumReleaseAge": "7 days"

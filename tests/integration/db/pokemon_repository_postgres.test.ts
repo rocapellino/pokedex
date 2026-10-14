@@ -76,7 +76,7 @@ describe('🐘 Repositorio de Pokémon sobre PostgreSQL real', { skip: postgresS
       'SELECT count(*)::text AS total FROM pokedex_entries',
     );
     assert.equal(row.total, String(initialPokemons.length));
-    assert.match((await getPostgresVersion()) ?? '', /^PostgreSQL 16/);
+    assert.match((await getPostgresVersion()) ?? '', /^PostgreSQL 17/);
   });
 
   test('getAllPokemons pagina en orden de id y reporta el total real', async () => {
