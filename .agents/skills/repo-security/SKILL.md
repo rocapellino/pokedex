@@ -49,4 +49,8 @@ Reglas propias de esta skill:
 
 - **Planes de Cambio:** Toda remediación de vulnerabilidad debe planificarse con [change-plan.md](../_shared/change-plan.md) y evaluarse con `repo-impact`.
 - **Referencias Externas Aprobadas (AAS):** para auditorías de hardening en K8s o análisis de supply chain, consultar las pautas de `kubernetes-hardening` y `dependency-scanning` en [aas-references.md](../_shared/aas-references.md).
-- **Integración MCP (`trivy`):** Para escaneos de vulnerabilidades en imágenes OCI, Dockerfiles y dependencias, apoyarse en el servidor gobernado `trivy` (`security-readonly`, `.mcp/registry.yaml`).
+- **Integración MCP (`trivy`):** Para escaneos de vulnerabilidades en imágenes OCI, Dockerfiles, dependencias y configuraciones de infraestructura, apoyarse en el servidor gobernado `trivy` (`security-readonly`, [`.mcp/registry.yaml`](../../../.mcp/registry.yaml)).
+  - *Cuándo invocar:* Al modificar `Dockerfile` o imágenes base, al alterar dependencias en `package.json`, o al modificar manifiestos de infraestructura ([`infra/helm/`](../../../infra/helm/), [`infra/ansible/`](../../../infra/ansible/), [`gitops/`](../../../gitops/)).
+  - *Cuándo NO invocar:* Modificaciones puramente documentales (`docs/`, `*.md`), cambios cosméticos de estilos UI o refactorizaciones de código interno que no alteren dependencias ni empaquetado de contenedores.
+  - *Criterios de Severidad:* Vulnerabilidades con severidad `CRITICAL` o `HIGH` son bloqueantes y exigen remediación inmediata o actualización de versión. Severidades `MEDIUM` o `LOW` se someten a triaje y planificación con [`change-plan.md`](../_shared/change-plan.md).
+  - *Tratamiento de Falsos Positivos y Excepciones:* Prohibido eludir análisis mediante flags ad-hoc o desactivación de escáneres. Todo falso positivo o riesgo aceptado justificado debe documentarse formalmente y registrarse en la configuración de excepciones bajo principio Zero-Trust (sin ignorar categorías globales).

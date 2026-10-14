@@ -38,4 +38,7 @@ Reglas propias de esta skill:
 
 - **Planes de Cambio:** Todo cambio en `package.json` o lockfile requiere modelado previo con [change-plan.md](../_shared/change-plan.md) y validación de impacto con `repo-impact`.
 - **Referencias Externas Aprobadas (AAS):** para auditoría y evaluación de riesgos en la cadena de suministro de dependencias, consultar `dependency-scanning` en [aas-references.md](../_shared/aas-references.md).
-- **Integración MCP (`context7`):** Para consultar documentación técnica de versiones específicas de dependencias y firmas de API, consultar el servidor gobernado `context7` (`documentation-readonly`, `.mcp/registry.yaml`).
+- **Integración MCP (`context7`):** Para consultar documentación técnica de versiones específicas de dependencias, firmas de API y guías de migración, apoyarse en el servidor gobernado `context7` (`documentation-readonly`, [`.mcp/registry.yaml`](../../../.mcp/registry.yaml)).
+  - *Cuándo invocar:* Al actualizar dependencias con cambios mayores (`major`), introducir nuevos paquetes en `package.json`, o resolver incompatibilidades de tipos y firmas de API tras actualizar librerías del stack (Node.js 24 LTS, Express, Drizzle ORM, Zod, Playwright, Biome, etc.).
+  - *Cuándo NO invocar:* Al trabajar con código y módulos internos del monorepo, funciones estándar de JavaScript/TypeScript, o modificaciones menores donde las interfaces ya están verificadas por `npm run typecheck`.
+  - *Metodología de Consulta Eficiente (Zero-Waste):* Realizar consultas quirúrgicas restringidas a la versión semver exacta declarada en el proyecto. Evitar solicitudes masivas de páginas completas para optimizar la ventana de contexto y minimizar latencia.
