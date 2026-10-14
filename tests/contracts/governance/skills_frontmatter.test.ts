@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { ROOT_DIR } from '../../helpers/repo.js';
 
 // AUD-GOV-SKL-011: el despacho condicional de skills (AGENTS.md §3) depende de la

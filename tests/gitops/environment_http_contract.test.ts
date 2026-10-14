@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import { runHelm } from '../../scripts/lib/helm.js';
 import fs from 'node:fs';
 import path from 'node:path';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { parseDirectoryExclude } from '../helpers/argocd.js';
 import { ROOT_DIR } from '../helpers/repo.js';
 

@@ -1,16 +1,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { ROOT_DIR } from './repo.js';
 
 /** Lee y parsea un YAML del repo (ruta relativa a la raíz). Los comentarios no forman parte del resultado. */
 export function readYaml<T = any>(relativePath: string): T {
-  return yaml.load(fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf-8')) as T;
+  const raw = fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf-8');
+  if (!raw.trim()) return undefined as unknown as T;
+  return yaml.load(raw) as T;
 }
 
 /** Igual que `readYaml` para archivos con varios documentos (`---`); descarta los vacíos. */
 export function readYamlDocs<T = any>(relativePath: string): T[] {
-  return (yaml.loadAll(fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf-8')) as T[]).filter(Boolean);
+  const raw = fs.readFileSync(path.join(ROOT_DIR, relativePath), 'utf-8');
+  if (!raw.trim()) return [];
+  return (yaml.loadAll(raw) as T[]).filter(Boolean);
 }
 
 export interface WorkflowStep {

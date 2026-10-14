@@ -13,7 +13,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 
 const read = (rel: string) => fs.readFileSync(path.join(ROOT_DIR, rel), 'utf-8');
 

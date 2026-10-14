@@ -31,7 +31,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { isHelmAvailable, runHelm } from '../../../scripts/lib/helm.js';
 import { ROOT_DIR } from '../../helpers/repo.js';
 import { readYaml } from '../../helpers/yaml.js';
