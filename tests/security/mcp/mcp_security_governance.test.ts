@@ -196,3 +196,38 @@ test('🔒 MCP Seguridad: Perfiles security-readonly y documentation-readonly re
     'documentation-readonly requiere outbound-allowed para APIs de docs',
   );
 });
+
+test('🔒 MCP Seguridad: Coherencia de gobernanza entre skills (.agents/skills/*), reglas y catálogo canónico', () => {
+  const registry: any = yaml.load(fs.readFileSync(path.join(ROOT_DIR, '.mcp', 'registry.yaml'), 'utf-8'));
+  const servers = registry.servers || [];
+
+  // 1. Skill repo-security referencia 'trivy' con perfil 'security-readonly'
+  const repoSecurityContent = fs.readFileSync(
+    path.join(ROOT_DIR, '.agents', 'skills', 'repo-security', 'SKILL.md'),
+    'utf-8',
+  );
+  assert.ok(repoSecurityContent.includes('`trivy`'));
+  assert.ok(repoSecurityContent.includes('`security-readonly`'));
+  const trivyServer = servers.find((s: any) => s.id === 'trivy');
+  assert.ok(trivyServer, "El servidor 'trivy' referenciado en repo-security debe existir en registry.yaml");
+  assert.strictEqual(trivyServer.profile, 'security-readonly');
+  assert.strictEqual(trivyServer.enabled, true);
+
+  // 2. Skill repo-dependencies referencia 'context7' con perfil 'documentation-readonly'
+  const repoDepsContent = fs.readFileSync(
+    path.join(ROOT_DIR, '.agents', 'skills', 'repo-dependencies', 'SKILL.md'),
+    'utf-8',
+  );
+  assert.ok(repoDepsContent.includes('`context7`'));
+  assert.ok(repoDepsContent.includes('`documentation-readonly`'));
+  const context7Server = servers.find((s: any) => s.id === 'context7');
+  assert.ok(context7Server, "El servidor 'context7' referenciado en repo-dependencies debe existir en registry.yaml");
+  assert.strictEqual(context7Server.profile, 'documentation-readonly');
+  assert.strictEqual(context7Server.enabled, true);
+
+  // 3. Regla transversal mcp-governance.md define Sección 5 para Trivy y Context7
+  const governanceContent = fs.readFileSync(path.join(ROOT_DIR, '.agents', 'rules', 'mcp-governance.md'), 'utf-8');
+  assert.ok(governanceContent.includes('5. Pautas Operativas para Servidores Especializados (Trivy y Context7)'));
+  assert.ok(governanceContent.includes('Servidor Trivy (`security-readonly`)'));
+  assert.ok(governanceContent.includes('Servidor Context7 (`documentation-readonly`)'));
+});
