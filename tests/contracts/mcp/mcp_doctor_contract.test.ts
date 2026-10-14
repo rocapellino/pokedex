@@ -107,3 +107,54 @@ test('🛡️ MCP Contrato: Servidores deshabilitados no bloquean dependenciesMe
   assert.strictEqual(report.summary.dependenciesMet, true);
   assert.strictEqual(report.summary.configurationsMet, true);
 });
+
+test('🛡️ MCP Contrato: Transporte remoto no admite falsos positivos, URLs malformadas ni dominios engañosos', () => {
+  // 1. Inyección de dominio engañoso tipo 'localhost.attacker.com'
+  const deceptiveReport = runMcpDoctor({
+    rootDir: ROOT_DIR,
+    env: {
+      GITHUB_PERSONAL_ACCESS_TOKEN: 'mock-token',
+      SONAR_TOKEN: 'mock-token',
+      GRAFANA_SERVICE_ACCOUNT_TOKEN: 'mock-token',
+      GRAFANA_MCP_ENDPOINT: 'http://localhost.attacker.com/mcp',
+    },
+    cliProbeFn: () => ({ available: true, version: '1.0' }),
+    trivyPluginProbeFn: () => ({ installed: true }),
+  });
+
+  const deceptiveServer = deceptiveReport.servers.find((s) => s.id === 'observability-readonly');
+  assert.ok(deceptiveServer);
+  assert.notStrictEqual(
+    deceptiveServer.connectivityStatus,
+    'LOCAL',
+    'Un dominio engañoso que contiene localhost no debe ser considerado LOCAL',
+  );
+  assert.notStrictEqual(
+    deceptiveServer.connectivityStatus,
+    'SECURE',
+    'Un endpoint HTTP sin TLS nunca debe ser considerado SECURE',
+  );
+  assert.strictEqual(deceptiveServer.connectivityStatus, 'INSECURE_REMOTE');
+  assert.strictEqual(deceptiveReport.summary.connectivityMet, false);
+  assert.strictEqual(deceptiveReport.overallValid, false);
+
+  // 2. Inyección de URL malformada
+  const malformedReport = runMcpDoctor({
+    rootDir: ROOT_DIR,
+    env: {
+      GITHUB_PERSONAL_ACCESS_TOKEN: 'mock-token',
+      SONAR_TOKEN: 'mock-token',
+      GRAFANA_SERVICE_ACCOUNT_TOKEN: 'mock-token',
+      GRAFANA_MCP_ENDPOINT: 'htt://invalid_url_syntax:99999',
+    },
+    cliProbeFn: () => ({ available: true, version: '1.0' }),
+    trivyPluginProbeFn: () => ({ installed: true }),
+  });
+
+  const malformedServer = malformedReport.servers.find((s) => s.id === 'observability-readonly');
+  assert.ok(malformedServer);
+  assert.strictEqual(malformedServer.connectivityStatus, 'INVALID_URL');
+  assert.strictEqual(malformedServer.state, 'CONFIG_MISSING');
+  assert.strictEqual(malformedReport.summary.connectivityMet, false);
+  assert.strictEqual(malformedReport.overallValid, false);
+});

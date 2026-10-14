@@ -259,6 +259,62 @@ export function resolveServerUrl(
   };
 }
 
+export function evaluateRemoteTransportUrl(targetUrl: string): {
+  status: ConnectivityStatus;
+  detail: string;
+  recommendation?: string;
+} {
+  let parsed: URL;
+  try {
+    parsed = new URL(targetUrl);
+  } catch {
+    return {
+      status: 'INVALID_URL',
+      detail: `URL de endpoint remoto inválida o malformada: '${targetUrl}'.`,
+      recommendation: 'Configure una URL sintácticamente válida con esquema http:// o https://.',
+    };
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return {
+      status: 'INVALID_URL',
+      detail: `Protocolo no soportado '${parsed.protocol}' en endpoint remoto (se exige http: o https:).`,
+      recommendation: 'Configure el endpoint remoto utilizando esquema http:// o https://.',
+    };
+  }
+
+  // Normalizar hostname removiendo corchetes de IPv6 (ej. [::1] -> ::1)
+  const rawHostname = parsed.hostname.toLowerCase();
+  const hostname = rawHostname.startsWith('[') && rawHostname.endsWith(']') ? rawHostname.slice(1, -1) : rawHostname;
+
+  const isIpv4Loopback =
+    /^127\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
+      hostname,
+    );
+
+  const isLoopback = hostname === 'localhost' || hostname === '::1' || hostname === '0.0.0.0' || isIpv4Loopback;
+
+  if (isLoopback) {
+    return {
+      status: 'LOCAL',
+      detail: `Transporte remoto loopback local verificado (${parsed.hostname}).`,
+    };
+  }
+
+  if (parsed.protocol === 'https:') {
+    return {
+      status: 'SECURE',
+      detail: 'Transporte HTTPS declarado (esquema TLS conforme en inspección estática).',
+    };
+  }
+
+  return {
+    status: 'INSECURE_REMOTE',
+    detail: `ADVERTENCIA: Transporte remoto hacia '${parsed.hostname}' sin TLS (https obligatoria en producción).`,
+    recommendation: 'Configure endpoint seguro con HTTPS (TLS) para el servidor remoto.',
+  };
+}
+
 function diagnoseServer(
   s: McpServerDefinition,
   dockerAvailable: boolean,
@@ -338,19 +394,11 @@ function diagnoseServer(
         `Defina las variables para resolver la URL remota de '${s.id}': ${urlResolution.missingVars.join(', ')}.`,
       );
     } else {
-      const targetUrl = urlResolution.resolvedUrl;
-      const isLocal = targetUrl.includes('localhost') || targetUrl.includes('127.0.0.1');
-
-      if (isLocal) {
-        connectivityStatus = 'LOCAL';
-        details.push('Transporte remoto local (localhost/127.0.0.1).');
-      } else if (targetUrl.startsWith('https://')) {
-        connectivityStatus = 'SECURE';
-        details.push('Transporte HTTPS declarado (esquema TLS conforme en inspección estática).');
-      } else {
-        connectivityStatus = 'INSECURE_REMOTE';
-        details.push('ADVERTENCIA: Transporte remoto sin TLS (https obligatoria en producción).');
-        recommendations.push(`Configure endpoint seguro con HTTPS (TLS) para el servidor remoto '${s.id}'.`);
+      const evalResult = evaluateRemoteTransportUrl(urlResolution.resolvedUrl);
+      connectivityStatus = evalResult.status;
+      details.push(evalResult.detail);
+      if (evalResult.recommendation) {
+        recommendations.push(`${evalResult.recommendation} (servidor '${s.id}').`);
       }
     }
   }
@@ -359,7 +407,11 @@ function diagnoseServer(
   let state: ServerHealthState = 'READY';
   if (dependenciesStatus !== 'MET') {
     state = 'DEPENDENCY_MISSING';
-  } else if (configurationStatus !== 'VALID' || connectivityStatus === 'UNRESOLVED_URL') {
+  } else if (
+    configurationStatus !== 'VALID' ||
+    connectivityStatus === 'UNRESOLVED_URL' ||
+    connectivityStatus === 'INVALID_URL'
+  ) {
     state = 'CONFIG_MISSING';
   }
 
@@ -423,7 +475,10 @@ export function runMcpDoctor(options: McpDoctorOptions = {}): DoctorReport {
   const hasConfigIssues = enabledServers.some((s) => s.configurationStatus === 'MISSING_ENV');
   const hasDependencyIssues = enabledServers.some((s) => s.dependenciesStatus.startsWith('MISSING_'));
   const hasTransportIssues = enabledServers.some(
-    (s) => s.connectivityStatus === 'INSECURE_REMOTE' || s.connectivityStatus === 'UNRESOLVED_URL',
+    (s) =>
+      s.connectivityStatus === 'INSECURE_REMOTE' ||
+      s.connectivityStatus === 'UNRESOLVED_URL' ||
+      s.connectivityStatus === 'INVALID_URL',
   );
 
   const readyServers = enabledServers.filter((s) => s.state === 'READY');
@@ -476,7 +531,9 @@ function printSummarySection(summary: DoctorSummary): void {
   const connIcon = summary.connectivityMet ? '✔' : '⚠️';
   console.log(
     `   ${connIcon} Transporte y Esquema Seguro:      ${
-      summary.connectivityMet ? 'Conforme (HTTPS declarado / Local)' : 'Requiere HTTPS o resolución de variables en URL'
+      summary.connectivityMet
+        ? 'Conforme (HTTPS declarado / Local)'
+        : 'Requiere HTTPS, URL válida o resolución de variables en URL'
     }`,
   );
   console.log(
