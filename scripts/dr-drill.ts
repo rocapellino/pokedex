@@ -312,9 +312,9 @@ INSERT INTO pokedex_entries (id, nombre, tipo, data) VALUES
   }
 
   if (dockerAvailable) {
-    log('🐘 Restaurando en contenedor PostgreSQL 16 Alpine efímero...');
+    log('🐘 Restaurando en contenedor PostgreSQL 17 Alpine efímero...');
     const containerName = `pokedex_dr_drill_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-    const postgresImage = 'postgres:16-alpine';
+    const postgresImage = 'postgres:17-alpine';
 
     const tRestoreStart = performance.now();
     try {

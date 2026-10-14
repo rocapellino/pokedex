@@ -251,7 +251,7 @@ test('🔐 Pasaje GitOps: la NetworkPolicy de PostgreSQL admite los pods de back
 });
 
 test('🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y un shell con pipefail', async () => {
-  // Regresión: backup y DR Verify reutilizaban `postgresql.image` (postgres:16-alpine),
+  // Regresión: backup y DR Verify reutilizaban `postgresql.image` (postgres:17-alpine),
   // que no trae el CLI openssl; el backup fallaba con "openssl: not found" antes de
   // cifrar el volcado. La imagen dedicada es Debian, donde /bin/sh es dash y no
   // admite `set -o pipefail`, así que los scripts deben correr con bash.
@@ -262,7 +262,7 @@ test('🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y u
     values.postgresql.image.tag,
     'backup.image no debe ser la variante alpine del servidor',
   );
-  assert.match(backupImage.tag, /^16-/, 'pg_dump debe tener la misma major que el servidor PostgreSQL 16');
+  assert.match(backupImage.tag, /^17-/, 'pg_dump debe tener la misma major que el servidor PostgreSQL 17');
   assert.match(backupImage.digest, /^sha256:[a-f0-9]{64}$/, 'backup.image debe fijarse por digest (INFRA-005)');
   assert.ok(
     read('.github/workflows/security-trivy.yaml').includes(`${backupImage.repository}@${backupImage.digest}`),
