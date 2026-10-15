@@ -25,12 +25,13 @@ spec:
         message: >-
           Se debe declarar seccompProfile.type: RuntimeDefault o Localhost en el securityContext
           del Pod o de cada contenedor (ADR-017: require-seccomp-profile).
-        pattern:
-          spec:
-            =(securityContext):
-              =(seccompProfile):
-                =(type): "RuntimeDefault | Localhost"
-            containers:
-              - =(securityContext):
-                  =(seccompProfile):
-                    =(type): "RuntimeDefault | Localhost"
+        anyPattern:
+          - spec:
+              securityContext:
+                seccompProfile:
+                  type: "RuntimeDefault | Localhost"
+          - spec:
+              containers:
+                - securityContext:
+                    seccompProfile:
+                      type: "RuntimeDefault | Localhost"

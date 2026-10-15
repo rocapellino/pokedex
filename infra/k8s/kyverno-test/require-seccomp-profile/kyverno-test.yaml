@@ -1,4 +1,7 @@
-name: require-seccomp-profile-test
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: require-seccomp-profile-test
 policies:
   - ../../policies/require-seccomp-profile.yaml
 resources:
@@ -6,11 +9,13 @@ resources:
 results:
   - policy: require-seccomp-profile
     rule: check-seccomp-profile
-    resource: seccomp-pod-valid
     kind: Pod
+    resources:
+      - seccomp-pod-valid
     result: pass
   - policy: require-seccomp-profile
     rule: check-seccomp-profile
-    resource: seccomp-pod-invalid
     kind: Pod
+    resources:
+      - seccomp-pod-invalid
     result: fail

@@ -1,4 +1,7 @@
-name: pod-security-standards-test
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: pod-security-standards-test
 policies:
   - ../../policies/pod-security-standards.yaml
 resources:
@@ -6,26 +9,31 @@ resources:
 results:
   - policy: pod-security-standards
     rule: disallow-privilege-escalation
-    resource: pss-pod-valid
     kind: Pod
+    resources:
+      - pss-pod-valid
     result: pass
   - policy: pod-security-standards
     rule: require-readonly-rootfs
-    resource: pss-pod-valid
     kind: Pod
+    resources:
+      - pss-pod-valid
     result: pass
   - policy: pod-security-standards
     rule: require-drop-all-capabilities
-    resource: pss-pod-valid
     kind: Pod
+    resources:
+      - pss-pod-valid
     result: pass
   - policy: pod-security-standards
     rule: disallow-privilege-escalation
-    resource: pss-pod-invalid-escalation
     kind: Pod
+    resources:
+      - pss-pod-invalid-escalation
     result: fail
   - policy: pod-security-standards
     rule: disallow-privileged-containers
-    resource: pss-pod-invalid-privileged
     kind: Pod
+    resources:
+      - pss-pod-invalid-privileged
     result: fail
