@@ -14,8 +14,12 @@ WORKDIR /app
 
 # Copiar manifiestos de dependencias
 COPY package*.json ./
+COPY packages/contracts/package*.json ./packages/contracts/
 COPY apps/backend/package*.json ./apps/backend/
 COPY apps/backend/tsconfig.json ./apps/backend/
+
+# Copiar paquetes compartidos requeridos para resolución de tipos
+COPY packages/contracts/ ./packages/contracts/
 
 # Instalar dependencias para compilación
 RUN npm ci --workspace=@pokedex/backend --ignore-scripts

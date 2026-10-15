@@ -194,3 +194,29 @@ servers:
       filesystem: "none"
       network: "outbound-allowed"
     notes: "Provee contexto técnico oficial y documentación actualizada (Upstash). La delimitación de filesystem (none) es contractual del catálogo; el subproceso npx se ejecuta bajo los permisos del entorno local."
+
+  - id: "postgres-readonly"
+    name: "PostgreSQL Local Read-Only MCP Server"
+    description: "Inspección de esquemas y consultas analíticas en PostgreSQL 17 local (Compose) en modo solo lectura"
+    transport: "stdio"
+    execution_mode: "local"
+    package: "@modelcontextprotocol/server-postgres"
+    version: "0.6.2"
+    license: "MIT"
+    profile: "infrastructure-readonly"
+    enabled: true
+    command: "npx"
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-postgres@0.6.2"
+      - "postgresql://${POSTGRES_USER:-pokedex_app}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB:-pokedex_db}"
+    env:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    permissions:
+      read: true
+      write: false
+      filesystem: "none"
+      network: "outbound-allowed"
+    notes: "Inspección local segura de esquemas de pokedex_entries e índices GIN sin credenciales hardcodeadas."

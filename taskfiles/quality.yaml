@@ -48,3 +48,16 @@ tasks:
     desc: "Auditoría de calidad, duplicación de código y deuda técnica con SonarQube"
     cmds:
       - task: sonar
+
+  # ----------------------------------------------------------------------------
+  # Seguridad de Infraestructura y Linting K8s
+  # ----------------------------------------------------------------------------
+  lint:kube:
+    desc: "Valida la conformidad y buenas prácticas de seguridad en manifiestos y Charts de Helm con Kube-Linter"
+    cmds:
+      - docker run --rm -v "${PWD}:/repo" -w /repo stackrox/kube-linter:v0.8.3 lint /repo/infra/helm/pokedex --config /repo/.kube-linter.yaml
+
+  lint:checkov:
+    desc: "Auditoría estática de seguridad en Infraestructura como Código (IaC) con Checkov"
+    cmds:
+      - docker run --rm -v "${PWD}:/tf" --workdir /tf bridgecrew/checkov:3.2.378 --config-file .checkov.yaml -d infra/
