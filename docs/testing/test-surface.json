@@ -295,6 +295,26 @@
       "description": "Comprueba una única vez que existen los ADRs activos 001-020 (salvo los retirados), que cada ADR declara el estado Aceptado y que está indexado en docs/decisions/README.md."
     },
     {
+      "path": "tests/contracts/adr/migration_hygiene_contracts.test.ts",
+      "suite": "contracts",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Suite contracts",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Suite de pruebas contracts: migration_hygiene_contracts.test.ts."
+    },
+    {
       "path": "tests/contracts/app/api_types_compat.test.ts",
       "suite": "contracts",
       "type": "Contract / Types",

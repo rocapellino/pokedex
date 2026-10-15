@@ -41,8 +41,13 @@ export const MONITORED_ENV_VARS: EnvVarSpec[] = [
   },
   {
     name: 'DATABASE_URL',
-    hint: 'String de conexión a PostgreSQL (o variables POSTGRES_*). OBLIGATORIA en producción: sin ella el arranque falla en vez de degradar a memoria volátil (APPS-008). En desarrollo y tests es opcional y activa el fallback en memoria.',
+    hint: 'String de conexión a PostgreSQL o PgBouncer (o variables POSTGRES_*). OBLIGATORIA en producción: sin ella el arranque falla en vez de degradar a memoria volátil (APPS-008). En desarrollo y tests es opcional y activa el fallback en memoria.',
     requiredInProduction: true,
+  },
+  {
+    name: 'DIRECT_DATABASE_URL',
+    hint: 'String de conexión TCP directa a PostgreSQL (puerto 5432) para migraciones DDL y seed jobs sin pasar por PgBouncer transaction mode. Opcional; si falta, degrada a DATABASE_URL.',
+    requiredInProduction: false,
   },
   {
     name: 'REDIS_URL',
