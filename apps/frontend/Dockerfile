@@ -5,7 +5,9 @@ FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b533
 
 WORKDIR /app
 COPY package*.json ./
+COPY packages/contracts/package*.json ./packages/contracts/
 COPY apps/frontend/package*.json ./apps/frontend/
+COPY packages/contracts ./packages/contracts
 RUN npm ci --workspace=@pokedex/frontend --ignore-scripts
 
 COPY apps/frontend ./apps/frontend

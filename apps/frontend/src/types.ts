@@ -1,30 +1,23 @@
 /**
- * Tipos Compartidos para la Aplicación Frontend Pokédex
+ * ==============================================================================
+ * Pokédex Frontend - Tipos y Contratos
+ * ==============================================================================
+ * Re-exporta los contratos compartidos de @pokedex/contracts, adaptando las
+ * interfaces para permitir renderizado reactivo y estados parciales en UI.
+ * ==============================================================================
  */
 
-export interface PokemonStats {
-  hp?: number;
-  attack?: number;
-  defense?: number;
-  sp_attack?: number;
-  sp_defense?: number;
-  speed?: number;
-  [key: string]: number | undefined;
-}
+import type {
+  Pokemon as CanonicalPokemon,
+  PokemonCharacteristics as CanonicalCharacteristics,
+  PokemonStats as CanonicalStats,
+} from '@pokedex/contracts';
 
-export interface PokemonCaracteristicas {
-  peso?: number;
-  altura?: number;
-  fuerza?: number;
-  edad?: number;
-  categoria?: string;
-  descripcion?: string;
-  habitat?: string;
-  [key: string]: unknown;
-}
+export * from '@pokedex/contracts';
 
-/** Alias de compatibilidad e interoperabilidad entre capas */
+export type PokemonCaracteristicas = Partial<CanonicalCharacteristics>;
 export type PokemonCharacteristics = PokemonCaracteristicas;
+export type PokemonStats = Partial<CanonicalStats>;
 
 export interface EvolutionNode {
   id?: number;
@@ -36,26 +29,6 @@ export interface EvolutionNode {
   evoluciones?: EvolutionNode[];
 }
 
-/**
- * Megaevolución de un Pokémon. Es una transformación de combate de la especie base,
- * no una entrada del catálogo: no tiene número de Pokédex Nacional propio y por eso
- * cuelga de `Pokemon.megaevoluciones` sin `id`. `clave` es su identificador estable
- * dentro de la especie (slug de PokeAPI, p. ej. `charizard-mega-x`).
- */
-export interface MegaEvolution {
-  clave: string;
-  nombre: string;
-  imagen: string;
-  tipos: string[];
-  habilidades: string[];
-  stats: PokemonStats;
-  peso: number;
-  altura: number;
-}
-
-/** Clasificación especial de una especie (legendaria o mítica). */
-export type PokemonClassification = 'legendario' | 'mitico';
-
 export interface Pokemon {
   id: number;
   nombre: string;
@@ -66,22 +39,11 @@ export interface Pokemon {
   peso?: number;
   altura?: number;
   edad?: number;
-  caracteristicas?: PokemonCaracteristicas;
+  caracteristicas?: PokemonCharacteristics;
   habilidades?: string[] | string;
   stats?: PokemonStats;
   evoluciones?: EvolutionNode[] | { arbol?: EvolutionNode; es_ramificada?: boolean };
-  /** Solo lectura: se carga desde el catálogo y la API no permite editarla. */
-  megaevoluciones?: MegaEvolution[];
-  /** Solo lectura: `legendario` o `mitico` según PokeAPI; ausente en el resto de especies. */
-  clasificacion?: PokemonClassification;
+  megaevoluciones?: CanonicalPokemon['megaevoluciones'];
+  clasificacion?: CanonicalPokemon['clasificacion'];
   [key: string]: unknown;
-}
-
-export interface SessionInfo {
-  authenticated?: boolean;
-  token?: string;
-  expiresIn?: number;
-  expires_in?: number;
-  expiresAt?: number;
-  role?: string;
 }

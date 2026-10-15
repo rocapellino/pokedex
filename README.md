@@ -16,25 +16,24 @@ Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa u
 
 ## 📑 Tabla de Contenidos
 
-- [Pokémon DevOps Platform](#-pokémon-devops-platform)
-  - [📑 Tabla de Contenidos](#-tabla-de-contenidos)
-  - [1. Propósito y Visión General](#1-propósito-y-visión-general)
-  - [2. Características Principales](#2-características-principales)
-  - [3. Arquitectura del Sistema](#3-arquitectura-del-sistema)
-  - [4. Stack Tecnológico](#4-stack-tecnológico)
-  - [5. Requisitos Previos](#5-requisitos-previos)
-  - [6. Puesta en Marcha Local](#6-puesta-en-marcha-local)
-    - [1. Clonar el repositorio y configurar entorno](#1-clonar-el-repositorio-y-configurar-entorno)
-    - [2. Instalar dependencias](#2-instalar-dependencias)
-    - [3. Iniciar servicios con Docker Compose](#3-iniciar-servicios-con-docker-compose)
-  - [7. Ejecución de Pruebas y Calidad](#7-ejecución-de-pruebas-y-calidad)
-  - [8. Despliegue y Orquestación](#8-despliegue-y-orquestación)
-    - [Matriz de Estado y Nivel de Soporte de Componentes](#matriz-de-estado-y-nivel-de-soporte-de-componentes)
-  - [9. Seguridad y DevSecOps](#9-seguridad-y-devsecops)
-  - [10. Observabilidad y SRE](#10-observabilidad-y-sre)
-  - [11. Índice de Documentación](#11-índice-de-documentación)
-    - [Decisiones de Arquitectura Relevantes (ADR) y CLI](#decisiones-de-arquitectura-relevantes-adr-y-cli)
-  - [12. Licencia y Contribución](#12-licencia-y-contribución)
+- [📑 Tabla de Contenidos](#-tabla-de-contenidos)
+- [1. Propósito y Visión General](#1-propósito-y-visión-general)
+- [2. Características Principales](#2-características-principales)
+- [3. Arquitectura del Sistema](#3-arquitectura-del-sistema)
+- [4. Stack Tecnológico](#4-stack-tecnológico)
+- [5. Requisitos Previos](#5-requisitos-previos)
+- [6. Puesta en Marcha Local](#6-puesta-en-marcha-local)
+  - [1. Clonar el repositorio y configurar entorno](#1-clonar-el-repositorio-y-configurar-entorno)
+  - [2. Instalar dependencias](#2-instalar-dependencias)
+  - [3. Iniciar servicios con Docker Compose](#3-iniciar-servicios-con-docker-compose)
+- [7. Ejecución de Pruebas y Calidad](#7-ejecución-de-pruebas-y-calidad)
+- [8. Despliegue y Orquestación](#8-despliegue-y-orquestación)
+  - [Matriz de Estado y Nivel de Soporte de Componentes](#matriz-de-estado-y-nivel-de-soporte-de-componentes)
+- [9. Seguridad y DevSecOps](#9-seguridad-y-devsecops)
+- [10. Observabilidad y SRE](#10-observabilidad-y-sre)
+- [11. Índice de Documentación](#11-índice-de-documentación)
+  - [Decisiones de Arquitectura Relevantes (ADR) y CLI](#decisiones-de-arquitectura-relevantes-adr-y-cli)
+- [12. Licencia y Contribución](#12-licencia-y-contribución)
 
 ---
 
@@ -48,7 +47,7 @@ Plataforma full-stack y referencia de arquitectura Cloud-Native que implementa u
 
 - **Catálogo Completo y Reactivo:** Exploración, filtrado multigenacional (Gen I a IX) y búsqueda en tiempo real de los 1.025 Pokémon oficiales.
 - **Backend Unificado y Tipado:** Servidor en Node.js 24 LTS y Express con validación de esquemas y tipado de extremo a extremo en TypeScript.
-- **Persistencia Híbrida y Caché:** Almacenamiento relacional duradero en PostgreSQL 16 con Drizzle ORM (modelo relacional + `JSONB` indexado con GIN), pooling nativo con `pg.Pool` (con soporte opcional de PgBouncer) y aceleración en memoria con Redis 7.
+- **Persistencia Híbrida y Caché:** Almacenamiento relacional duradero en PostgreSQL 17 con Drizzle ORM (modelo relacional + `JSONB` indexado con GIN), pooling nativo con `pg.Pool` (con soporte opcional de PgBouncer) y aceleración en memoria con Valkey 8 / Redis RESP.
 - **Inteligencia Artificial Contextual:** Integración con Google Gemini 2.5 Flash (`@google/genai`) para la generación de diagramas y asistencia técnica con circuit breaker y fallback local.
 - **Backoffice Administrativo:** Consola web para la gestión de especímenes, monitoreo de métricas en vivo y operaciones seguras.
 
@@ -62,8 +61,8 @@ La solución implementa una arquitectura desacoplada y orientada a contenedores 
 flowchart TD
     Client(["👤 Usuario / Cliente"]) -->|HTTP 8080| Web["🌐 Frontend MPA (Vite + Nginx)"]
     Web -->|API Proxy /pokemons| API["⚙️ API REST (Node.js 24 + Express)"]
-    API -->|SQL :5432| DB[("🗄️ PostgreSQL 16\npokedex_entries")]
-    API -->|RESP :6379| Cache[("⚡ Redis 7\nCaché & Rate Limit")]
+    API -->|SQL :5432| DB[("🗄️ PostgreSQL 17\npokedex_entries")]
+    API -->|RESP :6379| Cache[("⚡ Valkey 8 / Redis\nCaché & Rate Limit")]
     API -->|HTTPS| AI["🤖 Google Gemini 2.5 Flash\nServicios Generativos"]
 
     subgraph GitOps_Flow ["☸️ Entrega Continua GitOps"]
@@ -83,7 +82,7 @@ Para una especificación exhaustiva de diseño y flujos de datos, consulta [docs
 | :--- | :--- | :--- |
 | **Runtime & Lenguaje** | Node.js 24 LTS / TypeScript 7.x | Servidor de API, lógica de negocio y tipado estático |
 | **Frontend** | HTML5, CSS Moderno, TypeScript, Vite | Interfaz reactiva, Bento Grid y Backoffice administrativo |
-| **Base de Datos** | PostgreSQL 16 (Drizzle ORM) + Redis 7 | Persistencia ACID relacional + JSONB, pooling y caché distribuida |
+| **Base de Datos** | PostgreSQL 17 (Drizzle ORM) + Valkey 8 | Persistencia ACID relacional + JSONB, pooling y caché distribuida |
 | **Tooling & Build** | esbuild, Taskfile, npm workspaces | Compilación ultrarrápida y orquestación de tareas |
 | **Orquestación & CI/CD** | Kubernetes, Helm 3, ArgoCD, GitHub Actions | Empaquetado declarativo y sincronización GitOps |
 
@@ -216,6 +215,7 @@ La documentación técnica detallada se organiza en:
 - [ADR-025: Separación de Planos de Gestión, Runtime y Preparación Cloud](docs/decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md)
 - [ADR-027: Resiliencia Fail-Open vs Fail-Closed](docs/decisions/ADR-027-resilience-fail-open-vs-fail-closed-contracts.md)
 - [ADR-030: Modelo de Entornos (Dev Local, Pre-Prod Proxmox y Prod Cloud)](docs/decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md)
+- [ADR-031: Adopción de Valkey 8 y Actualización a PostgreSQL 17](docs/decisions/ADR-031-adopcion-valkey-y-actualizacion-postgresql-17.md)
 - [Índice Canónico y Registro Histórico de ADRs](docs/decisions/README.md)
 - [TASKFILE_CLI_REFERENCE.md](docs/operations/TASKFILE_CLI_REFERENCE.md)
 

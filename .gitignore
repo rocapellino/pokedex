@@ -120,6 +120,9 @@ backups/
 
 # Configuraciones MCP generadas localmente (scripts/mcp/generate.ts)
 .mcp/generated/
+.mcp/*.local.json
+.mcp/*.local.yaml
+.mcp/.env*
 
 # ==============================================================================
 # Archivos del Sistema Operativo (Windows / macOS / Linux)

@@ -9,7 +9,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@pokedex/contracts": ["./packages/contracts/src/index.ts"]
+    }
   },
-  "include": ["apps/backend/server.ts", "apps/backend/src/**/*", "scripts/**/*", "tests/**/*", "playwright.config.ts"]
+  "include": ["apps/backend/server.ts", "apps/backend/src/**/*", "packages/contracts/src/**/*", "scripts/**/*", "tests/**/*", "playwright.config.ts"]
 }

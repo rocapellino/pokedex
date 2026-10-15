@@ -61,6 +61,19 @@ tasks:
 
   build:
     desc: "Compila y empaqueta el servidor TypeScript con esbuild y el frontend con Vite"
+    sources:
+      - apps/backend/src/**/*
+      - apps/backend/server.ts
+      - apps/backend/package.json
+      - apps/frontend/src/**/*
+      - apps/frontend/index.html
+      - apps/frontend/package.json
+      - packages/contracts/src/**/*
+      - packages/contracts/package.json
+      - tsconfig.json
+    generates:
+      - apps/backend/dist/server.cjs
+      - apps/frontend/dist/index.html
     cmds:
       - npm run build
 

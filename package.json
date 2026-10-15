@@ -9,7 +9,8 @@
   },
   "workspaces": [
     "apps/backend",
-    "apps/frontend"
+    "apps/frontend",
+    "packages/contracts"
   ],
   "scripts": {
     "dev": "npm run dev --workspace=@pokedex/backend",

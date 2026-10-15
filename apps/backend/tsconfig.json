@@ -8,7 +8,11 @@
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "rootDir": "../../",
+    "paths": {
+      "@pokedex/contracts": ["../../packages/contracts/src/index.ts"]
+    }
   },
-  "include": ["server.ts", "src/**/*"]
+  "include": ["server.ts", "src/**/*", "../../packages/contracts/src/**/*"]
 }
