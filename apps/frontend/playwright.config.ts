@@ -1,8 +1,12 @@
+import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
 
+const ROOT_DIR = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '../..');
+
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: path.resolve(ROOT_DIR, 'tests/e2e'),
   fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'github' : 'list',
@@ -14,6 +18,7 @@ export default defineConfig({
     ? undefined
     : {
         command: 'node apps/backend/dist/server.cjs',
+        cwd: ROOT_DIR,
         url: 'http://127.0.0.1:3000/healthz',
         reuseExistingServer: !process.env.CI,
         timeout: 30000,

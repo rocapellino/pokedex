@@ -3,10 +3,17 @@
   "vcs": {
     "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": true
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
   },
   "files": {
-    "includes": ["apps/*/src/**/*.ts", "apps/backend/server.ts", "scripts/**/*.ts", "tests/**/*.ts"]
+    "includes": [
+      "apps/*/src/**/*.ts",
+      "apps/backend/server.ts",
+      "packages/*/src/**/*.ts",
+      "scripts/**/*.ts",
+      "tests/**/*.ts"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -39,6 +46,16 @@
           },
           "style": {
             "noNonNullAssertion": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/*/src/**/*.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "error"
           }
         }
       }

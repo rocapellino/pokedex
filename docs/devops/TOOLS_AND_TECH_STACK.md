@@ -124,7 +124,7 @@ flowchart LR
 | :--- | :--- | :--- | :--- |
 | **Node Test Runner (`node:test`)** | Nativo Node 24 | Suite de pruebas unitarias, de integración, seguridad y pentesting | [`tests/`](../../tests) |
 | **Fuzz Testing Suite** | Script custom | 7 pruebas dinámicas de resistencia con payloads malformados (`test:fuzz`) | [`tests/fuzz/fuzzing.test.ts`](../../tests/fuzz/fuzzing.test.ts) |
-| **Playwright & Axe-core** | `1.64+` | Pruebas E2E multi-navegador y auditoría automatizada de accesibilidad WCAG | [`playwright.config.ts`](../../playwright.config.ts), [`tests/e2e/`](../../tests/e2e) |
+| **Playwright & Axe-core** | `1.64+` | Pruebas E2E multi-navegador y auditoría automatizada de accesibilidad WCAG | [`playwright.config.ts`](../../apps/frontend/playwright.config.ts), [`tests/e2e/`](../../tests/e2e) |
 | **k6 (Grafana k6)** | Latest | Pruebas de estrés y benchmarking declarativo de endpoints | [`tests/performance/k6_stress_test.js`](../../tests/performance/k6_stress_test.js) |
 | **Biome (`@biomejs/biome`) & `tsc`** | `2.5.x / TS 7.x` | Linter estático, formateador y verificación estricta de tipos (`npm run lint`) | [`biome.json`](../../biome.json), [`package.json`](../../package.json) |
 

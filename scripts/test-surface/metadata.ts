@@ -355,7 +355,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
   'tests/contracts/adr/adr_ci_tooling_contracts.test.ts': {
     type: 'Contract / Architecture',
     targetDomain: 'Conformidad ADR / CI y Tooling',
-    targetArtifacts: ['.github/workflows/', 'lighthouserc.json'],
+    targetArtifacts: ['.github/workflows/', 'apps/frontend/lighthouserc.json'],
     description:
       'Comprueba SAST, retiro de seal-secret, presupuestos Lighthouse y paridad de versión de Helm entre workflows.',
   },

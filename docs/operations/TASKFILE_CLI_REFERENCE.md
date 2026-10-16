@@ -23,9 +23,12 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | **Descubrimiento** | `task` o `task --list` | Muestra el catálogo de tareas disponibles y su descripción oficial. |
 | **Gestión Monorepo** | `task install` | Instalación limpia y reproducible con `npm ci`. |
 | **Desarrollo** | `task dev` | Servidor Pokédex en modo hot-reload interactivo. |
-| **Compilación** | `task build` | Compila backend con esbuild y frontend con Vite. |
+| **Compilación** | `task build` | Compila backend con esbuild y frontend con Vite (con caché determinista). |
+| | `task build:backend` | Compila y empaqueta el servidor Node.js/Express con esbuild. |
+| | `task build:frontend` | Compila y empaqueta la aplicación web frontend con Vite. |
 | **Producción** | `task start` | Ejecuta el bundle de producción compilado (`npm start`). |
 | **Validación y QA** | `task lint` | Ejecuta linting y análisis de tipos unificado. |
+| | `task lint:changed` | Ejecuta linting rápido con Biome sobre archivos modificados respecto a main. |
 | | `task lint:md` | Valida la calidad y consistencia de Markdown con markdownlint (0 errores MDxxx). |
 | | `task lint:md:fix` | Aplica autocorrección de formato a la documentación Markdown. |
 | | `task validate` | Suite obligatoria previa a commit (`lint`, `typecheck`, `build`, `test`). |

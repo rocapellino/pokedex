@@ -18,6 +18,11 @@ tasks:
     cmds:
       - npm run lint
 
+  lint:changed:
+    desc: "Ejecuta linting rápido con Biome únicamente sobre los archivos modificados respecto a main"
+    cmds:
+      - npm run lint:code:changed
+
   lint:config:
     desc: "Ejecuta Actionlint (con ShellCheck embebido) sobre los workflows mediante Docker"
     cmds:
