@@ -27,7 +27,11 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
   'tests/ci/lighthouse.test.ts': {
     type: 'Contract / CI',
     targetDomain: 'Lighthouse / Pila de Medición',
-    targetArtifacts: ['scripts/lighthouse-stack.ts', 'scripts/lighthouse-summary.ts', 'lighthouserc.json'],
+    targetArtifacts: [
+      'scripts/lighthouse-stack.ts',
+      'scripts/lighthouse-summary.ts',
+      'apps/frontend/lighthouserc.json',
+    ],
     description:
       'Verifica la API simulada de Lighthouse (paginación como el backend, X-Total-Count, imágenes locales) y la carga de extremo a extremo del catálogo.',
   },

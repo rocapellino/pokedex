@@ -67,6 +67,8 @@ tasks:
       - apps/backend/package.json
       - apps/frontend/src/**/*
       - apps/frontend/index.html
+      - apps/frontend/backoffice.html
+      - apps/frontend/vite.config.ts
       - apps/frontend/package.json
       - packages/contracts/src/**/*
       - packages/contracts/package.json
@@ -74,8 +76,40 @@ tasks:
     generates:
       - apps/backend/dist/server.cjs
       - apps/frontend/dist/index.html
+      - apps/frontend/dist/backoffice.html
     cmds:
       - npm run build
+
+  build:backend:
+    desc: "Compila y empaqueta el servidor TypeScript con esbuild"
+    sources:
+      - apps/backend/src/**/*
+      - apps/backend/server.ts
+      - apps/backend/package.json
+      - packages/contracts/src/**/*
+      - packages/contracts/package.json
+      - tsconfig.json
+    generates:
+      - apps/backend/dist/server.cjs
+    cmds:
+      - npm run build:backend
+
+  build:frontend:
+    desc: "Compila y empaqueta el frontend con Vite"
+    sources:
+      - apps/frontend/src/**/*
+      - apps/frontend/index.html
+      - apps/frontend/backoffice.html
+      - apps/frontend/vite.config.ts
+      - apps/frontend/package.json
+      - packages/contracts/src/**/*
+      - packages/contracts/package.json
+      - tsconfig.json
+    generates:
+      - apps/frontend/dist/index.html
+      - apps/frontend/dist/backoffice.html
+    cmds:
+      - npm run build:frontend
 
   start:
     desc: "Ejecuta el bundle de producción compilado (npm start)"

@@ -95,8 +95,8 @@ test('📈 Lighthouse: nginx se resuelve desde el digest del Dockerfile y se mon
   assert.equal(args.at(-1), image);
 });
 
-test('📈 Lighthouse: lighthouserc.json mide la aplicación real y no un servidor estático', () => {
-  const { ci } = JSON.parse(read('lighthouserc.json')) as {
+test('📈 Lighthouse: apps/frontend/lighthouserc.json mide la aplicación real y no un servidor estático', () => {
+  const { ci } = JSON.parse(read('apps/frontend/lighthouserc.json')) as {
     ci: {
       collect: Record<string, unknown> & { url: string[]; numberOfRuns: number; startServerCommand: string };
       assert: { assertions: Record<string, [string, Record<string, number>]> };
@@ -130,7 +130,7 @@ test('📈 Lighthouse: lighthouserc.json mide la aplicación real y no un servid
 });
 
 test('📈 Lighthouse: los presupuestos de rendimiento bloquean y respetan la línea base de CI', () => {
-  const { ci } = JSON.parse(read('lighthouserc.json')) as {
+  const { ci } = JSON.parse(read('apps/frontend/lighthouserc.json')) as {
     ci: { assert: { assertions: Record<string, [string, Record<string, number>]> } };
   };
   const a = ci.assert.assertions;
@@ -174,7 +174,7 @@ test('📈 Lighthouse: corre en su propio job, en paralelo con las pruebas E2E',
 });
 
 test('📈 Lighthouse: los archivos de la medición están clasificados y no disparan fail-closed', () => {
-  const files = ['lighthouserc.json', 'scripts/lighthouse-stack.ts', 'scripts/lighthouse-summary.ts'];
+  const files = ['apps/frontend/lighthouserc.json', 'scripts/lighthouse-stack.ts', 'scripts/lighthouse-summary.ts'];
   for (const file of files) {
     const result = analyzeChangeImpact({ files: [file], configPath: path.join(ROOT, '.github/ci-impact.yaml') });
     assert.equal(result.isUnknown, false, `${file} debe estar clasificado en .github/ci-impact.yaml`);

@@ -34,8 +34,8 @@ test('🛡️ Tooling Governance: scripts/seal-secret.ts retirado en favor de ES
 });
 
 test('🛡️ Web Performance & Accesibilidad: lighthouserc.json define presupuestos estrictos para Core Web Vitals', () => {
-  const lighthousercPath = path.join(ROOT_DIR, 'lighthouserc.json');
-  assert.ok(fs.existsSync(lighthousercPath), 'lighthouserc.json debe existir en la raíz');
+  const lighthousercPath = path.join(ROOT_DIR, 'apps/frontend/lighthouserc.json');
+  assert.ok(fs.existsSync(lighthousercPath), 'lighthouserc.json debe existir en apps/frontend/');
   const content = JSON.parse(fs.readFileSync(lighthousercPath, 'utf-8'));
 
   assert.ok(content.ci, 'lighthouserc.json debe tener sección ci');

@@ -75,4 +75,4 @@ tasks:
   perf:lighthouse:
     desc: "Ejecuta la auditoría de rendimiento y Web Vitals con Lighthouse CI"
     cmds:
-      - npx @lhci/cli autorun
+      - npx @lhci/cli autorun --config=apps/frontend/lighthouserc.json

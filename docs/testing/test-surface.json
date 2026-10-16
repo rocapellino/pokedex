@@ -147,7 +147,7 @@
       "targetArtifacts": [
         "scripts/lighthouse-stack.ts",
         "scripts/lighthouse-summary.ts",
-        "lighthouserc.json"
+        "apps/frontend/lighthouserc.json"
       ],
       "npmCommands": [
         "npm test",
@@ -213,7 +213,7 @@
       "targetDomain": "Conformidad ADR / CI y Tooling",
       "targetArtifacts": [
         ".github/workflows/",
-        "lighthouserc.json"
+        "apps/frontend/lighthouserc.json"
       ],
       "npmCommands": [
         "npm test",

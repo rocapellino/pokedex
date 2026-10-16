@@ -24,6 +24,10 @@ tasks:
 
   dev:catalog:generate:
     desc: "Regenera el catálogo nacional completo de Pokémon desde PokeAPI (data/pokemon-catalog.full.json)"
+    sources:
+      - scripts/generate-pokemon-catalog.ts
+    generates:
+      - data/pokemon-catalog.full.json
     cmds:
       - npm run catalog:generate
 
