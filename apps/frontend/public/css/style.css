@@ -2316,7 +2316,7 @@ body {
 .base-stat-delta--same { color: var(--text-muted); }
 
 /* Tema claro: tonos más oscuros para mantener contraste AA sobre fondo claro */
-[data-theme="light"] .base-stat-delta--up { color: #047857; }
+[data-theme="light"] .base-stat-delta--up { color: #065f46; }
 [data-theme="light"] .base-stat-delta--down { color: #b91c1c; }
 [data-theme="light"] .mega-stats-hint { color: var(--text-secondary); }
 
