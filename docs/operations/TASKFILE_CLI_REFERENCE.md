@@ -40,6 +40,7 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task test:e2e` | Pruebas de integración E2E con Playwright. |
 | | `task test:a11y` | Auditoría de accesibilidad WCAG 2.1 con Axe-core. |
 | | `task test:coverage` | Generación de reporte de cobertura LCOV. |
+| | `task evals` | Ejecuta la suite de evaluaciones conductuales para agentes de IA (`.agents/evals/`). |
 | | `task perf:lighthouse` | Auditoría de Core Web Vitals y rendimiento con Lighthouse CI sobre nginx real y una API simulada con el catálogo completo (ver `apps/frontend/README.md`). |
 | **Entorno Local** | `task dev:compose` | Levanta el stack interactivo con Docker Compose (`pokemon-web`, `pokemon-api`, `postgres`, `redis`). |
 | | `task dev:compose:down` | Detiene y desmantela los contenedores locales de Compose. |
