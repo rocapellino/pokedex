@@ -80,6 +80,7 @@ Respecto a los límites de ejecución en modo local frente a contenedores:
 | `k8s-platform-write` | K8s Platform Write | `stdio` | `container` | `alpine/k8s` (fijado por SHA256) | `1.32.0` | `infrastructure-write` (Inactivo) |
 | `trivy` | Trivy Security Scanner | `stdio` | `local` | `trivy-mcp` | `0.1.0` | `security-readonly` |
 | `context7` | Context7 Documentation | `stdio` | `local` | `@upstash/context7-mcp` | `4.4.0` | `documentation-readonly` |
+| `postgres-readonly` | PostgreSQL Local Read-Only | `stdio` | `local` | `@modelcontextprotocol/server-postgres` | `0.6.2` | `infrastructure-readonly` |
 
 ---
 
@@ -131,6 +132,7 @@ El diagnóstico evalúa de forma desacoplada y bajo principio Zero-Trust cuatro 
 | Comando npm | Tarea Taskfile | Acción Realizada |
 | :--- | :--- | :--- |
 | `npm run mcp:validate` | `task mcp:validate` | Valida catálogo, políticas, esquemas y ausencia de secretos |
+| `npm run mcp:scan` | `task mcp:scan` | Escaneo estático Zero-Trust contra Tool Poisoning, Rug Pulls y RCE |
 | `npm run mcp:generate` | `task mcp:generate` | Genera configuraciones nativas para todos los clientes |
 | `npm run mcp:generate:check` | `task mcp:generate:check` | Valida sincronización en CI (falla si hay drift) |
 | `npm run mcp:setup` | `task mcp:setup` | Asistente de onboarding y verificación de dependencias |

@@ -88,6 +88,7 @@
     "evals": "tsx --test \".agents/evals/**/*.test.ts\"",
     "tool:exec": "node --experimental-strip-types .agents/skills/repo-tool-exec/scripts/tool-exec.ts",
     "mcp:validate": "tsx scripts/mcp/validate.ts",
+    "mcp:scan": "tsx scripts/mcp/scan.ts",
     "mcp:generate": "tsx scripts/mcp/generate.ts",
     "mcp:generate:check": "tsx scripts/mcp/generate.ts --check",
     "mcp:setup": "tsx scripts/mcp/setup.ts",

@@ -78,9 +78,13 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 | | `task ghcr:retention:dry-run` | Inspecciona versiones en GHCR y simula la purga sin mutaciones (Dry-Run). |
 | **Gobernanza & Auditoría** | `task governance:audit-scripts` | Valida lista blanca estricta de scripts y prohíbe scripts imperativos. |
 | | `task ci:impact` | Calcula el grafo de impacto de cambios y el DAG dinámico de CI. |
-| | `task security` | Escaneos SAST y auditoría de secretos (Semgrep, Gitleaks, Checkov). |
 | **Sincronización Linear** | `task linear:sonar-sync` | Sincroniza incidencias de SonarCloud con Linear. |
 | | `task linear:security-sync` | Sincroniza alertas de seguridad GitHub (CodeQL, Dependabot, Secret Scanning) con Linear. |
+| **Gobernanza MCP** | `task mcp:validate` | Valida integridad estructural, permisos y esquemas del catálogo MCP. |
+| | `task mcp:scan` | Escaneo estático Zero-Trust contra Tool Poisoning, Rug Pulls y RCE. |
+| | `task mcp:generate` | Genera configuraciones nativas e idempotentes para todos los clientes MCP. |
+| | `task mcp:doctor` | Diagnóstico seguro de dependencias, variables y conectividad MCP. |
+| | `task mcp:test` | Ejecuta la suite de pruebas unitarias, contratos y seguridad MCP. |
 
 ---
 

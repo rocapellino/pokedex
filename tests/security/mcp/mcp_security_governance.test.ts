@@ -231,3 +231,72 @@ test('🔒 MCP Seguridad: Coherencia de gobernanza entre skills (.agents/skills/
   assert.ok(governanceContent.includes('Servidor Trivy (`security-readonly`)'));
   assert.ok(governanceContent.includes('Servidor Context7 (`documentation-readonly`)'));
 });
+
+test('🔒 MCP Seguridad: mcp-scan valida satisfactoriamente el catálogo canónico actual sin infracciones', async () => {
+  const { runMcpScan } = await import('../../../scripts/mcp/scan.js');
+  const report = runMcpScan(ROOT_DIR);
+
+  assert.strictEqual(report.passed, true, 'El escaneo de seguridad MCP debe pasar sin vulnerabilidades bloqueantes');
+  assert.strictEqual(
+    report.totalFindings,
+    0,
+    `No debe haber hallazgos en el catálogo canónico: ${JSON.stringify(report.findings)}`,
+  );
+  assert.ok(report.totalServersScanned >= 8, 'Debe escanear los servidores activos del catálogo');
+});
+
+test('🔒 MCP Seguridad: mcp-scan detecta y bloquea configuraciones con Tool Poisoning y RCE', async () => {
+  const { runMcpScan } = await import('../../../scripts/mcp/scan.js');
+
+  // Crear un entorno simulado temporal
+  const tmpDir = path.join(ROOT_DIR, 'tmp', `test-mcp-scan-${Date.now()}`);
+  const tmpMcp = path.join(tmpDir, '.mcp');
+  fs.mkdirSync(tmpMcp, { recursive: true });
+
+  try {
+    fs.writeFileSync(
+      path.join(tmpMcp, 'policies.yaml'),
+      'version: "1.0.0"\nprofiles:\n  development:\n    default_enabled: true\n',
+      'utf-8',
+    );
+    fs.writeFileSync(path.join(tmpMcp, 'clients.yaml'), 'version: "1.0.0"\nclients: {}\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpMcp, 'schema.json'), '{}', 'utf-8');
+
+    // Catálogo envenenado: versión flotante latest, flag --privileged y secreto hardcodeado
+    const poisonedRegistry = `
+version: "1.0.0"
+servers:
+  - id: "malicious-server"
+    name: "Malicious MCP Server"
+    description: "Servidor simulado con payload inseguro"
+    transport: "stdio"
+    execution_mode: "container"
+    image: "alpine:latest"
+    version: "latest"
+    license: "MIT"
+    profile: "development"
+    enabled: true
+    args:
+      - "--privileged"
+      - "/var/run/docker.sock"
+    env:
+      DB_PASSWORD: "password=supersecret123"
+`;
+    fs.writeFileSync(path.join(tmpMcp, 'registry.yaml'), poisonedRegistry, 'utf-8');
+
+    const report = runMcpScan(tmpDir);
+    assert.strictEqual(report.passed, false, 'El escaneo debe fallar ante un catálogo envenenado');
+
+    const ruleIds = report.findings.map((f) => f.ruleId);
+    assert.ok(ruleIds.includes('MCP-TOOL-PINNING-FLOATING-VERSION'), 'Debe detectar versión flotante');
+    assert.ok(ruleIds.includes('MCP-CONTAINER-DIGEST-PINNING-MISSING'), 'Debe detectar falta de digest pinning');
+    assert.ok(ruleIds.includes('MCP-EXEC-PRIVILEGED-PROHIBITED'), 'Debe detectar flag --privileged');
+    assert.ok(ruleIds.includes('MCP-EXEC-DOCKER-SOCKET-PROHIBITED'), 'Debe detectar montaje de docker.sock');
+    assert.ok(
+      ruleIds.some((r) => r.startsWith('SEC-ZERO-SECRETS')),
+      'Debe detectar secreto en texto plano',
+    );
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});

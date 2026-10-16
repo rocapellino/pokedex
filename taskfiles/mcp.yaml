@@ -10,6 +10,12 @@ tasks:
     cmds:
       - npm run mcp:validate
 
+  mcp:scan:
+    desc: "Escanea el catálogo .mcp/ bajo políticas Zero-Trust, prevención de Tool Poisoning y RCE"
+    cmds:
+      - npm run mcp:scan
+
+
   mcp:generate:
     desc: "Genera configuraciones reproducibles e idempotentes para todos los clientes MCP"
     cmds:
