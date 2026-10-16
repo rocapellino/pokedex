@@ -13,7 +13,7 @@ Al analizar el repositorio, buscar dependencias, validar configuraciones de infr
 - `gitops/`: Manifiestos y values de ArgoCD vigentes por entorno.
 - `infra/`: Helm charts, templates, Ansible playbooks y OpenTofu.
 - `docs/architecture/`: Especificación formal y activa de arquitectura y seguridad.
-- `apps/`, `scripts/`, `tests/`: Código fuente ejecutable y suites de pruebas vigentes.
+- `apps/`, `packages/`, `scripts/`, `tests/`: Código fuente ejecutable, contratos compartidos y suites de pruebas vigentes.
 
 ### B. Evidencia Histórica (Solo Lectura / Contexto Pasado)
 
@@ -50,7 +50,7 @@ Las skills alojadas en `.agents/skills/` se rigen por el principio de **despacho
 - **Governance & Maintenance:** `repo-docs` (ciclo de vida documental integral, contratos, límites y claims verification), `adr-manager` (gobernanza inmutable, redacción y sincronización canónica de ADRs), `repo-maintenance` (salud periódica, higiene y limpieza segura), `repo-fix` (ejecución de correcciones con test de regresión previo y trazabilidad `AUD-*`), `repo-refactor` (diseño de cambios incrementales), `repo-modernize` (evaluación de modernización), `repo-metrics` (telemetría auxiliar).
 
 > [!NOTE]
-> Todo cambio debe consultar la *Change Impact Matrix* antes de ejecutar suites completas de validación. Los cambios puramente documentales aplican *Fast Track* (`repo-docs` o `adr-manager` + `npm run lint:md`).
+> Todo cambio debe consultar la *Change Impact Matrix* antes de ejecutar suites completas de validación. Los cambios puramente documentales aplican *Fast Track* (`repo-docs` o `adr-manager` + `npm run lint:md`). Para patrones contrastivos de implementación rápida (*Por qué importa → Incorrecto → Correcto → Referencias*), consultar [`.agents/references/_sections.md`](.agents/references/_sections.md).
 
 El ciclo de vida se organiza en seis fases (auditar, matriz de cambios, ejecutar, actualizar, documentar y depurar), cada una con una skill responsable y un criterio de salida definidos en [`repo-lifecycle`](.agents/skills/repo-lifecycle/SKILL.md). Todas las skills cumplen el contrato común [`_shared/skill-contract.md`](.agents/skills/_shared/skill-contract.md): enlazan las fuentes de verdad en lugar de copiar versiones, UIDs o rutas volátiles.
 
@@ -58,8 +58,10 @@ El ciclo de vida se organiza en seis fases (auditar, matriz de cambios, ejecutar
 
 1. **Diseño Fail-Closed (ADR-027):** El sistema debe fallar de forma segura cerrando accesos y denegando peticiones administrativas o mutaciones ante caídas de proveedores de seguridad, almacenamiento o red. La única degradación *fail-open* tolerada y contractualmente acotada es la consulta pública de lectura del catálogo de Pokémon en modo local dev sin base de datos conectada.
 2. **Gobernanza Centralizada de Worktrees:** Estricta prohibición de operar o mutar en rutas no canónicas. Toda rama y checkout se crea bajo `../.worktrees/<repo-slug>/` mediante `npm run worktree:create`.
-3. **Persistencia Exclusiva con Drizzle ORM (ADR-011, ADR-031):** El esquema en TypeScript es la SSOT única; no se admiten scripts SQL huérfanos ni migraciones manuales sin trazabilidad.
-4. **Zero-Trust y Aislamiento L7 (ADR-013, ADR-016, ADR-017):** Tráfico inter-servicio bloqueado por defecto; validación eBPF con Cilium, control de admisión con Kyverno y bloqueo estricto de IMDS (`169.254.169.254/32`).
+3. **Persistencia Exclusiva con Drizzle ORM y Segregación de Conexiones (ADR-011, ADR-031):** El esquema en TypeScript es la SSOT única; no se admiten scripts SQL huérfanos. La API en runtime usa `DATABASE_URL` (PgBouncer en modo transacción, puerto 6432, pool `max: 10`). Migraciones DDL y seeding usan `DIRECT_DATABASE_URL` (PostgreSQL 17, puerto 5432). Todo nuevo índice debe aplicar `CREATE INDEX CONCURRENTLY IF NOT EXISTS` verificado con `npm run db:lint-migrations`.
+4. **Contratos Compartidos (@pokedex/contracts):** Todo tipo compartido entre backend y frontend reside exclusivamente en `@pokedex/contracts` como TypeScript puro. Prohibido importar Zod fuera de `apps/backend/` (`AUD-DEP-ZOD-001`).
+5. **Comandos Canónicos de Orquestación (ADR-020):** La interfaz soportada es `Taskfile.yaml` (`task --list`). Para compilación rápida usar `task build:backend` y `task build:frontend`; para validación de cambios locales usar `task lint:changed`.
+6. **Zero-Trust y Aislamiento L7 (ADR-013, ADR-016, ADR-017):** Tráfico inter-servicio bloqueado por defecto; validación eBPF con Cilium, control de admisión con Kyverno y bloqueo estricto de IMDS (`169.254.169.254/32`).
 
 ---
 

@@ -85,6 +85,7 @@
     "aas:governance": "tsx scripts/aas-governance.ts",
     "aas:validate": "npm exec --yes --ignore-scripts --package=agentic-awesome-skills@18.6.0 -- aas stack validate --manifest .agents/aas/aas-stack.json",
     "aas:verify": "npm run aas:governance && npm run aas:validate",
+    "evals": "tsx --test \".agents/evals/**/*.test.ts\"",
     "tool:exec": "node --experimental-strip-types .agents/skills/repo-tool-exec/scripts/tool-exec.ts",
     "mcp:validate": "tsx scripts/mcp/validate.ts",
     "mcp:generate": "tsx scripts/mcp/generate.ts",

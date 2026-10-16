@@ -8,6 +8,7 @@
   },
   "files": {
     "includes": [
+      ".agents/evals/**/*.ts",
       "apps/*/src/**/*.ts",
       "apps/backend/server.ts",
       "packages/*/src/**/*.ts",

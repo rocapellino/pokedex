@@ -71,3 +71,8 @@ tasks:
     desc: "Valida higiene de migraciones SQL y protocolo Expand-Contract (índices concurrentes sin bloqueo)"
     cmds:
       - npm run db:lint-migrations
+
+  evals:
+    desc: "Ejecuta la suite de evaluaciones conductuales para agentes de IA (.agents/evals/)"
+    cmds:
+      - npm run evals
