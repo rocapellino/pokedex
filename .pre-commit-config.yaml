@@ -54,3 +54,10 @@ repos:
         language: system
         files: '^\.mcp/.*\.yaml$'
         pass_filenames: false
+
+      - id: mcp-scan
+        name: Escaneo Zero-Trust MCP (mcp-scan)
+        entry: npx --no-install tsx scripts/mcp/scan.ts
+        language: system
+        files: '^\.mcp/.*'
+        pass_filenames: false

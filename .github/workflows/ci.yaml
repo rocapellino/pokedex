@@ -150,6 +150,7 @@ jobs:
       - name: 4f. Validación de Arquitectura y Paridad MCP
         run: |
           npm run mcp:validate
+          npm run mcp:scan
           npm run mcp:generate
           npm run mcp:generate:check
           npm run mcp:test
