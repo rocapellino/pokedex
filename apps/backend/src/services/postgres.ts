@@ -19,6 +19,10 @@ export function getDatabaseUrl(): string | undefined {
   );
 }
 
+export function getDirectDatabaseUrl(): string | undefined {
+  return process.env.DIRECT_DATABASE_URL || getDatabaseUrl();
+}
+
 const POKEDEX_ID_SEQUENCE_SYNC_SQL =
   "SELECT setval('pokedex_id_seq', GREATEST((SELECT COALESCE(MAX(id), 1008) FROM pokedex_entries), 1008), true)";
 
@@ -117,7 +121,8 @@ export async function connectPg(): Promise<boolean> {
 
       // Aplicar migraciones declarativas versionadas (Drizzle ORM como única fuente de verdad)
       try {
-        await migrationRunner(dbUrl);
+        const migrationDbUrl = getDirectDatabaseUrl() || dbUrl;
+        await migrationRunner(migrationDbUrl);
       } catch (migErr) {
         // [APPS-002] Contrato por ambiente:
         //   - produccion: fail-closed. Un esquema no migrado NO es un almacén

@@ -98,6 +98,7 @@
     "worktree:prune": "tsx scripts/worktree/cli.ts prune",
     "db:generate": "npm run db:generate --workspace=@pokedex/backend",
     "db:migrate": "npm run db:migrate --workspace=@pokedex/backend",
+    "db:lint-migrations": "tsx scripts/check-migration-hygiene.ts",
     "db:studio": "npm run db:studio --workspace=@pokedex/backend"
   },
   "overrides": {

@@ -295,6 +295,29 @@
       "description": "Comprueba una única vez que existen los ADRs activos 001-020 (salvo los retirados), que cada ADR declara el estado Aceptado y que está indexado en docs/decisions/README.md."
     },
     {
+      "path": "tests/contracts/adr/migration_hygiene_contracts.test.ts",
+      "suite": "contracts",
+      "type": "Contract / Architecture",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Higiene de Migraciones y Concurrencia SQL",
+      "targetArtifacts": [
+        "scripts/check-migration-hygiene.ts",
+        "apps/backend/src/db/migrations/"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:contracts"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Valida que el linter de migraciones exija índices concurrentes (CREATE INDEX CONCURRENTLY IF NOT EXISTS, DROP INDEX ... IF EXISTS), prohíba LOCK TABLE e ignore el baseline 0000."
+    },
+    {
       "path": "tests/contracts/app/api_types_compat.test.ts",
       "suite": "contracts",
       "type": "Contract / Types",

@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
+    "db:lint-migrations": "tsx ../../scripts/check-migration-hygiene.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

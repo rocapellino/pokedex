@@ -89,9 +89,9 @@ export async function baselineLegacySchema(client: Queryable, migrationsFolder: 
 }
 
 export async function runMigrations(connectionString?: string): Promise<void> {
-  const url = connectionString || process.env.DATABASE_URL;
+  const url = connectionString || process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL;
   if (!url) {
-    logger.warn('[Migrations] DATABASE_URL no configurado. Omitiendo migración.');
+    logger.warn('[Migrations] DIRECT_DATABASE_URL ni DATABASE_URL configurado. Omitiendo migración.');
     return;
   }
 

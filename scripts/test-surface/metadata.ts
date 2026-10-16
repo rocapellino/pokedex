@@ -385,6 +385,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Comprueba documentación, supply chain (ADR-008), SOPs, monorepo (ADR-019), despliegue (ADR-020) y resiliencia (ADR-027).',
   },
+  'tests/contracts/adr/migration_hygiene_contracts.test.ts': {
+    type: 'Contract / Architecture',
+    targetDomain: 'Higiene de Migraciones y Concurrencia SQL',
+    targetArtifacts: ['scripts/check-migration-hygiene.ts', 'apps/backend/src/db/migrations/'],
+    description:
+      'Valida que el linter de migraciones exija índices concurrentes (CREATE INDEX CONCURRENTLY IF NOT EXISTS, DROP INDEX ... IF EXISTS), prohíba LOCK TABLE e ignore el baseline 0000.',
+  },
   'tests/security/ansible_baseline_security.test.ts': {
     type: 'Security / Ansible',
     targetDomain: 'Hardening de Host, Redes y Ansible Baseline',

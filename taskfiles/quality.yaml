@@ -61,3 +61,8 @@ tasks:
     desc: "Auditoría estática de seguridad en Infraestructura como Código (IaC) con Checkov"
     cmds:
       - docker run --rm -v "${PWD}:/tf" --workdir /tf bridgecrew/checkov:3.2.378 --config-file .checkov.yaml -d infra/
+
+  db:lint-migrations:
+    desc: "Valida higiene de migraciones SQL y protocolo Expand-Contract (índices concurrentes sin bloqueo)"
+    cmds:
+      - npm run db:lint-migrations

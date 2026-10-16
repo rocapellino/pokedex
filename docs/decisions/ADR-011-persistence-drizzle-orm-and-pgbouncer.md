@@ -95,6 +95,23 @@ El contrato lo fija el test `AUD-ARCH-ADR-001` en `tests/contracts/adr/adr_appli
 
 ---
 
+## Enmienda 2026-10-15: Segregación de URLs y Protocolo Expand-Contract (3ª Generación)
+
+Con la actualización a PostgreSQL 17 (ADR-031) y PgBouncer 1.25.2, se formaliza la segregación de cadenas de conexión y la gobernanza de migraciones:
+
+1. **Segregación `DATABASE_URL` vs. `DIRECT_DATABASE_URL`**:
+   - `DATABASE_URL`: Dirigida hacia PgBouncer en puerto `6432` con `pool_mode = transaction` para el runtime de la API Express.
+   - `DIRECT_DATABASE_URL`: Conexión TCP directa hacia PostgreSQL 17 (puerto `5432`) con `pool_mode = session` reservada exclusivamente para `drizzle-kit migrate`, `runMigrations` y el `seed-job` (Sync Wave 1), evitando fallos de bloqueos transaccionales y asegurando compatibilidad con DDL.
+2. **Prevención de Double Pooling y Compatibilidad con Modo Transacción**:
+   - Drizzle ORM opera con consultas parametrizadas transparentes sin registrar sentencias preparadas de sesión (`PREPARE`), permitiendo que PgBouncer recicle conexiones de backend de inmediato tras cada consulta sin riesgo de colisiones entre clientes.
+   - Cada pod mantiene un pool acotado (`pg.Pool` con `max: 10`), garantizando que la multiplexación masiva ocurra en PgBouncer.
+3. **Protocolo Expand-Contract e Índices Concurrentes**:
+   - Toda creación incremental de índices debe realizarse mediante `CREATE INDEX CONCURRENTLY IF NOT EXISTS`.
+   - Toda eliminación de índices debe realizarse mediante `DROP INDEX CONCURRENTLY IF EXISTS` o `IF EXISTS`.
+   - Verificado de forma automatizada mediante el script `scripts/check-migration-hygiene.ts` (`npm run db:lint-migrations`).
+
+---
+
 ## Trazabilidad y Decisiones Consolidadas
 
 - **ADR-029 (Database Schema Unification and init.sql Retirement)**: Absorbido íntegramente en esta decisión. ADR-029 formalizó el retiro de los scripts estáticos `init.sql` en Compose y el ConfigMap de Helm, estableciendo a Drizzle ORM y sus migraciones versionadas como la única fuente de verdad (SSOT) del esquema de base de datos.
