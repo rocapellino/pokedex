@@ -297,12 +297,15 @@
     {
       "path": "tests/contracts/adr/migration_hygiene_contracts.test.ts",
       "suite": "contracts",
-      "type": "Automated Test",
+      "type": "Contract / Architecture",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "status": "ACTIVE",
-      "targetDomain": "Suite contracts",
-      "targetArtifacts": [],
+      "targetDomain": "Higiene de Migraciones y Concurrencia SQL",
+      "targetArtifacts": [
+        "scripts/check-migration-hygiene.ts",
+        "apps/backend/src/db/migrations/"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -312,7 +315,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (sonarcloud)"
       ],
-      "description": "Suite de pruebas contracts: migration_hygiene_contracts.test.ts."
+      "description": "Valida que el linter de migraciones exija índices concurrentes (CREATE INDEX CONCURRENTLY IF NOT EXISTS, DROP INDEX ... IF EXISTS), prohíba LOCK TABLE e ignore el baseline 0000."
     },
     {
       "path": "tests/contracts/app/api_types_compat.test.ts",
