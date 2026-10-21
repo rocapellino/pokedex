@@ -4,9 +4,9 @@
 >
 > **Fecha de captura:** 2026-10-21
 >
-> **Commit:** `0952a31a338f2f7a60607aacffb0945d61cd45e5`
+> **Commit:** `b38568ef018ee51ec685ab837935e207d8c7d673`
 >
-> **Rama auditada:** `main` (release `v1.118.0`)
+> **Rama auditada:** `main` (release `v1.119.0`)
 >
 > [!IMPORTANT]
 > Este documento es evidencia histórica del commit auditado. No es SSOT: el estado vigente
@@ -16,7 +16,7 @@
 **Repositorio:** `rocapellino/pokedex`
 **Contexto Operativo:** Monorepo (`apps/backend`, `apps/frontend`, `packages/contracts`) | Entornos: Kind / Proxmox Pre-prod / Prod Cloud (blueprint)
 **Vocabulario de estados:** gates según [state-model.md](../../../.agents/skills/_shared/state-model.md) §3 (`PASS`, `FAIL`, `NOT_EXECUTED`, `CI_REQUIRED`).
-**Foco de la sesión:** consolidar la auditoría integral (`full-audit`) absorbiendo el plan de mejoras de tercera generación (persistencia, tooling, gobernanza de agentes y blindaje Zero-Trust MCP; PRs `#894`, `#896`, `#898`, `#899`, `#900` y `#901`), depurar el árbol de trabajo y mantener un único snapshot activo conforme a `max_active_snapshots: 1`.
+**Foco de la sesión:** reemplazar el baseline anterior del mismo día (commit `0952a31a`, `v1.118.0`) absorbiendo el plan de mejora posterior al baseline (PRs `#903` a `#907`), la promoción `v1.119.0` (`#904`) y la purga real de tags. Mantiene un único snapshot activo conforme a `max_active_snapshots: 1`.
 
 ---
 
@@ -24,24 +24,27 @@
 
 | Componente | Valor auditado | Fuente |
 | :--- | :--- | :--- |
-| `package.json` | `1.118.0` | Versión de aplicación y monorepo |
-| `infra/helm/pokedex/Chart.yaml` (`version` / `appVersion`) | `1.118.0` | Empaquetado Helm |
-| GitOps `targetRevision` (manifiestos de `gitops/apps/`) | `v1.118.0` | Promoción ArgoCD |
-| Último tag | `v1.118.0` | `git describe --tags --abbrev=0` |
+| `package.json` | `1.119.0` | Versión de aplicación y monorepo |
+| `infra/helm/pokedex/Chart.yaml` (`version` / `appVersion`) | `1.119.0` | Empaquetado Helm |
+| GitOps `targetRevision` (manifiestos de `gitops/apps/`) | `v1.119.0` | Promoción ArgoCD |
+| Último tag | `v1.119.0` | `git describe --tags --abbrev=0` |
+| Tags remotos | `v1.117.0`, `v1.118.0`, `v1.119.0` | `git ls-remote --tags origin` |
 
-La aplicación raíz de ArgoCD (`root-application.yaml`) mantiene `targetRevision: main`, por lo que `audit-freshness.ts` puede informar `GITOPS_REVISION` aun con las aplicaciones de entorno alineadas. El estado es informativo y no bloqueante. Al capturar este baseline existe una promoción de release abierta (`v1.119.0`, PR `#902`) que aún no forma parte de `main`.
+La aplicación raíz de ArgoCD (`root-application.yaml`) mantiene `targetRevision: main`, por lo que `audit-freshness.ts` puede informar `GITOPS_REVISION` aun con las aplicaciones de entorno alineadas. El estado es informativo y no bloqueante.
+
+El workflow `release-tag.yaml` falló en el primer intento de `v1.119.0` (`gitsign verify-tag`: `could not find matching tlog entry` en Rekor, tras firmar el tag y antes de empujarlo). Un reintento del job fallido completó el tag firmado y el release sin intervención adicional, por lo que se trata de un fallo transitorio de Sigstore.
 
 ---
 
 ## 2. Resumen Ejecutivo
 
-El repositorio mantiene paridad de versión y de digests SHA256 entre Cloud GitOps, Proxmox Pre-prod y Helm Production, gobernanza documental sin drift y una suite de pruebas sin fallos en los niveles ejecutables localmente. La auditoría detectó una vulnerabilidad de severidad alta en `npm audit` (`markdown-it`, dependencia transitiva de desarrollo vía `markdownlint-cli`), corregida en este mismo ciclo con la actualización del lockfile a `14.3.3`.
+El repositorio mantiene paridad de versión y de digests SHA256 entre Cloud GitOps, Proxmox Pre-prod y Helm Production, gobernanza documental sin drift y una suite de pruebas sin fallos en los niveles ejecutables localmente. La retención de tags se verificó por primera vez contra el remoto real (el baseline anterior solo evaluó datos sintéticos) y se ejecutó la purga: quedan 3 tags remotos. La auditoría detectó dos hallazgos abiertos de severidad baja en la gobernanza de retención.
 
-- **Total de Hallazgos Abiertos:** 0
+- **Total de Hallazgos Abiertos:** 2
 - **P0 (Crítico):** 0
 - **P1 (Alto):** 0
-- **P2 (Medio):** 0 (1 remediado en este ciclo)
-- **P3 (Bajo):** 0 (6 consolidados del plan de tercera generación)
+- **P2 (Medio):** 0
+- **P3 (Bajo):** 2 (`AUD-REL-GHCR-001`, `AUD-REL-DRAFT-001`; 3 consolidados de este ciclo)
 
 ### Gates Automáticos
 
@@ -53,25 +56,27 @@ El repositorio mantiene paridad de versión y de digests SHA256 entre Cloud GitO
 | `npm run lint:md` | `PASS` | 156 archivos Markdown validados con 0 errores `MDxxx` |
 | `npm run lint:ignore:strict` | `PASS` | 7 archivos `.ignore` validados en modo estricto |
 | `npm run lint:yaml:strict` | `PASS` | 0 archivos `.yml` (política canónica `.yaml` cumplida al 100%) |
-| `npm run test:surface:check` | `PASS` | Catálogo sincronizado sin drift (188 archivos, 167 activos, 1241 casos) |
+| `npm run test:surface:check` | `PASS` | Catálogo sincronizado sin drift (188 archivos, 167 activos, 1245 casos) |
 | `npm run nginx:conf:check` | `PASS` | `apps/frontend/nginx.conf` sincronizado con la plantilla (`APPS-001`) |
 | `npm run gitops:verify-parity:strict` | `PASS` | Paridad de digests SHA256 entre Cloud GitOps, Proxmox Preprod y Helm Production |
-| `npm run gitops:pin:check` | `PASS` | Coherencia de `targetRevision: v1.118.0` en manifiestos de ArgoCD |
+| `npm run gitops:pin:check` | `PASS` | Coherencia de `targetRevision: v1.119.0` en manifiestos de ArgoCD |
 | `npm run secrets:audit-rotation` | `PASS` | 12/12 controles de la arquitectura dual (Reloader Cloud / Rollout Proxmox) |
 | `npm run governance:audit-scripts` | `PASS` | 28/28 tests de gobernanza y seguridad de scripts e IaC |
-| `npm run mcp:validate` / `mcp:scan` / `mcp:test` | `PASS` | 9 servidores (8 activos), 8 perfiles y 5 clientes; escaneo Zero-Trust sin vulnerabilidades; 46/46 tests |
+| `npm run mcp:validate` / `mcp:scan` / `mcp:test` | `PASS` | 9 servidores (8 activos), 8 perfiles y 5 clientes; escaneo Zero-Trust sin vulnerabilidades; 48/48 tests |
 | `npm run worktree:doctor` | `PASS` | Worktrees gobernados sin prunables ni fuera de política |
 | `npm run aas:governance` | `PASS` | AAS Core 18.6.0 con gobierno local válido |
-| `npm audit` | `PASS` | 0 vulnerabilidades tras actualizar `markdown-it` a `14.3.3` (antes: 1 alta, `GHSA-vfgh-jcmw-g37q` y `GHSA-gfr2-rv44-r23c`) |
-| `npm run test:unit` | `PASS` | 241 tests superados (0 fallos) |
-| `npm run test:contracts` | `PASS` | 333 tests (332 superados, 1 omitido justificado en entorno live de GitHub) |
+| `npm audit --package-lock-only` | `PASS` | 0 vulnerabilidades en el lockfile. Se audita el lockfile porque el `node_modules` local compartido puede estar desactualizado y producir falsos positivos |
+| `npm run test:unit` | `PASS` | 243 tests superados (0 fallos) |
+| `npm run test:contracts` | `PASS` | 335 tests (334 superados, 1 omitido justificado en entorno live de GitHub) |
 | `npm run test:security` | `PASS` | 212 tests superados (0 fallos) |
 | `npm run test:gitops` | `PASS` | 43 tests superados (0 fallos) |
 | `npm run test:frontend` | `PASS` | 374 tests superados (0 fallos) |
 | `npm run test:integration` | `PASS` | 48 tests superados (0 fallos) |
 | `npm run test:fuzz` | `PASS` | 7 tests superados (0 fallos) |
 | `npm run probe:security:egress` | `PASS` | Validación determinista de Anti-SSRF y Egress Cilium L7 |
-| `npm run test` (suites con render Helm) | `CI_REQUIRED` | Requieren `helm` o Docker; sin ellos fallan en local (`helm no disponible`) y se validan en CI |
+| `npm run tags:retention:dry-run` (con `GITHUB_TOKEN`) | `PASS` | `Modo Simulado: NO`; 3 tags remotos, los 3 retenidos por jerarquía SemVer, 0 candidatos a purga |
+| `npm run ghcr:retention:dry-run` (local) | `NOT_EXECUTED` | El token local carece del scope `read:packages` (HTTP 403); el script lo ignora y termina en éxito (ver `AUD-REL-GHCR-001`). La verificación real proviene de la ejecución de CI posterior al release |
+| Suites con render Helm (`npm test`) | `CI_REQUIRED` | Requieren `helm` o Docker; sin ellos fallan en local (`helm no disponible`). Validadas en CI: `Core CI` del PR `#907` (ejecución `39649629709`) con SonarQube Cloud, Auditoría de Calidad y Quality Gate en verde. El commit de promoción `b38568ef` solo cambia metadatos de versión y no ejecuta `Core CI` por `[skip-release]` |
 
 ---
 
@@ -79,26 +84,26 @@ El repositorio mantiene paridad de versión y de digests SHA256 entre Cloud GitO
 
 | ID | Área | Evidencia (`ruta:línea`) | Riesgo / Impacto | Prioridad | Confianza | Esfuerzo | Estado | Acción / Remediación |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `AUD-DEP-MDIT-001` | Dependencias / SCA | `package-lock.json` (`markdown-it` 14.3.2, vía `markdownlint-cli`) | Denegación de servicio cuadrática en el parseo de Markdown. Alcance limitado a tooling de desarrollo sobre documentos propios. | `P2` | `HIGH` | `XS` | `CLOSED` | Lockfile actualizado a `markdown-it 14.3.3` dentro del rango `~14.3.0`; `npm audit` en 0. |
-| `AUD-DB-CONN-001` | Persistencia | `apps/backend/src/services/postgres.ts`, `apps/backend/src/db/migrate.ts`, `scripts/check-migration-hygiene.ts` | Migraciones y seeding compartían la ruta de conexión del runtime (PgBouncer). | `P2` | `HIGH` | `M` | `CLOSED` | Segregación `DATABASE_URL` (PgBouncer 6432) y `DIRECT_DATABASE_URL` (PostgreSQL 5432), y linter `db:lint-migrations` para índices concurrentes, en PR `#894`. |
-| `AUD-DB-PREP-001` | Persistencia | `tests/unit/drizzle_contract.test.ts` | Riesgo de sentencias preparadas con nombre incompatibles con PgBouncer en modo transacción. | `P3` | `HIGH` | `XS` | `CLOSED` | Verificado que el backend no las usa y añadido un test de contrato que impide introducirlas, en PR `#901`. |
-| `AUD-TOOL-BIOME-001` | Tooling | `biome.json`, `Taskfile.yaml`, `taskfiles/` | Configuración de Biome sin overrides por workspace, configs web en la raíz y tareas sin caché. | `P3` | `HIGH` | `S` | `CLOSED` | Biome por workspaces, configs web desacopladas en `apps/frontend/` y caché `sources`/`generates` en Taskfile, en PR `#896`. |
-| `AUD-GOV-EVAL-001` | Gobernanza / Agentes | `AGENTS.md`, `.agents/references/_sections.md`, `.agents/evals/` | Contexto de agentes con narrativa histórica y sin evaluaciones conductuales. | `P3` | `HIGH` | `M` | `CLOSED` | `AGENTS.md` con standing instructions, referencias contrastivas y 4 evals, en PR `#898`. |
-| `AUD-MCP-SCAN-001` | Gobernanza / MCP | `scripts/mcp/scan.ts`, `.mcp/registry.yaml` | Sin detección de Tool Poisoning, versiones flotantes ni *metadata drift* en el catálogo MCP. | `P3` | `HIGH` | `M` | `CLOSED` | Escáner Zero-Trust `mcp:scan` en pre-commit y CI, en PR `#899`. |
-| `AUD-MCP-HITL-001` | Gobernanza / MCP | `scripts/mcp/validate.ts`, `scripts/mcp/generate.ts`, `scripts/mcp/audit.ts` | Sin garantía de confirmación humana ni trazabilidad de las operaciones de gobernanza MCP. | `P3` | `HIGH` | `S` | `CLOSED` | Rechazo de auto-aprobación (`autoApprove`, `alwaysAllow`, `autoStart`, `trust`), mutación solo bajo aprobación explícita y auditoría JSONL con `traceparent` W3C (ADR-018), en PR `#900`. |
+| `AUD-REL-GHCR-001` | Supply Chain / Retención OCI | `scripts/ghcr-retention.ts:264-265` (`catch` con `continue`) y `scripts/ghcr-retention.ts:328` | Un fallo al consultar un paquete (403, caída de API) se registra con `console.error`, el script continúa, imprime `Política de retención aplicada con éxito` y termina con código 0. Un job de CI sobre un token sin scope o una API caída se reportaría como exitoso sin haber evaluado ni purgado nada (diseño fail-open en un control de gobernanza, contrario a ADR-027). Observado en la ejecución local, con 403 en los 3 paquetes. | `P3` | `HIGH` | `XS` | `OPEN` | Acumular los paquetes con error, no imprimir el mensaje de éxito y terminar con código distinto de cero si alguno falla; test de regresión previo con un `fetchFn` que devuelva 403. |
+| `AUD-REL-DRAFT-001` | Release / Higiene | `docs/operations/TAG_RETENTION_POLICY.md:14`; `gh release list` | La política de retención opera solo sobre `refs/tags/*` y no elimina GitHub Releases: cada tag purgado deja un release en estado *Draft*. Se contaron 197 borradores entre los primeros 200 releases listados, incluidos los 7 de la purga de este ciclo, sin tag, sin assets y sin consumidor conocido. El número crece con cada release. | `P3` | `MEDIUM` | `S` | `OPEN` | Decidir con el responsable del release si los borradores huérfanos se eliminan (acción manual sobre releases, no reversible) o se documentan como aceptados en `TAG_RETENTION_POLICY.md`. Si se eliminan, automatizarlo con el mismo criterio de retención. |
+| `AUD-REL-RET-001` | Release / Retención | `scripts/tag-retention.ts`, `scripts/ghcr-retention.ts`, `docs/operations/TAG_RETENTION_POLICY.md` | Con `GITHUB_TOKEN` ausente, ambos scripts pasaban a simulación automática pero imprimían `Modo Simulado : NO` y cerraban con un mensaje de éxito; el baseline anterior registró una simulación de 20 tags sintéticos como verificación. | `P3` | `HIGH` | `S` | `CLOSED` | `Modo Simulado` refleja la simulación efectiva, ambos scripts avisan `RESULTADO SIMULADO` al final y la política documenta el requisito de token y `git fetch --prune --prune-tags`, con un test por script, en PR `#907`. Purga real ejecutada desde `tag-retention.yaml`: se eliminaron `v1.116.3`, `v1.116.2`, `v1.116.1`, `v1.116.0`, `v1.115.0`, `v1.114.2` y `v1.113.3`. |
+| `AUD-MCP-TRACE-001` | Gobernanza / MCP | `scripts/mcp/audit.ts`, `tests/unit/mcp/mcp_audit_hitl.test.ts` | El contexto `traceparent` no llegaba a los procesos hijo de `mcp:doctor` y el log de auditoría crecía sin límite. | `P3` | `HIGH` | `XS` | `CLOSED` | `TRACEPARENT` expuesto durante la operación y restaurado después, también ante excepción, y rotación a `tmp/mcp-audit.1.jsonl` al superar 1 MiB, en PR `#906`. |
+| `AUD-DEP-MDIT-001` | Dependencias / SCA | `package-lock.json` (`markdown-it`, vía `markdownlint-cli`) | Denegación de servicio cuadrática en el parseo de Markdown, limitada a tooling de desarrollo. | `P2` | `HIGH` | `XS` | `CLOSED` | Lockfile actualizado a `markdown-it 14.3.3` dentro del rango `~14.3.0`, en PR `#903`. Verificado en un clon limpio: `npm ci` sin errores, 0 vulnerabilidades y 0 paquetes `extraneous`. |
 
-Los hallazgos de ciclos anteriores (`js-yaml v5`, PostgreSQL 17 / Valkey 8, PgBouncer 1.25.2, KaTeX 0.19.0, herramientas CLI con checksum, `@pokedex/contracts` y skills de arquitectura) permanecen cerrados y consultables en el historial de Git (`git log --stat -- docs/audits/`).
+Hallazgos cerrados consolidados del baseline anterior (consultables en el historial de Git con `git log --stat -- docs/audits/`): `AUD-DB-CONN-001` (`#894`), `AUD-DB-PREP-001` (`#901`), `AUD-TOOL-BIOME-001` (`#896`), `AUD-GOV-EVAL-001` (`#898`), `AUD-MCP-SCAN-001` (`#899`) y `AUD-MCP-HITL-001` (`#900`).
 
-### Decisiones sobre el plan de tercera generación
+### Decisiones sobre el plan de tercera generación y el plan posterior al baseline
 
-- **Derivación de schemas con `drizzle-zod`:** descartada. Solo coinciden dos campos (`nombre`, `tipo`) entre la tabla `pokedex_entries` y los schemas Zod, con límites intencionalmente más estrictos en Zod (60 y 30 frente a 100 y 50 caracteres) y comprobaciones anti-XSS que la derivación no genera. El resto del payload vive en la columna `jsonb`, que no es derivable, y `PokemonPayloadSchema` es un `superRefine` manual. Además, Zod no puede salir de `apps/backend/` (`AUD-DEP-ZOD-001`).
+- **`drizzle-zod`:** descartada. Solo coinciden dos campos (`nombre`, `tipo`) entre la tabla `pokedex_entries` y los schemas Zod, con límites intencionalmente más estrictos en Zod y comprobaciones anti-XSS que la derivación no genera. El payload vive en una columna `jsonb` no derivable, y Zod no puede salir de `apps/backend/` (`AUD-DEP-ZOD-001`).
 - **Pool `max: 2-5` y `prepare: false`:** no aplicados. El pool vigente es `max: 10` (ADR-011 y ADR-031) y `prepare` es una opción de `postgres.js`, no de `node-postgres`.
+- **Suites con render Helm en local:** sin cambios. `scripts/lib/helm.ts` ya indica en una línea qué instalar o iniciar, y el modo estricto de CI se conserva.
+- **Promoción `v1.119.0`:** el PR `#902` fue sustituido por `#904`, fusionado; el tag firmado y el release se completaron tras reintentar el job fallido.
 
 ---
 
 ## 4. Detalle de Hallazgos Significativos (P0 / P1)
 
-No se registraron hallazgos P0 ni P1 al cierre de este ciclo. La única vulnerabilidad de severidad alta detectada durante la auditoría (`AUD-DEP-MDIT-001`) se evaluó como `P2` por limitarse a tooling de desarrollo y se cerró en el mismo ciclo.
+No se registraron hallazgos P0 ni P1 al cierre de este ciclo.
 
 ---
 
@@ -149,16 +154,16 @@ Diagnóstico de solo lectura conforme a [cleanup-protocol.md](../../../.agents/s
 | Archivos `.yml` | 0. |
 | Residuos versionados (`.bak`, `.tmp`, `.orig`, `.rej`, `.swp`) | 0. |
 | Contenido versionado bajo `tmp/` | 0. |
+| Ramas remotas | Solo `main`. Todas las ramas de trabajo fusionadas se eliminaron. |
 | Worktrees (`worktree:doctor`) | Sin huérfanos, prunables ni fuera de política. |
-| Retención de tags (`tags:retention`) | Política jerárquica sin hallazgos en modo simulado. |
+| Tags remotos (`tags:retention:dry-run`, real) | 3 tags, todos retenidos por jerarquía; 0 candidatos a purga. |
 
 Candidatos pendientes de aprobación humana (fase 5 del protocolo; no se ejecutan durante la auditoría):
 
 | Candidato | Estado | Justificación |
 | :--- | :--- | :--- |
-| Rama local `feat/mcp-hitl-trazabilidad-w3c` | `DELETE` | Su PR `#900` está fusionado (squash). |
-| Rama remota `origin/feat/mcp-hitl-trazabilidad-w3c` | `DELETE` | Su PR `#900` está fusionado (squash) y la rama no se eliminó. |
-| Rama remota `origin/release/promote-v1.119.0` | `KEEP` | Pertenece al PR de promoción `#902`, aún abierto. |
+| Releases en borrador sin tag (197 contados entre los primeros 200 listados) | `REVIEW` | Ver `AUD-REL-DRAFT-001`: la eliminación de releases no es reversible y la política actual no la cubre. |
+| Tags locales de clones antiguos (295 en el clon auditado frente a 3 en el remoto) | `REVIEW` | Dependen de cada máquina; se sincronizan con `git fetch --prune --prune-tags`, ahora documentado en `TAG_RETENTION_POLICY.md`. |
 
 ---
 
@@ -166,7 +171,7 @@ Candidatos pendientes de aprobación humana (fase 5 del protocolo; no se ejecuta
 
 1. **Inmediato (P0/P1):** Ninguno requerido.
 2. **Medio Plazo (P2):** Ninguno abierto.
-3. **Mantenimiento Continuo (P3):** Aprobar y ejecutar la eliminación de las ramas fusionadas (sección 6) y vigilar versiones menores y parches mediante Renovate y Dependency Review en CI.
+3. **Mantenimiento Continuo (P3):** corregir `AUD-REL-GHCR-001` con test de regresión previo; decidir `AUD-REL-DRAFT-001`; valorar un reintento automático acotado para el paso `gitsign verify-tag` de `release-tag.yaml`, tras un único fallo transitorio de Rekor observado en este ciclo (evidencia insuficiente para abrir un hallazgo).
 
 ---
 
@@ -176,11 +181,13 @@ Candidatos pendientes de aprobación humana (fase 5 del protocolo; no se ejecuta
 - [x] **Linters de Código:** `npm run lint` (Biome) limpio en 329 archivos.
 - [x] **Gobernanza Documental & Markdown Gate:** `npm run docs:validate` y `npm run lint:md` sin fallos (156 archivos Markdown).
 - [x] **Higiene de Configuración:** `npm run lint:ignore:strict` y `npm run lint:yaml:strict` en verde.
-- [x] **Superficie de Testing:** `npm run test:surface:check` sincronizado (1241 casos en catálogo).
+- [x] **Superficie de Testing:** `npm run test:surface:check` sincronizado (1245 casos en catálogo).
 - [x] **Gobernanza de Secretos:** `npm run secrets:audit-rotation` (12/12 controles).
-- [x] **Supply Chain & GitOps:** `npm run gitops:verify-parity:strict` y `npm run gitops:pin:check` certificados en `v1.118.0`.
-- [x] **Dependencias:** `npm audit` en 0 vulnerabilidades.
+- [x] **Supply Chain & GitOps:** `npm run gitops:verify-parity:strict` y `npm run gitops:pin:check` certificados en `v1.119.0`.
+- [x] **Dependencias:** `npm audit --package-lock-only` en 0 vulnerabilidades.
 - [x] **Anti-SSRF & Egress:** `npm run probe:security:egress` verificado en modo determinista.
 - [x] **Gobernanza de Worktrees & MCP:** `npm run worktree:doctor`, `npm run mcp:validate`, `npm run mcp:scan` y `npm run mcp:test` validados.
-- [ ] **Suites con render Helm:** `CI_REQUIRED` (sin `helm` ni Docker en el entorno de captura).
+- [x] **Retención de Tags:** verificada contra el remoto real, sin simulación.
+- [ ] **Retención de GHCR en local:** `NOT_EXECUTED` por falta de scope `read:packages`; ver `AUD-REL-GHCR-001`.
+- [ ] **Suites con render Helm:** `CI_REQUIRED` en local; en verde en el CI del PR `#907`.
 - [x] **Retención de Auditorías:** Un único baseline activo conforme a `max_active_snapshots: 1`.
