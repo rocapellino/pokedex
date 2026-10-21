@@ -660,6 +660,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores.',
   },
+  'tests/unit/mcp/mcp_audit_hitl.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Gobernanza MCP / Auditoría y HITL',
+    targetArtifacts: ['scripts/mcp/audit.ts', 'scripts/mcp/generate.ts'],
+    description:
+      'Verifica la propagación de traceparent W3C, el registro JSONL de auditoría y el rechazo de directivas de auto-aprobación en configuraciones MCP generadas.',
+  },
   'tests/unit/mcp/mcp_schema_validation.test.ts': {
     type: 'Unit',
     targetDomain: 'Gobernanza MCP / Validación de Esquema',

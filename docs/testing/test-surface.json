@@ -3675,6 +3675,29 @@
       "description": "Verifica que el lector de HCL ignora comentarios sin tocar las cadenas, conserva atributos tras bloques anidados y respeta interpolaciones, listas multilínea y etiquetas."
     },
     {
+      "path": "tests/unit/mcp/mcp_audit_hitl.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza MCP / Auditoría y HITL",
+      "targetArtifacts": [
+        "scripts/mcp/audit.ts",
+        "scripts/mcp/generate.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Verifica la propagación de traceparent W3C, el registro JSONL de auditoría y el rechazo de directivas de auto-aprobación en configuraciones MCP generadas."
+    },
+    {
       "path": "tests/unit/mcp/mcp_doctor.test.ts",
       "suite": "unit",
       "type": "Unit",
