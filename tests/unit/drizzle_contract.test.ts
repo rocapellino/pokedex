@@ -51,3 +51,32 @@ test('📦 Drizzle ORM: drizzle.config.ts implementa política fail-closed en pr
     'drizzle.config.ts debe requerir credenciales en producción',
   );
 });
+
+test('📦 Drizzle ORM: el runtime no usa sentencias preparadas con nombre (compatibilidad PgBouncer en modo transacción)', () => {
+  // node-postgres solo crea sentencias preparadas persistentes por sesión cuando la consulta
+  // lleva `name`; Drizzle lo hace únicamente con `.prepare('nombre')`. Ambas rompen en
+  // PgBouncer `pool_mode=transaction` (ADR-011).
+  const srcDir = path.join(ROOT_DIR, 'apps/backend/src');
+  const offenders: string[] = [];
+
+  const visit = (dir: string): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        visit(full);
+      } else if (entry.name.endsWith('.ts')) {
+        const content = fs.readFileSync(full, 'utf-8');
+        if (/\.prepare\s*\(/.test(content) || /\.query\(\s*\{[^}]*\bname\s*:/s.test(content)) {
+          offenders.push(path.relative(ROOT_DIR, full).replaceAll(path.sep, '/'));
+        }
+      }
+    }
+  };
+  visit(srcDir);
+
+  assert.deepEqual(
+    offenders,
+    [],
+    `Sentencias preparadas con nombre incompatibles con PgBouncer: ${offenders.join(', ')}`,
+  );
+});
