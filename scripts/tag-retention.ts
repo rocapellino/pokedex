@@ -1176,15 +1176,24 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
     `• Configuración jerárquica   : ${config.keepMajorCount} Majors -> ${config.keepMinorCount} Minors por Major -> Último ${config.keepPatchCount} Patch por Minor`,
   );
   console.log(`• Modo Dry-Run (Solo lectura): ${dryRun ? 'SÍ (No se eliminará nada)' : 'NO (Eliminación real)'}`);
-  console.log(`• Modo Simulado              : ${simulate ? 'SÍ (Datos de prueba locales)' : 'NO'}`);
+  const fetchFn = options.fetchFn ?? fetch;
+  const effectiveSimulate = simulate || (!token && !options.fetchFn);
+  const autoSimulated = effectiveSimulate && !simulate;
+  console.log(
+    `• Modo Simulado              : ${
+      autoSimulated
+        ? 'SÍ (automático por falta de GITHUB_TOKEN; datos sintéticos)'
+        : effectiveSimulate
+          ? 'SÍ (Datos de prueba locales)'
+          : 'NO'
+    }`,
+  );
 
-  if (!token && !simulate) {
+  if (autoSimulated) {
     console.warn('⚠️  ADVERTENCIA: GITHUB_TOKEN no configurado.');
     console.warn('   Activando modo simulación automático (--simulate) para diagnóstico seguro.');
   }
 
-  const fetchFn = options.fetchFn ?? fetch;
-  const effectiveSimulate = simulate || (!token && !options.fetchFn);
   const protectedTagsMap = options.protectedTags ?? collectProtectedTags(repoRoot, options.customProtectedTags || []);
   console.log(`• Referencias protegidas     : ${protectedTagsMap.size}`);
   for (const [pTag, pReason] of protectedTagsMap.entries()) {
@@ -1367,6 +1376,10 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
     `✔ Política jerárquica finalizada: ${kept.length} en jerarquía + ${protectedList.length} protegidos + ${excluded.length} excluidos conservados.`,
   );
   console.log('================================================================');
+  if (effectiveSimulate) {
+    console.warn('⚠️  RESULTADO SIMULADO: evalúa tags sintéticos y NO refleja los tags reales del repositorio.');
+    console.warn('   Para verificar el remoto, ejecute con GITHUB_TOKEN configurado.');
+  }
 
   return {
     totalFound: rawTags.length,

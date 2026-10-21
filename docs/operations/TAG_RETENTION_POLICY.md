@@ -134,10 +134,15 @@ Para aislar de manera estricta las operaciones destructivas, el workflow divide 
 # Simulación local u offline con datos sintéticos:
 node --experimental-strip-types scripts/tag-retention.ts --simulate
 
-# Inspección en seco (Dry-Run) contra el repositorio remoto:
+# Inspección en seco (Dry-Run) contra el repositorio remoto.
+# Requiere GITHUB_TOKEN: sin él, el script pasa a simulación automática con tags
+# sintéticos, lo declara en "Modo Simulado" y el resultado NO refleja el remoto.
 task tags:retention:dry-run
 # o vía npm:
 npm run tags:retention:dry-run
+
+# Sincronizar los tags de un clon local con el remoto (elimina los tags locales ya purgados):
+git fetch --prune --prune-tags
 
 # Aplicación real con borrado seguro (requiere GITHUB_TOKEN con contents:write):
 npm run tags:retention -- --no-dry-run

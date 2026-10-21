@@ -227,16 +227,25 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
   console.log(`• Organización / Propietario : ${owner}`);
   console.log(`• Paquetes gestionados       : ${packages.join(', ')}`);
   console.log(`• Modo Dry-Run (Solo lectura): ${dryRun ? 'SÍ (No se eliminará nada)' : 'NO (Eliminación real)'}`);
-  console.log(`• Modo Simulado              : ${simulate ? 'SÍ (Datos de prueba locales)' : 'NO'}`);
+  const effectiveSimulate = simulate || !token;
+  const autoSimulated = effectiveSimulate && !simulate;
+  console.log(
+    `• Modo Simulado              : ${
+      autoSimulated
+        ? 'SÍ (automático por falta de GITHUB_TOKEN; datos sintéticos)'
+        : effectiveSimulate
+          ? 'SÍ (Datos de prueba locales)'
+          : 'NO'
+    }`,
+  );
   console.log(`----------------------------------------------------------------`);
 
-  if (!token && !simulate) {
+  if (autoSimulated) {
     console.warn(`⚠️  ADVERTENCIA: GITHUB_TOKEN no configurado.`);
     console.warn(`   Para ejecutar en clúster real de GitHub Packages, proporcione GITHUB_TOKEN.`);
     console.warn(`   Activando modo simulación automático (--simulate) para diagnóstico local.`);
   }
 
-  const effectiveSimulate = simulate || !token;
   const protectedDigests = options.protectedDigests ?? collectPinnedDigests();
   console.log(`• Digests protegidos (GitOps): ${protectedDigests.size}`);
 
@@ -318,6 +327,10 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
   console.log(`\n================================================================`);
   console.log(`✔ Política de retención aplicada con éxito: Solo los últimos ${keepCount} releases permanecen activos.`);
   console.log(`================================================================`);
+  if (effectiveSimulate) {
+    console.warn(`⚠️  RESULTADO SIMULADO: evalúa versiones sintéticas y NO refleja los paquetes reales de GHCR.`);
+    console.warn(`   Para verificar el registro, ejecute con GITHUB_TOKEN configurado.`);
+  }
 
   return results;
 }

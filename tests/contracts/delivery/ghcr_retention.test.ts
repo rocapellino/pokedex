@@ -1,4 +1,4 @@
-import test from 'node:test';
+import test, { mock } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -244,4 +244,26 @@ test('📦 GHCR Retention: protege los digests api y web declarados en GitOps y 
     }
   }
   assert.ok(DEFAULT_PACKAGES.includes('pokedex-api') && DEFAULT_PACKAGES.includes('pokedex-web'));
+});
+
+test('📦 GHCR: la simulación automática por falta de GITHUB_TOKEN se declara y advierte sobre el resultado', async () => {
+  const originalToken = process.env.GITHUB_TOKEN;
+  delete process.env.GITHUB_TOKEN;
+  const logs = mock.method(console, 'log', () => undefined);
+  const warns = mock.method(console, 'warn', () => undefined);
+  try {
+    const results = await applyGhcrRetention({ dryRun: true, protectedDigests: new Set() });
+    assert.ok(results.every((r) => r.simulated === true));
+
+    const out = logs.mock.calls.map((c) => String(c.arguments[0])).join('\n');
+    const warning = warns.mock.calls.map((c) => String(c.arguments[0])).join('\n');
+    assert.match(out, /Modo Simulado\s+: SÍ \(automático por falta de GITHUB_TOKEN/);
+    assert.doesNotMatch(out, /Modo Simulado\s+: NO/);
+    assert.match(warning, /RESULTADO SIMULADO/);
+  } finally {
+    logs.mock.restore();
+    warns.mock.restore();
+    if (originalToken === undefined) delete process.env.GITHUB_TOKEN;
+    else process.env.GITHUB_TOKEN = originalToken;
+  }
 });
