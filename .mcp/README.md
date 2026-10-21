@@ -153,3 +153,10 @@ El diagnóstico evalúa de forma desacoplada y bajo principio Zero-Trust cuatro 
    - Ejecutar `npm run mcp:generate`.
 4. **Gobernanza:**
    - Superar el Markdown Quality Gate: `npm run lint:md -- .mcp/README.md`.
+
+---
+
+## 7. Human-in-the-Loop y Auditoría Trazable
+
+- **HITL:** `npm run mcp:validate` falla si un servidor con capacidad de mutación (`permissions.write` o `infra_access: readwrite`) no pertenece a un perfil con `requires_explicit_approval: true`, o si declara `autoApprove`, `alwaysAllow`, `autoStart` o `trust`. `npm run mcp:generate` aborta si alguna configuración generada contiene directivas de auto-aprobación.
+- **Auditoría local:** `mcp:validate`, `mcp:scan`, `mcp:generate` y `mcp:doctor` añaden una línea JSON a `tmp/mcp-audit.jsonl` (operación, resultado, duración y contexto W3C `traceparent`, ADR-018). Si existe una variable `TRACEPARENT` válida, se hereda el `traceId` y se crea un span hijo. El log no contiene variables de entorno ni argumentos de servidores.

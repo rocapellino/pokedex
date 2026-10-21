@@ -21,6 +21,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import * as yaml from 'js-yaml';
+import { withMcpAudit } from './audit.js';
 import { generateAllClientConfigs } from './generate.js';
 import { loadLocalEnv } from './env.js';
 import type { McpRegistrySpec, McpServerDefinition } from './adapters/types.js';
@@ -595,7 +596,7 @@ function printDoctorReport(report: DoctorReport): void {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
   const isJson = process.argv.includes('--json');
-  const report = runMcpDoctor();
+  const report = withMcpAudit('mcp:doctor', () => runMcpDoctor(), { isSuccess: (r) => r.overallValid });
 
   if (isJson) {
     console.log(JSON.stringify(report, null, 2));
