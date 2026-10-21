@@ -20,6 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as yaml from 'js-yaml';
+import { withMcpAudit } from './audit.js';
 import type {
   McpClientDefinition,
   McpClientsSpec,
@@ -202,6 +203,39 @@ function validateServerProfileCoherence(
   }
 }
 
+const FORBIDDEN_AUTO_APPROVAL_FIELDS = ['autoApprove', 'alwaysAllow', 'autoStart', 'auto_approve', 'trust'];
+
+/**
+ * HITL (4.3): servidores con capacidad de mutación exigen un perfil con aprobación
+ * explícita, y ningún servidor puede declarar auto-aprobación o auto-arranque.
+ */
+function validateHumanInTheLoop(
+  s: McpServerDefinition,
+  assignedProfile: McpProfileDefinition | undefined,
+  issues: ValidationIssue[],
+): void {
+  const mutating = s.permissions?.write === true || assignedProfile?.infra_access === 'readwrite';
+  if (mutating && assignedProfile && assignedProfile.requires_explicit_approval !== true) {
+    issues.push({
+      severity: 'error',
+      file: '.mcp/registry.yaml',
+      field: `servers[${s.id}].profile`,
+      message: `El servidor '${s.id}' puede mutar estado, pero su perfil '${s.profile}' no declara 'requires_explicit_approval: true' (HITL).`,
+    });
+  }
+
+  for (const field of FORBIDDEN_AUTO_APPROVAL_FIELDS) {
+    if (field in (s as unknown as Record<string, unknown>)) {
+      issues.push({
+        severity: 'error',
+        file: '.mcp/registry.yaml',
+        field: `servers[${s.id}].${field}`,
+        message: `El servidor '${s.id}' declara '${field}': se prohíbe la auto-aprobación o auto-arranque silencioso de herramientas MCP.`,
+      });
+    }
+  }
+}
+
 function validateServerTransportAndVersion(s: McpServerDefinition, issues: ValidationIssue[]): void {
   if (s.profile === 'infrastructure-write' && s.enabled) {
     issues.push({
@@ -331,6 +365,7 @@ function validateSingleServer(
   }
 
   validateServerProfileCoherence(s, profiles[s.profile], issues);
+  validateHumanInTheLoop(s, profiles[s.profile], issues);
   validateServerTransportAndVersion(s, issues);
   validateServerEnvVars(s, issues);
 
@@ -495,7 +530,7 @@ function printValidationReport(report: ValidationReport): void {
 // Ejecución directa por CLI
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
   const isJson = process.argv.includes('--json');
-  const report = validateMcpArchitecture();
+  const report = withMcpAudit('mcp:validate', () => validateMcpArchitecture(), { isSuccess: (r) => r.valid });
 
   if (isJson) {
     console.log(JSON.stringify(report, null, 2));

@@ -31,6 +31,7 @@ import type {
   McpServerDefinition,
 } from './adapters/types.js';
 import { loadLocalEnv } from './env.js';
+import { withMcpAudit } from './audit.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const ROOT_DIR = process.cwd();
@@ -77,6 +78,38 @@ function filterActiveServers(
     enforceServerProfilePolicy(s, profiles[s.profile]);
     return true;
   });
+}
+
+const AUTO_APPROVAL_KEYS = new Set([
+  'autoapprove',
+  'alwaysallow',
+  'autostart',
+  'auto_approve',
+  'trust',
+  'disabled_auto',
+]);
+
+/**
+ * Garantiza HITL (4.3): ninguna configuración generada puede incluir directivas
+ * de auto-aprobación o auto-arranque silencioso de herramientas MCP.
+ */
+export function assertNoAutoApproval(node: unknown, trail = 'config'): void {
+  if (Array.isArray(node)) {
+    for (const [i, item] of node.entries()) {
+      assertNoAutoApproval(item, `${trail}[${i}]`);
+    }
+    return;
+  }
+  if (node && typeof node === 'object') {
+    for (const [key, value] of Object.entries(node)) {
+      if (AUTO_APPROVAL_KEYS.has(key.toLowerCase())) {
+        throw new Error(
+          `Directiva de auto-aprobación prohibida ('${key}') en ${trail}: se exige confirmación humana (HITL).`,
+        );
+      }
+      assertNoAutoApproval(value, `${trail}.${key}`);
+    }
+  }
 }
 
 function syncOrWriteClientConfig(
@@ -142,6 +175,7 @@ export function generateAllClientConfigs(options: GenerateOptions = {}): ClientC
 
     const adapter = getAdapterForClient(clientId, clientDef.format);
     const configObject = adapter.generateConfig(activeServers, clientDef);
+    assertNoAutoApproval(configObject, clientId);
     const formattedContent = `${JSON.stringify(configObject, null, 2)}\n`;
 
     const { inSync, written } = syncOrWriteClientConfig(targetAbsPath, formattedContent, options);
@@ -192,12 +226,14 @@ function runGenerateCli(args: string[]): void {
   console.log('======================================================');
 
   try {
-    const results = generateAllClientConfigs({
-      client: clientArg,
-      profile: profileArg,
-      check: isCheck,
-      dryRun: isDryRun,
-    });
+    const results = withMcpAudit('mcp:generate', () =>
+      generateAllClientConfigs({
+        client: clientArg,
+        profile: profileArg,
+        check: isCheck,
+        dryRun: isDryRun,
+      }),
+    );
 
     if (isDryRun) {
       for (const res of results) {
