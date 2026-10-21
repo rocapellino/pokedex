@@ -7,8 +7,11 @@
  *
  * - Propaga el contexto `traceparent` heredado de la variable de entorno
  *   `TRACEPARENT` (si es válido) o genera uno nuevo.
+ * - Expone `TRACEPARENT` en el entorno mientras dura la operación para que los procesos
+ *   hijo (por ejemplo `trivy` en `mcp:doctor`) hereden el contexto de traza.
  * - Registra cada operación como una línea JSON en `tmp/mcp-audit.jsonl`
- *   (ignorado por Git, conforme a la política de higiene del repositorio).
+ *   (ignorado por Git, conforme a la política de higiene del repositorio), con rotación
+ *   a `tmp/mcp-audit.1.jsonl` al superar `MCP_AUDIT_MAX_BYTES`.
  * - Nunca registra valores de variables de entorno ni argumentos de servidores.
  * ==============================================================================
  */
@@ -20,6 +23,9 @@ import path from 'node:path';
 const W3C_TRACEPARENT_REGEX = /^00-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$/;
 const ZERO_TRACE_ID = '0'.repeat(32);
 const ZERO_SPAN_ID = '0'.repeat(16);
+
+/** Umbral de rotación del log de auditoría (1 MiB); se conserva un único archivo anterior. */
+export const MCP_AUDIT_MAX_BYTES = 1024 * 1024;
 
 export interface McpTraceContext {
   traceId: string;
@@ -65,10 +71,29 @@ export function getAuditLogPath(rootDir: string = process.cwd()): string {
   return path.join(rootDir, 'tmp', 'mcp-audit.jsonl');
 }
 
-export function recordMcpAudit(event: McpAuditEvent, rootDir: string = process.cwd()): void {
+/**
+ * Rota el log al superar `maxBytes`, conservando un único archivo anterior. Si otro proceso rota
+ * a la vez, el `rename` puede fallar: se ignora, porque la escritura posterior sigue siendo válida.
+ */
+function rotateAuditLogIfNeeded(logPath: string, maxBytes: number): void {
+  try {
+    if (fs.statSync(logPath).size >= maxBytes) {
+      fs.renameSync(logPath, logPath.replace(/\.jsonl$/, '.1.jsonl'));
+    }
+  } catch {
+    // Sin archivo todavía o rotación concurrente: nada que hacer.
+  }
+}
+
+export function recordMcpAudit(
+  event: McpAuditEvent,
+  rootDir: string = process.cwd(),
+  maxBytes: number = MCP_AUDIT_MAX_BYTES,
+): void {
   try {
     const logPath = getAuditLogPath(rootDir);
     fs.mkdirSync(path.dirname(logPath), { recursive: true });
+    rotateAuditLogIfNeeded(logPath, maxBytes);
     fs.appendFileSync(logPath, `${JSON.stringify(event)}\n`, 'utf-8');
   } catch {
     // La auditoría local es best-effort: nunca debe romper el flujo de gobernanza.
@@ -82,10 +107,11 @@ export function recordMcpAudit(event: McpAuditEvent, rootDir: string = process.c
 export function withMcpAudit<T>(
   operation: string,
   fn: (ctx: McpTraceContext) => T,
-  options: { isSuccess?: (result: T) => boolean; rootDir?: string } = {},
+  options: { isSuccess?: (result: T) => boolean; rootDir?: string; maxBytes?: number } = {},
 ): T {
   const ctx = createTraceContext();
   const started = Date.now();
+  const previousTraceparent = process.env.TRACEPARENT;
   const write = (outcome: McpAuditEvent['outcome']) =>
     recordMcpAudit(
       {
@@ -99,8 +125,10 @@ export function withMcpAudit<T>(
         durationMs: Date.now() - started,
       },
       options.rootDir,
+      options.maxBytes,
     );
 
+  process.env.TRACEPARENT = ctx.traceparent;
   try {
     const result = fn(ctx);
     write(options.isSuccess && !options.isSuccess(result) ? 'failure' : 'success');
@@ -108,5 +136,8 @@ export function withMcpAudit<T>(
   } catch (err) {
     write('failure');
     throw err;
+  } finally {
+    if (previousTraceparent === undefined) delete process.env.TRACEPARENT;
+    else process.env.TRACEPARENT = previousTraceparent;
   }
 }
