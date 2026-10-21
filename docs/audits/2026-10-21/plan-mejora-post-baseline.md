@@ -21,26 +21,27 @@ Prioridad según impacto y esfuerzo (`XS` a `L`). Ningún ítem es `P0` ni `P1`.
 
 | ID | Ítem | Prioridad | Esfuerzo | Skill responsable |
 | :--- | :--- | :---: | :---: | :--- |
-| `PLAN-01` | Verificar la retención de tags contra el remoto real | `P2` | `S` | `repo-maintenance` |
+| `PLAN-01` | Retención de tags: purga manual pendiente de 6 tags remotos | `P3` | `XS` | `repo-maintenance` |
 | `PLAN-02` | Propagar `TRACEPARENT` a los procesos hijo de la gobernanza MCP | `P3` | `XS` | `repo-fix` |
 | `PLAN-03` | Acotar el crecimiento de `tmp/mcp-audit.jsonl` | `P3` | `XS` | `repo-fix` |
 | `PLAN-04` | Decidir el comportamiento local de las suites con render Helm | `P3` | `S` | `repo-testing` |
-| `PLAN-05` | Confirmar el estado de la promoción de release `v1.119.0` | `P2` | `XS` | `repo-release` |
+| `PLAN-05` | Promoción de release `v1.119.0` pendiente de fusión | `P3` | `XS` | `repo-release` |
 | `PLAN-06` | Investigar la divergencia entre `node_modules` y el lockfile | `P3` | `XS` | `repo-dependencies` |
 
 ---
 
 ## 2. Ítems
 
-### PLAN-01: Verificar la retención de tags contra el remoto real
+### PLAN-01: Retención de tags: purga manual pendiente de 6 tags remotos
 
-- **Evidencia:** `npm run tags:retention` se ejecutó en modo simulado (`[Simulación] Se evaluarán 20 tags sintéticos locales`), así que el baseline no verificó los tags reales. Además, el repositorio local tiene 294 tags y el remoto 18 (`v1.113.3` a `v1.118.0`).
-- **Riesgo:** una política de retención sin verificación real puede dar por buena una purga que no se ejecutó, y los tags locales obsoletos confunden `git describe` y las herramientas que los listan.
+- **Estado:** verificado el 2026-10-21; solo queda una decisión humana.
+- **Evidencia:** el baseline ejecutó `npm run tags:retention` sin `GITHUB_TOKEN`, y el script pasa entonces a simulación automática (`[Simulación] Se evaluarán 20 tags sintéticos locales`), por lo que no verificó tags reales. Con `GITHUB_TOKEN` en modo `--dry-run` el inventario real es de 9 tags remotos (`v1.113.3` a `v1.118.0`): 3 se retienen por jerarquía (`v1.118.0`, `v1.117.0`, `v1.116.3`) y 6 son candidatos a purga (`v1.116.2`, `v1.116.1`, `v1.116.0`, `v1.115.0`, `v1.114.2`, `v1.113.3`). La única referencia protegida es `v1.118.0`.
+- **Contexto:** `.github/workflows/tag-retention.yaml` audita en dry-run cada domingo; la purga real (`--no-dry-run`) es una ruta manual del workflow. Los 6 candidatos no son un defecto, sino la purga que nadie ha ejecutado.
 - **Acción:**
-  1. Ejecutar `npm run tags:retention:dry-run` sin `--simulate` y registrar el resultado.
-  2. Confirmar que los 18 tags remotos cumplen la política (2 majors, 3 minors por major, último patch) y que las referencias de GitOps y Helm están protegidas.
-  3. Documentar en `TAG_RETENTION_POLICY.md` que los clones locales se sincronizan con `git fetch --prune --prune-tags`.
-- **Criterio de aceptación:** el baseline siguiente registra un resultado sobre tags reales, no simulados.
+  1. Decidir si se ejecuta la purga real desde el workflow, tras comprobar que ninguno de los 6 tags está referenciado por un GitHub Release, GitOps o Helm.
+  2. Hacer que `tags:retention` falle de forma explícita (o avise en una línea destacada) cuando cae a simulación por falta de token, para que un baseline no pueda registrar una simulación como verificación.
+  3. Documentar en `TAG_RETENTION_POLICY.md` que los clones locales (294 tags frente a 9 en el remoto) se sincronizan con `git fetch --prune --prune-tags`.
+- **Criterio de aceptación:** el baseline siguiente registra un resultado sobre tags reales y el aviso de simulación no puede pasar inadvertido.
 
 ### PLAN-02: Propagar `TRACEPARENT` a los procesos hijo de la gobernanza MCP
 
@@ -61,10 +62,11 @@ Prioridad según impacto y esfuerzo (`XS` a `L`). Ningún ítem es `P0` ni `P1`.
 - **Recomendación:** (a), porque (b) puede ocultar regresiones en una máquina de desarrollo.
 - **Criterio de aceptación:** el fallo local indica en una línea qué instalar o iniciar, y CI conserva el modo estricto.
 
-### PLAN-05: Confirmar el estado de la promoción de release `v1.119.0`
+### PLAN-05: Promoción de release `v1.119.0` pendiente de fusión
 
-- **Evidencia:** el PR `#902` (`chore(release): promote v1.119.0`) está cerrado sin fusionar y su rama remota ya no existe. `main` sigue en `v1.118.0` y contiene cambios posteriores (`#900`, `#901`, `#903`).
-- **Acción:** con `repo-release`, confirmar si el cierre fue intencional o si la promoción debe regenerarse, y verificar la paridad `package.json`, `Chart.yaml` y `targetRevision` tras la siguiente promoción.
+- **Estado:** verificado el 2026-10-21; solo queda una decisión humana.
+- **Evidencia:** el PR `#902` se cerró a las 17:14 UTC y lo sustituyó el PR `#904` (misma rama `release/promote-v1.119.0`, abierto a las 17:19 UTC). `#904` promueve el commit `13680f1e`, que coincide con la cabeza actual de `main`. El cierre fue una regeneración por commits posteriores, no un abandono.
+- **Acción:** fusionar `#904` cuando el equipo decida cortar `v1.119.0`, y verificar después la paridad de `package.json`, `Chart.yaml` y `targetRevision`.
 - **Criterio de aceptación:** `npm run gitops:pin:check` y `npm run gitops:verify-parity:strict` en verde tras la promoción.
 
 ### PLAN-06: Investigar la divergencia entre `node_modules` y el lockfile
@@ -77,8 +79,8 @@ Prioridad según impacto y esfuerzo (`XS` a `L`). Ningún ítem es `P0` ni `P1`.
 
 ## 3. Orden Sugerido
 
-1. `PLAN-05` y `PLAN-01` primero, porque son verificaciones y pueden revelar trabajo adicional.
-2. `PLAN-02` y `PLAN-03` juntos, en un solo PR sobre `scripts/mcp/audit.ts`.
+1. `PLAN-02` y `PLAN-03` juntos, en un solo PR sobre `scripts/mcp/audit.ts`.
+2. `PLAN-01` (aviso de simulación) en un PR aparte sobre `scripts/tag-retention.ts`; la purga y `PLAN-05` esperan decisión humana.
 3. `PLAN-04` y `PLAN-06` después, según decisión sobre la opción de `PLAN-04`.
 
 ## 4. Verificación
