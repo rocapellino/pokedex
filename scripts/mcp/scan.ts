@@ -22,6 +22,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as yaml from 'js-yaml';
+import { withMcpAudit } from './audit.js';
 import type { McpClientsSpec, McpPoliciesSpec, McpProfileDefinition, McpRegistrySpec } from './adapters/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -348,7 +349,7 @@ export function printScanReport(report: ScanReport): void {
 // Ejecución CLI directa
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
   const isJson = process.argv.includes('--json');
-  const report = runMcpScan();
+  const report = withMcpAudit('mcp:scan', () => runMcpScan(), { isSuccess: (r) => r.passed });
 
   if (isJson) {
     console.log(JSON.stringify(report, null, 2));
