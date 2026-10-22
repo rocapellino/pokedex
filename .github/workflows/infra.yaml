@@ -69,7 +69,7 @@ jobs:
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
           # renovate: datasource=github-releases depName=helm/helm
-          version: v3.22.0
+          version: v3.22.1
 
       - name: 3. Validar y Renderizar Helm Chart (Dev, Base Secure, Prod, Proxmox-Preprod, Cloud Blueprint y Cilium L7 eBPF)
         run: |
@@ -301,7 +301,7 @@ jobs:
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
         with:
           # renovate: datasource=github-releases depName=helm/helm
-          version: v3.22.0
+          version: v3.22.1
 
       - name: 5. Desplegar Helm Chart en Kind
         run: |
