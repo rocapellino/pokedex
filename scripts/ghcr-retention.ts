@@ -38,8 +38,15 @@ export interface RetentionResult {
   kept: PackageVersion[];
   pruned: PackageVersion[];
   deletedIds: number[];
+  /** Errores de consulta o de eliminación. Cualquier error implica una retención incompleta (fail-closed). */
+  errors: string[];
   dryRun: boolean;
   simulated: boolean;
+}
+
+/** Código de salida del proceso: distinto de cero si algún paquete no pudo evaluarse o purgarse por completo. */
+export function retentionExitCode(results: RetentionResult[]): number {
+  return results.some((r) => r.errors.length > 0) ? 1 : 0;
 }
 
 export interface GhcrRetentionOptions {
@@ -262,6 +269,17 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error(`   ❌ Error al consultar paquete ${pkg}: ${msg}`);
+        results.push({
+          packageName: pkg,
+          totalVersions: 0,
+          keepCount,
+          kept: [],
+          pruned: [],
+          deletedIds: [],
+          errors: [`Consulta de ${pkg}: ${msg}`],
+          dryRun,
+          simulated: effectiveSimulate,
+        });
         continue;
       }
     }
@@ -275,6 +293,7 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
         kept: [],
         pruned: [],
         deletedIds: [],
+        errors: [],
         dryRun,
         simulated: effectiveSimulate,
       });
@@ -292,6 +311,7 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
 
     console.log(`   • Versiones a purgar (${prune.length}):`);
     const deletedIds: number[] = [];
+    const errors: string[] = [];
 
     for (const v of prune) {
       const tags = v.metadata?.container?.tags?.length ? v.metadata.container.tags.join(', ') : '(sin tag)';
@@ -308,6 +328,7 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : String(err);
           console.error(`     ❌ Fallo al purgar versión ID ${v.id}: ${msg}`);
+          errors.push(`Eliminación de la versión ${v.id} de ${pkg}: ${msg}`);
         }
       }
     }
@@ -319,14 +340,25 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
       kept: keep,
       pruned: prune,
       deletedIds,
+      errors,
       dryRun,
       simulated: effectiveSimulate,
     });
   }
 
-  console.log(`\n================================================================`);
-  console.log(`✔ Política de retención aplicada con éxito: Solo los últimos ${keepCount} releases permanecen activos.`);
-  console.log(`================================================================`);
+  const allErrors = results.flatMap((r) => r.errors);
+  if (allErrors.length > 0) {
+    console.error(`\n================================================================`);
+    console.error(`❌ RETENCIÓN INCOMPLETA: ${allErrors.length} error(es); la política NO se aplicó por completo.`);
+    for (const e of allErrors) console.error(`   - ${e}`);
+    console.error(`================================================================`);
+  } else {
+    console.log(`\n================================================================`);
+    console.log(
+      `✔ Política de retención aplicada con éxito: Solo los últimos ${keepCount} releases permanecen activos.`,
+    );
+    console.log(`================================================================`);
+  }
   if (effectiveSimulate) {
     console.warn(`⚠️  RESULTADO SIMULADO: evalúa versiones sintéticas y NO refleja los paquetes reales de GHCR.`);
     console.warn(`   Para verificar el registro, ejecute con GITHUB_TOKEN configurado.`);
@@ -354,8 +386,12 @@ if (process.argv[1]?.endsWith('ghcr-retention.ts')) {
     dryRun: isDryRun,
     simulate: isSimulate,
     keepCount,
-  }).catch((err) => {
-    console.error('❌ Error fatal en retención de GHCR:', err);
-    process.exit(1);
-  });
+  })
+    .then((results) => {
+      process.exitCode = retentionExitCode(results);
+    })
+    .catch((err) => {
+      console.error('❌ Error fatal en retención de GHCR:', err);
+      process.exit(1);
+    });
 }

@@ -9,6 +9,7 @@ import {
   applyGhcrRetention,
   collectPinnedDigests,
   DEFAULT_PACKAGES,
+  retentionExitCode,
   type PackageVersion,
 } from '../../../scripts/ghcr-retention.ts';
 import { ROOT_DIR } from '../../helpers/repo.js';
@@ -266,4 +267,94 @@ test('📦 GHCR: la simulación automática por falta de GITHUB_TOKEN se declara
     if (originalToken === undefined) delete process.env.GITHUB_TOKEN;
     else process.env.GITHUB_TOKEN = originalToken;
   }
+});
+
+// =============================================================================
+// AUD-REL-GHCR-001: la retención falla de forma cerrada ante errores de API
+// =============================================================================
+
+/**
+ * Ejecuta applyGhcrRetention con `fetch` y la consola sustituidos, y devuelve lo emitido.
+ * `GITHUB_TOKEN` se fija explícitamente para evitar la simulación automática.
+ */
+async function runWithStubbedApi(
+  handler: (url: string, init?: RequestInit) => Response,
+  options: Parameters<typeof applyGhcrRetention>[0],
+) {
+  const fetchStub = mock.method(globalThis, 'fetch', async (url: string | URL | Request, init?: RequestInit) =>
+    handler(String(url), init),
+  );
+  const logs = mock.method(console, 'log', () => undefined);
+  const warns = mock.method(console, 'warn', () => undefined);
+  const errors = mock.method(console, 'error', () => undefined);
+  try {
+    const results = await applyGhcrRetention({ token: 'test-token', protectedDigests: new Set(), ...options });
+    const text = (m: typeof logs) => m.mock.calls.map((c) => String(c.arguments[0])).join('\n');
+    return { results, out: text(logs), warn: text(warns), err: text(errors), fetchCalls: fetchStub.mock.calls };
+  } finally {
+    fetchStub.mock.restore();
+    logs.mock.restore();
+    warns.mock.restore();
+    errors.mock.restore();
+  }
+}
+
+test('🔒 GHCR Retention: un 403 al consultar un paquete se registra como error y no se declara éxito', async () => {
+  const { results, out, err } = await runWithStubbedApi(
+    () => new Response('{"message":"You need at least read:packages scope"}', { status: 403 }),
+    { packages: ['pokedex', 'pokedex-api'], dryRun: true },
+  );
+
+  assert.equal(results.length, 2, 'cada paquete fallido debe figurar en los resultados');
+  for (const r of results) {
+    assert.equal(r.errors.length, 1, `${r.packageName} debe registrar su error de consulta`);
+    assert.match(r.errors[0], /403/);
+  }
+  assert.equal(retentionExitCode(results), 1, 'el proceso debe terminar con código distinto de cero');
+  assert.doesNotMatch(out, /aplicada con éxito/, 'no debe imprimir el mensaje de éxito');
+  assert.match(err, /RETENCIÓN INCOMPLETA/);
+});
+
+test('🔒 GHCR Retention: un fallo al eliminar una versión se registra como error y no se declara éxito', async () => {
+  const versions = generateMockPackageVersions('pokedex-api', 6);
+  const { results, out, err } = await runWithStubbedApi(
+    (_url, init) =>
+      init?.method === 'DELETE'
+        ? new Response('{"message":"Server Error"}', { status: 500 })
+        : new Response(JSON.stringify(versions), { status: 200 }),
+    { packages: ['pokedex-api'], keepCount: 3, dryRun: false },
+  );
+
+  const [result] = results;
+  assert.ok(result.pruned.length > 0, 'el escenario debe tener versiones a purgar');
+  assert.equal(result.deletedIds.length, 0, 'una versión no eliminada no puede figurar como eliminada');
+  assert.equal(result.errors.length, result.pruned.length, 'cada eliminación fallida debe registrarse');
+  assert.match(result.errors[0], /500/);
+  assert.equal(retentionExitCode(results), 1);
+  assert.doesNotMatch(out, /aplicada con éxito/);
+  assert.match(err, /RETENCIÓN INCOMPLETA/);
+});
+
+test('📦 GHCR Retention: sin errores conserva el comportamiento y el código de salida 0', async () => {
+  const versions = generateMockPackageVersions('pokedex-web', 6);
+  const { results, out } = await runWithStubbedApi(() => new Response(JSON.stringify(versions), { status: 200 }), {
+    packages: ['pokedex-web'],
+    keepCount: 3,
+    dryRun: true,
+  });
+
+  assert.equal(results[0].errors.length, 0);
+  assert.equal(retentionExitCode(results), 0);
+  assert.match(out, /aplicada con éxito/);
+});
+
+test('📦 GHCR Retention: un paquete inexistente (404) no es un error', async () => {
+  const { results } = await runWithStubbedApi(() => new Response('{"message":"Not Found"}', { status: 404 }), {
+    packages: ['pokedex'],
+    dryRun: true,
+  });
+
+  assert.equal(results[0].totalVersions, 0);
+  assert.equal(results[0].errors.length, 0);
+  assert.equal(retentionExitCode(results), 0);
 });
