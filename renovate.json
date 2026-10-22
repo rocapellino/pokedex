@@ -225,14 +225,16 @@
       "matchManagers": ["dockerfile", "custom.regex"],
       "matchPackageNames": ["node", "nginx"],
       "commitMessagePrefix": "chore(docker):",
-      "labels": ["dependencies", "docker"]
+      "labels": ["dependencies", "docker"],
+      "minimumReleaseAge": "7 days"
     },
     {
       "description": "RENOVATE-006: Paridad CI-DB-001 y DR entre docker-compose.yaml, .github/workflows/ci.yaml, infra/helm/pokedex/values.yaml, scripts/dr_verify_restore.sh y SECURITY_AND_NETWORK_ISOLATION.md para postgres, valkey/valkey y pgbouncer/pgbouncer",
       "matchManagers": ["docker-compose", "github-actions", "custom.regex"],
       "matchPackageNames": ["postgres", "valkey/valkey", "pgbouncer/pgbouncer"],
       "commitMessagePrefix": "chore(docker):",
-      "labels": ["dependencies", "docker", "helm"]
+      "labels": ["dependencies", "docker", "helm"],
+      "minimumReleaseAge": "7 days"
     },
     {
       "description": "Bloquear upgrades major de TypeScript (TS7 experimental) hasta revisión manual explícita",

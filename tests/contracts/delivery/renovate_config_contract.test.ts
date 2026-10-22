@@ -401,4 +401,15 @@ test('🛡️ RENOVATE-006: sin PRs duplicados entre github-actions y custom.reg
       `RENOVATE-006: el customManager de paridad no encontró las imágenes esperadas en ${relPath}`,
     );
   }
+
+  // 5. Toda packageRule con matchPackageNames debe declarar minimumReleaseAge (regla SAST de Semgrep D8l2q)
+  for (const rule of config.packageRules) {
+    if (rule.matchPackageNames?.length) {
+      assert.equal(
+        (rule as { minimumReleaseAge?: string }).minimumReleaseAge,
+        '7 days',
+        `RENOVATE-006: la regla para [${rule.matchPackageNames.join(', ')}] debe declarar minimumReleaseAge: "7 days"`,
+      );
+    }
+  }
 });
