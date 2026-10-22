@@ -2,6 +2,6 @@ nodejs 24.21.0
 # renovate: datasource=github-releases depName=opentofu/opentofu extractVersion=^v(?<version>.+)$
 opentofu 1.13.1
 # renovate: datasource=github-releases depName=helm/helm extractVersion=^v(?<version>.+)$
-helm 3.22.0
+helm 3.22.1
 kubectl 1.30.0
 ansible-core 2.17.7
