@@ -2,6 +2,7 @@ import test, { mock } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import * as yaml from 'js-yaml';
 import { getCompleteTaskfileContent } from '../../helpers/taskfile.js';
 import {
   calculateVersionsToPrune,
@@ -526,5 +527,26 @@ test('📄 GHCR Paginación: applyGhcrRetention evalúa el historial completo, n
     assert.equal(retentionExitCode(results), 0);
   } finally {
     logs.mock.restore();
+  }
+});
+
+// =============================================================================
+// AUD-REL-GHCR-002: la ejecución manual no debe ser destructiva por defecto
+// =============================================================================
+
+test('🔒 GHCR Retention Workflow: la ejecución manual (workflow_dispatch) es dry-run por defecto', () => {
+  for (const file of ['ghcr-retention.yaml', 'tag-retention.yaml']) {
+    const parsed = yaml.load(fs.readFileSync(path.join(ROOT_DIR, '.github/workflows', file), 'utf-8')) as {
+      on?: { workflow_dispatch?: { inputs?: { dry_run?: { type?: string; default?: unknown } } } };
+    };
+    const dryRun = parsed.on?.workflow_dispatch?.inputs?.dry_run;
+
+    assert.ok(dryRun, `${file} debe declarar el input dry_run en workflow_dispatch`);
+    assert.equal(dryRun.type, 'boolean');
+    assert.equal(
+      dryRun.default,
+      true,
+      `${file}: dry_run debe valer true por defecto; con false, lanzar el workflow sin parámetros purgaría de verdad`,
+    );
   }
 });

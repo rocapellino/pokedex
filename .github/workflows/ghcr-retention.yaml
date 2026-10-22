@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Modo Dry-Run (solo simular, no eliminar)'
+        description: 'Modo Dry-Run (solo simular, no eliminar). Desmarcar para purgar de verdad'
         type: boolean
         required: false
-        default: false
+        default: true
       keep_versions:
         description: 'Número de versiones activas a conservar'
         type: number
