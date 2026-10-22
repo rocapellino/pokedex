@@ -432,6 +432,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Valida Network Policies Cilium L7 eBPF, bloqueo de rangos privados (RFC 1918, link-local, cloud metadata) y allowlist estricta.',
   },
+  'tests/contracts/delivery/ghcr_release_protection.test.ts': {
+    type: 'Contract / OCI',
+    targetDomain: 'Rollback y Protección de Releases en GHCR',
+    targetArtifacts: ['scripts/ghcr-retention.ts', '.github/workflows/ghcr-retention.yaml'],
+    description:
+      'Verifica que la retención de GHCR proteja las imágenes fijadas por los últimos releases (N, N-1, N-2) leyendo los values de cada tag, y que rechace la purga real si no puede garantizarlo.',
+  },
   'tests/contracts/delivery/ghcr_retention.test.ts': {
     type: 'Contract / OCI',
     targetDomain: 'Retención y Ciclo de Vida en GHCR',
