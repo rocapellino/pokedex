@@ -159,3 +159,30 @@ La arquitectura modular de [`scripts/tag-retention.ts`](../../scripts/tag-retent
 
 - Criterio de la Opción A: Conservar las últimas 2 versiones major globales, las últimas 3 versiones minor globales (independientes de la major) y el último patch global.
 - Procedimiento: Bastará con extender el selector en `evaluateHierarchicalTagRetention` introduciendo una estrategia `global_latest` configurable mediante `--strategy=global`, manteniendo la misma infraestructura de consulta, protección de GitOps y borrado seguro.
+
+---
+
+## 8. Releases en Borrador Residuales tras la Purga
+
+La política opera solo sobre `refs/tags/*` (sección 1) y no elimina GitHub Releases. Al purgar un tag, su release deja de tener tag y pasa a figurar en estado *Draft* (con una URL `untagged-...`). Sin una limpieza explícita, esos borradores se acumulan con cada purga: el 2026-10-22 había 289 frente a 3 releases publicados, y el 99% eran notas autogeneradas de tags ya purgados, sin assets.
+
+### Criterio de limpieza
+
+Un release en borrador es candidato a eliminación solo si cumple **todo** lo siguiente:
+
+- Es borrador, no es prerelease y no tiene assets.
+- Su tag es SemVer estable, no existe en el remoto y es anterior al release publicado más antiguo que se conserva (así no se tocan borradores de versiones futuras).
+- Lo creó `github-actions[bot]`. Los borradores escritos por una persona se revisan aparte: pueden contener notas que no existen en ningún otro sitio.
+
+### Procedimiento
+
+1. Inventariar con `gh api --paginate repos/<owner>/<repo>/releases` y aplicar el criterio anterior.
+2. Guardar el contenido (id, tag, nombre y notas) de **todos** los borradores antes de borrar nada. La eliminación no se puede deshacer.
+3. Eliminar por identificador con `gh api -X DELETE repos/<owner>/<repo>/releases/<id>`, deteniéndose en el primer error. No usar `--cleanup-tag`: los tags se gestionan exclusivamente con `scripts/tag-retention.ts`.
+4. Verificar que el conjunto de releases publicados no cambió.
+
+La limpieza es una acción manual y deliberada, porque borra objetos del remoto. Conviene ejecutarla después de cada purga real de tags (sección 5).
+
+### Historial
+
+- **2026-10-22:** se eliminaron los 289 borradores (288 generados por el bot y 1 escrito a mano, `v1.76.0`) tras guardar su contenido, y quedaron los 3 releases publicados (`v1.117.0`, `v1.118.0` y `v1.119.0`).
