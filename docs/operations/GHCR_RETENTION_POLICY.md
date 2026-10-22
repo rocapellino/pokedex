@@ -33,7 +33,7 @@ Hasta la corrección del pipeline de imágenes, el job `publish` de [`ci.yaml`](
 ### Nivel 2: Workflow Autónomo y Programado ([`.github/workflows/ghcr-retention.yaml`](../../.github/workflows/ghcr-retention.yaml))
 
 - **Frecuencia:** Semanal (domingos a las 04:00 UTC) y ante finalización exitosa del *Change Impact & Pipeline Orchestrator* (`change-impact.yaml`), que es el workflow de nivel superior real del pipeline. Antes de WF-004 este segundo trigger apuntaba a `ci.yaml` (`🚀 CI/CD Pipeline`), que es un *reusable workflow* y nunca genera una ejecución propia: el trigger no llegaba a dispararse.
-- **Ejecución Manual (`workflow_dispatch`):** Permite a los operadores ejecutar una auditoría en seco (`dry_run: true`) o purgar artefactos bajo demanda ajustando el número de versiones deseadas.
+- **Ejecución Manual (`workflow_dispatch`):** Permite a los operadores ejecutar una auditoría en seco o purgar artefactos bajo demanda ajustando el número de versiones deseadas. El input `dry_run` vale `true` por defecto (igual que en `tag-retention.yaml`): lanzar el workflow sin parámetros solo simula, y purgar exige desmarcarlo de forma explícita. Las ejecuciones automáticas (cron y `workflow_run`) no tienen input y siempre purgan.
 - **Mecanismo de purgado:** Delega exclusivamente en el script canónico tipado [`scripts/ghcr-retention.ts`](../../scripts/ghcr-retention.ts) con `--keep=<N>`, que audita el registro, reporta el plan de purgado y elimina las versiones por encima del umbral.
 
 > [!IMPORTANT]
