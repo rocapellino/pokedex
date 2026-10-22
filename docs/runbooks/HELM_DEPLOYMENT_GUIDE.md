@@ -78,7 +78,7 @@ infra/helm/
 ## 3. Requisitos Previos
 
 - **Kubernetes Cluster**: Versión `1.28+` (Kind, Minikube, K3s, AKS, EKS, GKE o Proxmox).
-- **Helm CLI**: Versión `3.22.0` instalada en host o ejecución mediante contenedor inmutable `alpine/helm:3.22.0@sha256:70ed3f7b02ab2eee12aa520ad6870305db8a82516b07aff62f5656c657a26e2a`.
+- **Helm CLI**: Versión `3.22.1` instalada en host o ejecución mediante contenedor inmutable `alpine/helm:3.22.1@sha256:8191701ad1f82ee3695c87211fcbfe6d7b1bb7df92ac1c8de9ccdb0995a6a2c1`.
 - **Ingress Controller** (Opcional, recomendado): `ingress-nginx`.
 - **cert-manager** (Opcional para TLS automático en producción).
 

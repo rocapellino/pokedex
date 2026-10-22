@@ -30,7 +30,7 @@ Garantizar la seguridad, conformidad de esquemas y postura DevSecOps de todos lo
 
 ```bash
 # 1. Renderizar y validar contratos Helm
-docker run --rm -v "${PWD}:/apps" alpine/helm:3.22.0 lint /apps/infra/helm/pokedex
+docker run --rm -v "${PWD}:/apps" alpine/helm:3.22.1 lint /apps/infra/helm/pokedex
 
 # 2. Ejecutar validación de manifiestos y buenas prácticas
 npm run test:gitops
