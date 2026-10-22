@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@pokedex/contracts": "*",
-    "dompurify": "^3.4.16"
+    "dompurify": "^3.4.17"
   },
   "devDependencies": {
     "@types/node": "^24.19.1",
