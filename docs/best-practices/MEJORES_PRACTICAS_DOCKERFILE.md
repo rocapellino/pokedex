@@ -133,7 +133,8 @@ COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
 RUN npm ci --workspace=@pokedex/backend --omit=dev --ignore-scripts \
     && npm cache clean --force \
-    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /root/.npm /opt/yarn* /usr/local/lib/node_modules/corepack
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
+              /root/.npm /opt/yarn* /usr/local/lib/node_modules/corepack
 COPY --from=builder /app/apps/backend/dist ./dist
 USER 1000:1000
 HEALTHCHECK --interval=20s --timeout=3s --start-period=5s --retries=3 \
