@@ -9,6 +9,8 @@ import {
   applyGhcrRetention,
   collectPinnedDigests,
   DEFAULT_PACKAGES,
+  fetchPackageVersions,
+  MAX_VERSION_PAGES,
   retentionExitCode,
   type PackageVersion,
 } from '../../../scripts/ghcr-retention.ts';
@@ -357,4 +359,172 @@ test('📦 GHCR Retention: un paquete inexistente (404) no es un error', async (
   assert.equal(results[0].totalVersions, 0);
   assert.equal(results[0].errors.length, 0);
   assert.equal(retentionExitCode(results), 0);
+});
+
+// =============================================================================
+// Paginación de la consulta de versiones (la API devuelve como máximo 100 por página)
+// =============================================================================
+
+const API_ORIGIN = 'https://api.github.com';
+const PAGE_SIZE = 100;
+
+/** Versión de release sintética con id único y fecha decreciente (mayor id = más reciente). */
+function releaseVersion(id: number): PackageVersion {
+  const date = new Date(Date.UTC(2026, 0, 1) + id * 60_000).toISOString();
+  return {
+    id,
+    name: `sha256:${id.toString(16).padStart(64, '0')}`,
+    url: `${API_ORIGIN}/versions/${id}`,
+    created_at: date,
+    updated_at: date,
+    metadata: { package_type: 'container', container: { tags: [`v1.0.${id}`] } },
+  };
+}
+
+/** Sirve `total` versiones en páginas de 100, enlazadas con `Link: rel="next"` como hace GitHub. */
+function pagedApi(total: number, seen: { urls: string[]; auth: (string | null)[] }) {
+  return (url: string, init?: RequestInit): Response => {
+    seen.urls.push(url);
+    seen.auth.push(new Headers(init?.headers).get('authorization'));
+    const page = Number(new URL(url).searchParams.get('page') ?? '1');
+    const first = (page - 1) * PAGE_SIZE;
+    const body = Array.from({ length: Math.max(0, Math.min(PAGE_SIZE, total - first)) }, (_, i) =>
+      releaseVersion(first + i + 1),
+    );
+    const headers = new Headers({ 'content-type': 'application/json' });
+    if (first + PAGE_SIZE < total) {
+      headers.set(
+        'link',
+        `<${API_ORIGIN}/users/o/packages/container/p/versions?per_page=100&page=${page + 1}>; rel="next"`,
+      );
+    }
+    return new Response(JSON.stringify(body), { status: 200, headers });
+  };
+}
+
+async function withFetch<T>(handler: (url: string, init?: RequestInit) => Response, fn: () => Promise<T>): Promise<T> {
+  const stub = mock.method(globalThis, 'fetch', async (url: string | URL | Request, init?: RequestInit) =>
+    handler(String(url), init),
+  );
+  try {
+    return await fn();
+  } finally {
+    stub.mock.restore();
+  }
+}
+
+test('📄 GHCR Paginación: fetchPackageVersions recorre todas las páginas y envía el token en cada una', async () => {
+  const seen = { urls: [] as string[], auth: [] as (string | null)[] };
+  const versions = await withFetch(pagedApi(250, seen), () => fetchPackageVersions('tok', 'o', 'p'));
+
+  assert.equal(versions.length, 250, 'debe devolver las 250 versiones, no solo la primera página');
+  assert.equal(new Set(versions.map((v) => v.id)).size, 250, 'sin versiones duplicadas');
+  assert.equal(seen.urls.length, 3, '250 versiones = 3 páginas de hasta 100');
+  assert.ok(
+    seen.auth.every((a) => a === 'Bearer tok'),
+    'cada página debe llevar la autorización',
+  );
+});
+
+test('📄 GHCR Paginación: un total múltiplo de la página no pide una página vacía de más', async () => {
+  const seen = { urls: [] as string[], auth: [] as (string | null)[] };
+  const versions = await withFetch(pagedApi(200, seen), () => fetchPackageVersions('tok', 'o', 'p'));
+
+  assert.equal(versions.length, 200);
+  assert.equal(seen.urls.length, 2);
+});
+
+test('📄 GHCR Paginación: una sola página sin Link se comporta como antes', async () => {
+  const seen = { urls: [] as string[], auth: [] as (string | null)[] };
+  const versions = await withFetch(pagedApi(40, seen), () => fetchPackageVersions('tok', 'o', 'p'));
+
+  assert.equal(versions.length, 40);
+  assert.equal(seen.urls.length, 1);
+});
+
+test('🔒 GHCR Paginación: un error en una página intermedia falla y no devuelve una lista parcial', async () => {
+  const base = pagedApi(250, { urls: [], auth: [] });
+  await withFetch(
+    (url, init) => (url.includes('page=2') ? new Response('{"message":"boom"}', { status: 500 }) : base(url, init)),
+    async () => {
+      await assert.rejects(() => fetchPackageVersions('tok', 'o', 'p'), /500/);
+    },
+  );
+});
+
+test('🔒 GHCR Paginación: un 404 en una página posterior es un error, no un paquete inexistente', async () => {
+  const base = pagedApi(250, { urls: [], auth: [] });
+  await withFetch(
+    (url, init) =>
+      url.includes('page=2') ? new Response('{"message":"Not Found"}', { status: 404 }) : base(url, init),
+    async () => {
+      await assert.rejects(() => fetchPackageVersions('tok', 'o', 'p'), /404/);
+    },
+  );
+});
+
+test('🔒 GHCR Paginación: no sigue un Link hacia otro host (no filtra el token)', async () => {
+  const seen = { urls: [] as string[], auth: [] as (string | null)[] };
+  await withFetch(
+    (url) => {
+      seen.urls.push(url);
+      return new Response('[]', {
+        status: 200,
+        headers: { link: '<https://evil.example.com/steal?page=2>; rel="next"' },
+      });
+    },
+    async () => {
+      await assert.rejects(() => fetchPackageVersions('tok', 'o', 'p'), /host|origen/i);
+    },
+  );
+  assert.ok(
+    seen.urls.every((u) => u.startsWith(`${API_ORIGIN}/`)),
+    'nunca debe solicitar una URL fuera de api.github.com',
+  );
+});
+
+test('🔒 GHCR Paginación: un Link que nunca termina se corta en el tope en lugar de purgar con datos incompletos', async () => {
+  let calls = 0;
+  await withFetch(
+    () => {
+      calls += 1;
+      return new Response('[]', {
+        status: 200,
+        headers: { link: `<${API_ORIGIN}/users/o/packages/container/p/versions?page=${calls + 1}>; rel="next"` },
+      });
+    },
+    async () => {
+      await assert.rejects(() => fetchPackageVersions('tok', 'o', 'p'), /tope|páginas/i);
+    },
+  );
+  assert.ok(calls <= MAX_VERSION_PAGES, `no debe pedir más de ${MAX_VERSION_PAGES} páginas (pidió ${calls})`);
+});
+
+test('📄 GHCR Paginación: applyGhcrRetention evalúa el historial completo, no solo las 100 más recientes', async () => {
+  const logs = mock.method(console, 'log', () => undefined);
+  try {
+    const results = await withFetch(pagedApi(250, { urls: [], auth: [] }), () =>
+      applyGhcrRetention({
+        token: 'tok',
+        owner: 'o',
+        packages: ['p'],
+        keepCount: 3,
+        dryRun: true,
+        protectedDigests: new Set(),
+      }),
+    );
+
+    const [r] = results;
+    assert.equal(r.totalVersions, 250);
+    assert.equal(r.kept.length, 3);
+    assert.equal(r.pruned.length, 247, 'con 250 imágenes de release y cupo 3 se purgan 247');
+    assert.deepEqual(
+      r.kept.map((v) => v.id).sort((a, b) => b - a),
+      [250, 249, 248],
+      'se conservan las 3 más recientes aunque estén en la última página',
+    );
+    assert.equal(retentionExitCode(results), 0);
+  } finally {
+    logs.mock.restore();
+  }
 });

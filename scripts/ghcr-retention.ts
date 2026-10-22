@@ -61,6 +61,11 @@ export interface GhcrRetentionOptions {
   protectedDigests?: Set<string>;
 }
 
+const GITHUB_API_ORIGIN = 'https://api.github.com';
+
+/** Tope de páginas de 100 versiones al consultar un paquete (10.000 versiones). Superarlo es un error, no un truncamiento. */
+export const MAX_VERSION_PAGES = 100;
+
 export const DEFAULT_PACKAGES = ['pokedex', 'pokedex-api', 'pokedex-web'];
 export const DEFAULT_KEEP_COUNT = 3;
 export const DEFAULT_OWNER = 'rocapellino';
@@ -167,8 +172,37 @@ export async function fetchPackageVersions(
   owner: string,
   packageName: string,
 ): Promise<PackageVersion[]> {
-  const url = `https://api.github.com/users/${encodeURIComponent(owner)}/packages/container/${encodeURIComponent(packageName)}/versions?per_page=100`;
+  let url: string | null =
+    `${GITHUB_API_ORIGIN}/users/${encodeURIComponent(owner)}/packages/container/${encodeURIComponent(packageName)}/versions?per_page=100`;
+  const versions: PackageVersion[] = [];
+  let page = 0;
 
+  // Las páginas son secuenciales por naturaleza: la URL de cada una sale del encabezado Link de la anterior.
+  while (url) {
+    page += 1;
+    if (page > MAX_VERSION_PAGES) {
+      // Podar con una lista truncada daría un resultado incorrecto: se falla en lugar de continuar.
+      throw new Error(
+        `Se superó el tope de ${MAX_VERSION_PAGES} páginas al consultar versiones de ${packageName}: la lista sería incompleta`,
+      );
+    }
+
+    const result = await fetchVersionsPage(url, token, packageName, page);
+    if (result === null) return []; // el paquete aún no existe en la cuenta
+    versions.push(...result.versions);
+    url = result.next;
+  }
+
+  return versions;
+}
+
+/** Consulta una página. Devuelve `null` solo si la primera página responde 404 (paquete inexistente). */
+async function fetchVersionsPage(
+  url: string,
+  token: string,
+  packageName: string,
+  page: number,
+): Promise<{ versions: PackageVersion[]; next: string | null } | null> {
   const response = await fetch(url, {
     method: 'GET',
     headers: {
@@ -180,15 +214,28 @@ export async function fetchPackageVersions(
   });
 
   if (!response.ok) {
-    if (response.status === 404) {
-      // El paquete puede no existir todavía en la cuenta
-      return [];
-    }
+    if (response.status === 404 && page === 1) return null;
     const errorText = await response.text();
-    throw new Error(`Error ${response.status} al consultar versiones de ${packageName}: ${errorText}`);
+    throw new Error(`Error ${response.status} al consultar versiones de ${packageName} (página ${page}): ${errorText}`);
   }
 
-  return (await response.json()) as PackageVersion[];
+  return {
+    versions: (await response.json()) as PackageVersion[],
+    next: nextPageUrl(response.headers.get('link'), packageName),
+  };
+}
+
+/**
+ * Extrae la URL `rel="next"` del encabezado `Link`. Solo se admite el origen de la API de GitHub:
+ * seguir un enlace a otro host enviaría el token a un tercero.
+ */
+function nextPageUrl(linkHeader: string | null, packageName: string): string | null {
+  const next = /<([^>]+)>;\s*rel="next"/.exec(linkHeader ?? '')?.[1];
+  if (!next) return null;
+  if (!next.startsWith(`${GITHUB_API_ORIGIN}/`)) {
+    throw new Error(`El enlace de paginación de ${packageName} apunta a otro host (origen no permitido): ${next}`);
+  }
+  return next;
 }
 
 /**
