@@ -1,7 +1,7 @@
 # ==============================================================================
 # Dockerfile para Aplicación Web Frontend (Multi-Stage Build con Vite y Nginx)
 # ==============================================================================
-FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS builder
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS builder
 
 WORKDIR /app
 COPY package*.json ./
@@ -16,7 +16,7 @@ RUN npm run build --workspace=@pokedex/frontend
 # ==============================================================================
 # Etapa de Ejecución (Nginx Alpine Ligero y Seguro)
 # ==============================================================================
-FROM nginx:1.31-alpine@sha256:72ba65eb42c10344912a84ff42408db7d34f2feb642204570ab8fc5ffd29f1d3 AS runner
+FROM nginx:1.31-alpine@sha256:a3554c0d0b48177b1413c26e01f695334428020d9df01243fbae3e11cfd17417 AS runner
 
 # OCI-001: los metadatos de version y revision se inyectan desde CI como
 # build-args. El `version="1.0.0"` generico anterior era ficticio y no
