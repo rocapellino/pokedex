@@ -50,20 +50,63 @@
     },
     {
       "customType": "regex",
-      "description": "Versiones de herramientas fijadas dentro de los workflows (Helm, OpenTofu, kubeconform, kube-linter, Kyverno CLI, Gitleaks y Gitsign). Helm y OpenTofu también figuran en `.tool-versions`. Cada una lleva encima un comentario `# renovate: datasource=... depName=...` (y `extractVersion` si el tag lleva prefijo v) que indica de dónde sale la versión",
-      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.yaml$/", "/^\\.tool-versions$/"],
+      "description": "Versiones de herramientas fijadas dentro de los workflows (Helm, OpenTofu, kubeconform, kube-linter, Kyverno CLI, Gitleaks y Gitsign), `.tool-versions` y `.agents/skills/repo-tool-exec/references/tool-catalog.yaml`. Cada una lleva encima un comentario `# renovate: datasource=... depName=...` (y `extractVersion` si el tag lleva prefijo v) que indica de dónde sale la versión",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/[^/]+\\.yaml$/",
+        "/^\\.tool-versions$/",
+        "/^\\.agents/skills/repo-tool-exec/references/tool-catalog\\.yaml$/"
+      ],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\n\\s*[A-Za-z_-]+[\\s:=]+['\"]?(?<currentValue>v?\\d+\\.\\d+\\.\\d+)['\"]?"
+        "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\n\\s*[A-Za-z_-]+[\\s:=]+['\"]?(?:ghcr\\.io/opentofu/opentofu:)?(?<currentValue>v?\\d+\\.\\d+\\.\\d+)['\"]?"
       ]
+    },
+    {
+      "customType": "regex",
+      "description": "Paridad de imágenes Docker con digest SHA-256 en Taskfile.yaml, tool-catalog.yaml, scripts de DR y documentación técnica verificada por contratos de CI (alpine/helm, node, nginx, postgres y pgbouncer/pgbouncer)",
+      "managerFilePatterns": [
+        "/^Taskfile\\.yaml$/",
+        "/^\\.agents/skills/repo-tool-exec/references/tool-catalog\\.yaml$/",
+        "/^docs/runbooks/HELM_DEPLOYMENT_GUIDE\\.md$/",
+        "/^docs/architecture/SECURITY_AND_NETWORK_ISOLATION\\.md$/",
+        "/^docs/best-practices/MEJORES_PRACTICAS_DOCKERFILE\\.md$/",
+        "/^scripts/dr_verify_restore\\.sh$/"
+      ],
+      "matchStrings": [
+        "(?<depName>alpine/helm|node|nginx|postgres|pgbouncer/pgbouncer):(?<currentValue>\\d[\\w.-]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "docker"
     }
   ],
   "packageRules": [
     {
-      "description": "Helm y OpenTofu viven en varios archivos (workflows y .tool-versions, que debe mantener paridad con ellos según tests/contracts/adr/adr_ci_tooling_contracts.test.ts): se agrupan para que Renovate abra un solo PR por herramienta",
+      "description": "RENOVATE-006: Evitar PRs duplicados entre github-actions y custom.regex para Helm y OpenTofu. El gestor github-actions detecta azure/setup-helm (helm) y opentofu/setup-opentofu (opentofu) por separado sin actualizar .tool-versions ni tool-catalog.yaml; se deshabilitan en github-actions para que solo custom.regex los gestione de forma atómica",
+      "matchManagers": ["github-actions"],
+      "matchPackageNames": ["helm", "opentofu", "helm/helm", "opentofu/opentofu"],
+      "enabled": false,
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "RENOVATE-006: Helm v3 es contrato activo del Chart (apiVersion: v2) y del tooling de CI; se bloquean los major (Helm v4) en custom.regex y github-actions",
+      "matchManagers": ["custom.regex", "github-actions"],
+      "matchPackageNames": ["helm/helm", "alpine/helm", "helm"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false,
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Helm CLI y su imagen contenedorizada alpine/helm viven en .tool-versions, ci.yaml, infra.yaml, Taskfile.yaml, tool-catalog.yaml y HELM_DEPLOYMENT_GUIDE.md (adr_ci_tooling_contracts.test.ts): se agrupan en un solo PR atómico",
       "matchManagers": ["custom.regex"],
-      "matchPackageNames": ["helm/helm", "opentofu/opentofu"],
-      "groupName": "herramientas CLI de IaC",
-      "groupSlug": "iac-cli-tools",
+      "matchPackageNames": ["helm/helm", "alpine/helm"],
+      "groupName": "helm",
+      "groupSlug": "helm",
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "OpenTofu vive en .tool-versions, infra.yaml y tool-catalog.yaml (adr_ci_tooling_contracts.test.ts): se agrupa en un solo PR atómico",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["opentofu/opentofu"],
+      "groupName": "opentofu",
+      "groupSlug": "opentofu",
       "minimumReleaseAge": "7 days"
     },
     {
@@ -176,6 +219,22 @@
       "commitMessagePrefix": "chore(helm):",
       "labels": ["dependencies", "iac", "helm"],
       "matchFileNames": ["infra/helm/**", "gitops/environments/**"]
+    },
+    {
+      "description": "RENOVATE-006: Imágenes base de Dockerfiles (node y nginx) y su paridad en documentación técnica (SECURITY_AND_NETWORK_ISOLATION.md y MEJORES_PRACTICAS_DOCKERFILE.md) comparten prefijo chore(docker) para viajar en el mismo PR por imagen",
+      "matchManagers": ["dockerfile", "custom.regex"],
+      "matchPackageNames": ["node", "nginx"],
+      "commitMessagePrefix": "chore(docker):",
+      "labels": ["dependencies", "docker"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "RENOVATE-006: Paridad CI-DB-001 y DR entre docker-compose.yaml, .github/workflows/ci.yaml, infra/helm/pokedex/values.yaml, scripts/dr_verify_restore.sh y SECURITY_AND_NETWORK_ISOLATION.md para postgres, valkey/valkey y pgbouncer/pgbouncer",
+      "matchManagers": ["docker-compose", "github-actions", "custom.regex"],
+      "matchPackageNames": ["postgres", "valkey/valkey", "pgbouncer/pgbouncer"],
+      "commitMessagePrefix": "chore(docker):",
+      "labels": ["dependencies", "docker", "helm"],
+      "minimumReleaseAge": "7 days"
     },
     {
       "description": "Bloquear upgrades major de TypeScript (TS7 experimental) hasta revisión manual explícita",

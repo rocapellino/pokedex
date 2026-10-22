@@ -143,8 +143,8 @@ jobs:
       - name: 7. Instalar y Ejecutar Kyverno CLI (Tests de Políticas de Admisión)
         run: |
           # renovate: datasource=github-releases depName=kyverno/kyverno
-          KYVERNO_VERSION="v1.19.1"
-          KYVERNO_SHA256="b38228f367fc0fdc2b08f4c83ea50ac5f16c60ff8d62d76a66157c33c47b70ae"
+          KYVERNO_VERSION="v1.19.2"
+          KYVERNO_SHA256="357eaf1df8bc24ddd5a73979fadeaae6a032e8710f11af264229756e4956bf4a"
           curl -sL --proto '=https' --tlsv1.2 \
             "https://github.com/kyverno/kyverno/releases/download/${KYVERNO_VERSION}/kyverno-cli_${KYVERNO_VERSION}_linux_x86_64.tar.gz" \
             -o /tmp/kyverno.tar.gz
@@ -177,7 +177,7 @@ jobs:
         uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
         with:
           # renovate: datasource=github-releases depName=opentofu/opentofu extractVersion=^v(?<version>.+)$
-          tofu_version: 1.13.1
+          tofu_version: 1.13.2
 
       - name: 3. Format Check y Validate (Proxmox, Lab, Cloud-Template y AWS)
         run: |

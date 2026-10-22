@@ -146,14 +146,14 @@ jobs:
         if: steps.state.outputs.phase == 'tag' || inputs.gitsign_refresh == true
         env:
           # renovate: datasource=github-releases depName=sigstore/gitsign extractVersion=^v(?<version>.+)$
-          GITSIGN_VERSION: "0.17.1"
+          GITSIGN_VERSION: "0.18.0"
           # Anclas de confianza fijadas en el repositorio. Deben refrescarse
           # manualmente junto con GITSIGN_VERSION en cada actualización.
           # El self-check (paso 0) valida esta coherencia en runtime y puede
           # regenerar el bloque con el input `gitsign_refresh` de workflow_dispatch.
-          GITSIGN_SHA256: "69213a8a0813a151e5a47d0060862952ff833a845d57309dff76f7ba6600abae"
-          GITSIGN_BUNDLE_SHA256: "6daa8356035524a1da8cca425f2b4e29bb8ca8d74d9a304bcd73a631ab165657"
-          GITSIGN_CHECKSUMS_SHA256: "90678e6266a0ccf64da33dea621ac7678be5bc384ee989aa8a29d58ece7a27ce"
+          GITSIGN_SHA256: "2bc625472a08fea3bb6a57982c7d8b4978d1032251d305ceef3bf2ded0ca4483"
+          GITSIGN_BUNDLE_SHA256: "08c868a238dc419cb2f68d5311442811c7a4da0496f3ea4637f4c9fc88cdccf1"
+          GITSIGN_CHECKSUMS_SHA256: "09806df26a7144e3a06b0f36cb86de3239f3e048aefd4406813ec9a4c1e69e24"
           GITSIGN_REFRESH: ${{ inputs.gitsign_refresh && 'true' || 'false' }}
           # Permite previsualizar los digests de otra versión sin tocar el repo.
           GITSIGN_TARGET_VERSION: ${{ inputs.gitsign_version }}

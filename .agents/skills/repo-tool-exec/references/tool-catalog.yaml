@@ -96,7 +96,8 @@ tools:
       version_args: ["version"]
       version_regex: 'OpenTofu v(\d+\.\d+\.\d+)'
     container:
-      image: "ghcr.io/opentofu/opentofu:1.13.1"
+      # renovate: datasource=github-releases depName=opentofu/opentofu extractVersion=^v(?<version>.+)$
+      image: "ghcr.io/opentofu/opentofu:1.13.2"
       network: "bridge" # descarga providers en init
       mount_mode: "rw"
       workdir: "/repo"

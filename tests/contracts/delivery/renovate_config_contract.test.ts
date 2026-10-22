@@ -222,6 +222,7 @@ const ANNOTATED_TOOLS = [
   'kyverno/kyverno',
   'opentofu/opentofu',
   'opentofu/opentofu', // .tool-versions
+  'opentofu/opentofu', // .agents/skills/repo-tool-exec/references/tool-catalog.yaml
   'sigstore/gitsign',
   'stackrox/kube-linter',
   'yannh/kubeconform',
@@ -254,6 +255,7 @@ test('🛡️ RENOVATE-005: el gestor custom.regex encuentra todas las versiones
       .filter((name) => name.endsWith('.yaml'))
       .map((name) => path.join(workflowsDir, name)),
     path.join(ROOT_DIR, '.tool-versions'),
+    path.join(ROOT_DIR, '.agents/skills/repo-tool-exec/references/tool-catalog.yaml'),
   ];
   for (const file of annotatedFiles) {
     const content = fs.readFileSync(file, 'utf-8');
@@ -326,4 +328,88 @@ test('🛡️ RENOVATE-005: las imágenes con digest de Config Linters y tool-ca
     (match) => match.groups?.depName ?? '',
   );
   assert.deepEqual(catalogImages.sort(), ['ghcr.io/zizmorcore/zizmor', 'renovate/renovate', 'rhysd/actionlint']);
+});
+
+test('🛡️ RENOVATE-006: sin PRs duplicados entre github-actions y custom.regex para Helm y OpenTofu, y paridad multi-archivo completa', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'renovate.json'), 'utf-8')) as {
+    customManagers: Array<{ managerFilePatterns: string[]; matchStrings: string[]; datasourceTemplate?: string }>;
+    packageRules: PackageRule[];
+  };
+
+  // 1. github-actions debe tener deshabilitados helm y opentofu para no abrir PRs duplicados frente a custom.regex
+  const disabledGhActions = config.packageRules.find(
+    (rule) =>
+      rule.enabled === false &&
+      rule.matchManagers?.includes('github-actions') &&
+      !rule.matchUpdateTypes?.length &&
+      rule.matchPackageNames?.includes('helm') &&
+      rule.matchPackageNames?.includes('opentofu'),
+  );
+  assert.ok(
+    disabledGhActions,
+    'RENOVATE-006: falta la regla que deshabilita helm y opentofu en github-actions para evitar PRs duplicados con custom.regex',
+  );
+
+  // 2. Los major (v4) de Helm deben estar bloqueados igual que en RENOVATE-001
+  const helmMajorBlocker = config.packageRules.find(
+    (rule) =>
+      rule.enabled === false &&
+      rule.matchUpdateTypes?.includes('major') &&
+      rule.matchPackageNames?.includes('helm/helm') &&
+      rule.matchPackageNames?.includes('alpine/helm'),
+  );
+  assert.ok(helmMajorBlocker, 'RENOVATE-006: los major de helm/helm y alpine/helm deben estar bloqueados');
+
+  // 3. Grupos separados y atómicos para helm (helm/helm + alpine/helm) y opentofu (opentofu/opentofu)
+  const helmGroup = config.packageRules.find((rule) => rule.groupName === 'helm');
+  assert.ok(helmGroup, 'RENOVATE-006: falta la regla de agrupación atómica para helm');
+  assert.deepEqual(
+    [...(helmGroup.matchPackageNames ?? [])].sort(),
+    ['alpine/helm', 'helm/helm'],
+    'RENOVATE-006: el grupo helm debe unir helm/helm y alpine/helm',
+  );
+
+  const opentofuGroup = config.packageRules.find((rule) => rule.groupName === 'opentofu');
+  assert.ok(opentofuGroup, 'RENOVATE-006: falta la regla de agrupación atómica para opentofu');
+  assert.deepEqual(opentofuGroup.matchPackageNames, ['opentofu/opentofu']);
+
+  // 4. El customManager de paridad Docker multi-archivo debe capturar todas las referencias esperadas
+  const parityManager = config.customManagers.find((candidate) =>
+    candidate.managerFilePatterns.some((p) => p.includes('Taskfile')),
+  );
+  assert.ok(parityManager, 'RENOVATE-006: falta el customManager de paridad Docker multi-archivo');
+  assert.equal(parityManager.datasourceTemplate, 'docker');
+
+  const expectedMatchesByFile: Record<string, string[]> = {
+    'Taskfile.yaml': ['alpine/helm'],
+    '.agents/skills/repo-tool-exec/references/tool-catalog.yaml': ['alpine/helm'],
+    'docs/runbooks/HELM_DEPLOYMENT_GUIDE.md': ['alpine/helm'],
+    'docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md': ['nginx', 'pgbouncer/pgbouncer'],
+    'docs/best-practices/MEJORES_PRACTICAS_DOCKERFILE.md': ['nginx', 'node', 'node', 'node'],
+    'scripts/dr_verify_restore.sh': ['postgres'],
+  };
+
+  for (const [relPath, expectedDeps] of Object.entries(expectedMatchesByFile)) {
+    const fileContent = fs.readFileSync(path.join(ROOT_DIR, relPath), 'utf-8');
+    // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
+    const matchedDeps = [...fileContent.matchAll(new RegExp(parityManager.matchStrings[0], 'g'))]
+      .map((m) => m.groups?.depName ?? '')
+      .sort();
+    assert.deepEqual(
+      matchedDeps,
+      [...expectedDeps].sort(),
+      `RENOVATE-006: el customManager de paridad no encontró las imágenes esperadas en ${relPath}`,
+    );
+  }
+
+  // 5. Toda packageRule con matchPackageNames debe declarar minimumReleaseAge (regla SAST de Semgrep D8l2q)
+  for (const rule of config.packageRules) {
+    if (rule.matchPackageNames?.length) {
+      assert.equal(
+        (rule as { minimumReleaseAge?: string }).minimumReleaseAge,
+        '7 days',
+        `RENOVATE-006: la regla para [${rule.matchPackageNames.join(', ')}] debe declarar minimumReleaseAge: "7 days"`,
+      );
+    }
+  }
 });
