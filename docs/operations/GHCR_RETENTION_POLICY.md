@@ -40,7 +40,11 @@ Hasta la corrección del pipeline de imágenes, el job `publish` de [`ci.yaml`](
 > **Qué cuenta y qué nunca se purga.** `calculateVersionsToPrune` solo hace competir por el cupo `N` a las **imágenes de release**: versiones con al menos un tag que no sea un artefacto de Cosign (`sha256-<digest>.sig`, `.sbom`, `.att`). Además:
 >
 > - Los **digests fijados en GitOps** (`collectPinnedDigests`, sobre `gitops/environments/*/values.yaml` e `infra/helm/pokedex/values.prod.yaml`) se conservan siempre, aunque queden fuera del top `N`: son las imágenes que los clústeres descargan.
+> - Los **digests fijados por los últimos `N` releases** (`collectReleasePinnedDigests`: tags SemVer estables `vX.Y.Z`, N, N-1, N-2...) también se conservan siempre. Cada release fija en los values de **su propio commit** las imágenes que despliega, y el script los lee con `git show <tag>:<archivo>`. Sin esta protección, solo se conservaban los digests del `main` actual y las imágenes de los releases anteriores se purgaban en cuanto salían del top de builds, lo que contradice la garantía de rollback del objetivo 1.
+> - Si no se encuentran tags de release o no se pueden leer los digests de alguno, **una purga real se rechaza** (fail-closed) y en dry-run solo se advierte. Por eso `ghcr-retention.yaml` hace el checkout con `fetch-tags: true`: un clon superficial no trae tags.
 > - Los artefactos de Cosign y las versiones sin tag (referrers OCI de firmas y atestaciones SLSA) no se purgan.
+>
+> **Limitación conocida (2026-10-22):** la protección es hacia adelante. Las imágenes de `v1.117.0` y `v1.118.0` ya habían sido purgadas cuando se añadió (el registro responde 404 a sus digests), así que no hay rollback a esas versiones; el primer release con garantía completa de N-1 y N-2 es `v1.119.0` en adelante.
 >
 > Antes de esta corrección el script ordenaba **todas** las versiones por fecha. Los artefactos de Cosign, publicados después de la imagen, la desplazaban del top 3, y la versión `main` recién publicada se purgaba minutos después del CI.
 

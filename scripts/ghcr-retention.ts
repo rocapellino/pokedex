@@ -14,6 +14,7 @@
  * ==============================================================================
  */
 
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -59,6 +60,8 @@ export interface GhcrRetentionOptions {
   mockVersions?: Record<string, PackageVersion[]>;
   /** Digests que nunca se purgan. Por defecto, los fijados en GitOps (collectPinnedDigests). */
   protectedDigests?: Set<string>;
+  /** Raíz del repositorio desde la que se leen los values de GitOps y los tags de release. Por defecto, el cwd. */
+  repoRoot?: string;
 }
 
 const GITHUB_API_ORIGIN = 'https://api.github.com';
@@ -101,6 +104,97 @@ export function collectPinnedDigests(root: string = process.cwd()): Set<string> 
     }
   }
   return pinned;
+}
+
+export interface ReleaseProtection {
+  /** Tags de release considerados (más reciente primero). */
+  tags: string[];
+  digests: Set<string>;
+  /** Tags de los que no se pudo leer ningún digest. */
+  unreadable: string[];
+}
+
+const STABLE_RELEASE_TAG = /^v(\d+)\.(\d+)\.(\d+)$/;
+
+function compareReleaseTagsDesc(a: string, b: string): number {
+  const pa = STABLE_RELEASE_TAG.exec(a)?.slice(1).map(Number) ?? [];
+  const pb = STABLE_RELEASE_TAG.exec(b)?.slice(1).map(Number) ?? [];
+  return pb[0] - pa[0] || pb[1] - pa[1] || pb[2] - pa[2];
+}
+
+function gitOutput(root: string, args: string[]): string | null {
+  try {
+    return execFileSync('git', args, { cwd: root, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Digests fijados por los `count` últimos releases estables (tags `vX.Y.Z`; N, N-1, N-2...).
+ *
+ * La política de GHCR garantiza rollback inmediato a esas versiones, y cada release fija las imágenes
+ * que despliega en los values de GitOps/Helm de SU commit. Proteger solo los values del `main` actual
+ * deja que las imágenes de los releases anteriores se purguen en cuanto salen del top de builds.
+ */
+export function collectReleasePinnedDigests(
+  root: string = process.cwd(),
+  count: number = DEFAULT_KEEP_COUNT,
+): ReleaseProtection {
+  const listed = gitOutput(root, ['tag', '--list', 'v*']) ?? '';
+  const tags = listed
+    .split('\n')
+    .map((t) => t.trim())
+    .filter((t) => STABLE_RELEASE_TAG.test(t))
+    .sort(compareReleaseTagsDesc)
+    .slice(0, Math.max(0, count));
+
+  const digests = new Set<string>();
+  const unreadable: string[] = [];
+  for (const tag of tags) {
+    let found = 0;
+    for (const file of PINNED_VALUES_FILES) {
+      for (const digest of gitOutput(root, ['show', `${tag}:${file}`])?.match(/sha256:[a-f0-9]{64}/g) ?? []) {
+        digests.add(digest);
+        found += 1;
+      }
+    }
+    if (found === 0) unreadable.push(tag);
+  }
+  return { tags, digests, unreadable };
+}
+
+/**
+ * Sin la lista de releases no se puede garantizar el rollback: una purga real se rechaza (fail-closed);
+ * en dry-run o simulación solo se advierte.
+ */
+function assertReleaseProtection(protection: ReleaseProtection, destructive: boolean): void {
+  let problem: string | null = null;
+  if (protection.tags.length === 0) {
+    problem =
+      'No se encontraron tags de release (vX.Y.Z) en el repositorio local; en CI el checkout debe traer los tags (fetch-tags: true)';
+  } else if (protection.unreadable.length > 0) {
+    problem = `No se pudieron leer los digests fijados en los tags de release: ${protection.unreadable.join(', ')}`;
+  }
+  if (!problem) return;
+  if (destructive) {
+    throw new Error(`${problem}. Se rechaza la purga para no eliminar imágenes de rollback (N, N-1, N-2).`);
+  }
+  console.warn(`⚠️  Sin protección de releases: ${problem}.`);
+}
+
+/**
+ * Digests que nunca se purgan: los fijados en GitOps/Helm del checkout actual más los de los últimos
+ * `keepCount` releases. Si el llamador los aporta (`options.protectedDigests`) se usan tal cual.
+ */
+function resolveProtectedDigests(options: GhcrRetentionOptions, keepCount: number, destructive: boolean): Set<string> {
+  if (options.protectedDigests) return options.protectedDigests;
+
+  const repoRoot = options.repoRoot ?? process.cwd();
+  const releases = collectReleasePinnedDigests(repoRoot, keepCount);
+  assertReleaseProtection(releases, destructive);
+  console.log(`• Releases protegidos (rollback): ${releases.tags.join(', ') || '(ninguno)'}`);
+  return new Set([...collectPinnedDigests(repoRoot), ...releases.digests]);
 }
 
 /**
@@ -300,8 +394,8 @@ export async function applyGhcrRetention(options: GhcrRetentionOptions = {}): Pr
     console.warn(`   Activando modo simulación automático (--simulate) para diagnóstico local.`);
   }
 
-  const protectedDigests = options.protectedDigests ?? collectPinnedDigests();
-  console.log(`• Digests protegidos (GitOps): ${protectedDigests.size}`);
+  const protectedDigests = resolveProtectedDigests(options, keepCount, !dryRun && !effectiveSimulate);
+  console.log(`• Digests protegidos (GitOps y releases): ${protectedDigests.size}`);
 
   for (const pkg of packages) {
     console.log(`\n🔍 Evaluando paquete: ${owner}/${pkg}`);
