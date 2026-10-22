@@ -21,7 +21,7 @@ api:
   replicaCount: 2
   image:
     repository: ghcr.io/rocapellino/pokedex-api
-    digest: "sha256:da75779997b551bb7571c82906359ee93ddbd62bfa85155fd6fa03f29a63dcef" # Pinning OCI SHA-256 inmutable (SSOT alineado con Cosign)
+    digest: "sha256:c3b7d9620b4dfd5020da426f833bf6b14cfebcc05b216e578a3f53fef0493b9b" # Pinning OCI SHA-256 inmutable (SSOT alineado con Cosign)
     pullPolicy: IfNotPresent
   deploymentAnnotations:
     reloader.stakater.com/auto: "true"
@@ -52,7 +52,7 @@ web:
   replicaCount: 2
   image:
     repository: ghcr.io/rocapellino/pokedex-web
-    digest: "sha256:60cafee3e3a4580d9144e4ca478a9cce43671630e32e82aa63f4550407618fe6" # Pinning OCI SHA-256 inmutable (SSOT alineado con Cosign)
+    digest: "sha256:0c27697c214f01dbfde5c364b1de6c21b1509450891664f5079d368f9027a46e" # Pinning OCI SHA-256 inmutable (SSOT alineado con Cosign)
     pullPolicy: IfNotPresent
   deploymentAnnotations:
     reloader.stakater.com/auto: "true"
