@@ -647,3 +647,36 @@ test('🔐 Checkov: el job de IaC sigue bloqueando y además sube su SARIF a Cod
     'el orquestador debe conceder security-events: write a infra',
   );
 });
+
+// ==============================================================================
+// AUD-CI-PIPE-001: `grep -q` no debe cerrar una tubería cuyo productor sigue escribiendo
+// ==============================================================================
+
+/**
+ * `grep -q` sale en el primer acierto y cierra la tubería. Si el productor (`curl`, `kubectl logs`, `gh api`)
+ * aún está escribiendo, recibe un error de escritura (curl: exit 23) y, bajo `set -o pipefail`, la tubería falla
+ * aunque la línea buscada exista. Con `/metrics`, donde `pokedex_storage_status` va al principio y le siguen varios
+ * KB, el job de Kind falló de forma intermitente con «pokedex_storage_status no es 1» con la métrica correcta.
+ * Reproducido: 29 de 300 ejecuciones con `curl | grep -q`; 0 de 300 capturando la salida antes.
+ */
+const PRODUCER_PIPED_INTO_GREP_Q = /\b(?:curl|wget|kubectl\s+logs|gh\s+api)\b[^|\n]*\|\s*grep\s+-[a-zA-Z]*q/;
+
+test('🐛 AUD-CI-PIPE-001: ningún script run: encadena un productor con `grep -q` (tubería cerrada por el lector)', () => {
+  const offenders: string[] = [];
+  for (const file of workflowFiles()) {
+    for (const script of scriptsOf(stepsOf(workflow(file)))) {
+      // Une las continuaciones de línea para detectar también los comandos partidos con `\`
+      const joined = script.replaceAll(/\\r?\n\s*/g, ' ');
+      for (const line of joined.split('\n')) {
+        if (PRODUCER_PIPED_INTO_GREP_Q.test(line)) offenders.push(`${file}: ${line.trim()}`);
+      }
+    }
+  }
+
+  assert.deepEqual(
+    offenders,
+    [],
+    'Capture la salida en una variable y busque en ella (`OUT="$(curl ...)"; grep -q ... <<<"$OUT"`), o use `grep` sin -q:\n' +
+      offenders.join('\n'),
+  );
+});

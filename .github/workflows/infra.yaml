@@ -368,9 +368,12 @@ jobs:
           [ "$API_VERSION" = "$EXPECTED_VERSION" ] || { echo "❌ /version.version (${API_VERSION}) != package.json (${EXPECTED_VERSION})"; exit 1; }
           [ "$API_VERSION" != "$API_GIT_SHA" ]       || { echo "❌ /version.version y /version.git_sha son el mismo valor (${API_VERSION})"; exit 1; }
           [ ${#API_GIT_SHA} -eq 40 ]                  || { echo "❌ /version.git_sha no es un commit SHA completo: ${API_GIT_SHA}"; exit 1; }
-          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_uptime_seconds"       || { echo "❌ /metrics sin uptime_seconds"; exit 1; }
-          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_storage_status"       || { echo "❌ /metrics sin storage_status"; exit 1; }
-          curl -f http://127.0.0.1:3000/metrics | grep -q "pokedex_ai_circuit_breaker_open" || { echo "❌ /metrics sin ai_circuit_breaker_open"; exit 1; }
+          # Se captura /metrics y se busca en la variable: `curl | grep -q` cierra la tubería en el primer acierto y
+          # puede hacer fallar a curl (exit 23) aunque la métrica exista (AUD-CI-PIPE-001).
+          METRICS="$(curl -fsS http://127.0.0.1:3000/metrics)" || { echo "❌ Endpoint /metrics falló"; exit 1; }
+          grep -q "pokedex_uptime_seconds" <<<"${METRICS}"          || { echo "❌ /metrics sin uptime_seconds"; exit 1; }
+          grep -q "pokedex_storage_status" <<<"${METRICS}"          || { echo "❌ /metrics sin storage_status"; exit 1; }
+          grep -q "pokedex_ai_circuit_breaker_open" <<<"${METRICS}" || { echo "❌ /metrics sin ai_circuit_breaker_open"; exit 1; }
           echo "✅ Integración canónica de Kubernetes verificada en Kind."
 
       - name: 7. Habilitar PgBouncer y esperar el despliegue
@@ -444,7 +447,10 @@ jobs:
             sleep 2
           done
           [ "${READYZ_OK}" -eq 1 ] || fail "/readyz no responde 200 con PgBouncer (la API no llega a PostgreSQL)"
-          curl -fsS http://127.0.0.1:3000/metrics | grep -q '^pokedex_storage_status 1' || fail "pokedex_storage_status no es 1 con PgBouncer"
+          # Bajo `pipefail`, `curl | grep -q` fallaba de forma intermitente con la métrica correcta: `pokedex_storage_status`
+          # va al principio de /metrics y `grep -q` cierra la tubería mientras curl aún escribe (AUD-CI-PIPE-001).
+          METRICS="$(curl -fsS http://127.0.0.1:3000/metrics)" || fail "/metrics no responde"
+          grep -q '^pokedex_storage_status 1' <<<"${METRICS}" || fail "pokedex_storage_status no es 1 con PgBouncer"
           # El log de PgBouncer registra cada login de cliente: la API debe figurar entre ellos.
           LOGINS="$(kubectl logs -n "${NS}" -l app=pgbouncer --tail=500 | grep -c 'login attempt' || true)"
           echo "logins registrados por PgBouncer: ${LOGINS}"
