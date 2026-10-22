@@ -4,7 +4,7 @@
 >
 > **Fecha de captura:** 2026-10-22
 >
-> **Commit:** `9b10935ff13037be644e9857a5b0a0b3a7cb7d70`
+> **Commit:** `a149c555` (los gates se ejecutaron sobre `9b10935f`; entre ambos solo cambian el lockfile, el rango de `dompurify` y este documento, y `npm audit` se repitió sobre `a149c555`)
 >
 > **Rama auditada:** `main` (release `v1.119.0`)
 >
@@ -16,7 +16,7 @@
 **Repositorio:** `rocapellino/pokedex`
 **Contexto Operativo:** Monorepo (`apps/backend`, `apps/frontend`, `packages/contracts`) | Entornos: Kind / Proxmox Pre-prod / Prod Cloud (blueprint)
 **Vocabulario de estados:** gates según [state-model.md](../../../.agents/skills/_shared/state-model.md) §3 (`PASS`, `FAIL`, `NOT_EXECUTED`, `CI_REQUIRED`).
-**Foco de la sesión:** reemplazar el baseline `2026-10-21` (commit `b38568ef`) absorbiendo los PRs `#914` a `#919` y `#921`: retención de GHCR (errores, paginación, protección de imágenes de rollback y `dry_run` por defecto), limpieza de releases en borrador, actualización de dependencias y corrección de la intermitencia del job de Kind. Mantiene un único snapshot activo conforme a `max_active_snapshots: 1`.
+**Foco de la sesión:** reemplazar el baseline `2026-10-21` (commit `b38568ef`) absorbiendo los PRs `#914` a `#919`, `#921` y `#923`: retención de GHCR (errores, paginación, protección de imágenes de rollback y `dry_run` por defecto), limpieza de releases en borrador, actualización de dependencias, corrección de la intermitencia del job de Kind y actualización de `dompurify` e `ip-address` (`#923`). Mantiene un único snapshot activo conforme a `max_active_snapshots: 1`.
 
 ---
 
@@ -39,13 +39,13 @@ La aplicación raíz de ArgoCD (`root-application.yaml`) mantiene `targetRevisio
 
 ## 2. Resumen Ejecutivo
 
-El repositorio mantiene paridad de versión y de digests SHA256 entre Cloud GitOps, Proxmox Pre-prod y Helm Production, gobernanza documental sin drift y todas las suites ejecutables localmente en verde. Los dos hallazgos abiertos del baseline anterior y los tres detectados durante el ciclo quedaron cerrados con test de regresión. La auditoría de dependencias, que el 2026-10-21 no reportaba nada, detecta ahora dos avisos publicados después con versión corregida disponible.
+El repositorio mantiene paridad de versión y de digests SHA256 entre Cloud GitOps, Proxmox Pre-prod y Helm Production, gobernanza documental sin drift y todas las suites ejecutables localmente en verde. Los dos hallazgos abiertos del baseline anterior y los tres detectados durante el ciclo quedaron cerrados con test de regresión. La auditoría de dependencias, que el 2026-10-21 no reportaba nada, detectó dos avisos publicados después (`dompurify` e `ip-address`); se corrigieron en el mismo ciclo con `#923` y `npm audit` vuelve a reportar 0.
 
-- **Total de Hallazgos Abiertos:** 2
+- **Total de Hallazgos Abiertos:** 0
 - **P0 (Crítico):** 0
 - **P1 (Alto):** 0
-- **P2 (Medio):** 2 (`AUD-DEP-DOMP-001`, `AUD-DEP-IPADDR-001`)
-- **P3 (Bajo):** 0 (6 cerrados en este ciclo)
+- **P2 (Medio):** 0 (2 cerrados en este ciclo: `AUD-DEP-DOMP-001`, `AUD-DEP-IPADDR-001`)
+- **P3 (Bajo):** 0 (5 cerrados en este ciclo)
 
 ### Gates Automáticos
 
@@ -66,7 +66,7 @@ El repositorio mantiene paridad de versión y de digests SHA256 entre Cloud GitO
 | `npm run mcp:validate` / `mcp:scan` / `mcp:test` | `PASS` | 9 servidores (8 habilitados) y 8 perfiles; escaneo Zero-Trust sin vulnerabilidades; 48/48 tests |
 | `npm run worktree:doctor` | `PASS` | Worktrees gobernados sin prunables ni fuera de política |
 | `npm run aas:governance` | `PASS` | Gobierno local de AAS válido |
-| `npm audit --package-lock-only` | `FAIL` | 2 vulnerabilidades: `dompurify` 3.4.16 (crítica) e `ip-address` 10.7.3 (moderada); ver `AUD-DEP-DOMP-001` y `AUD-DEP-IPADDR-001`. Se audita el lockfile porque el `node_modules` local compartido puede estar desactualizado y producir falsos positivos |
+| `npm audit --package-lock-only` | `PASS` | 0 vulnerabilidades en `a149c555`. Sobre `9b10935f` reportaba 2 (`dompurify` 3.4.16, crítica, e `ip-address` 10.7.3, moderada), corregidas en `#923`; ver `AUD-DEP-DOMP-001` y `AUD-DEP-IPADDR-001`. Se audita el lockfile porque el `node_modules` local compartido puede estar desactualizado y producir falsos positivos |
 | `npm run test:unit` | `PASS` | 243 tests superados (0 fallos) |
 | `npm run test:contracts` | `PASS` | 355 tests (354 superados, 1 omitido justificado en entorno live de GitHub) |
 | `npm run test:security` | `PASS` | 212 tests superados (0 fallos) |
@@ -85,8 +85,8 @@ El repositorio mantiene paridad de versión y de digests SHA256 entre Cloud GitO
 
 | ID | Área | Evidencia (`ruta:línea`) | Riesgo / Impacto | Prioridad | Confianza | Esfuerzo | Estado | Acción / Remediación |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `AUD-DEP-DOMP-001` | Dependencias / SCA | `apps/frontend/package.json:15` (`dompurify ^3.4.16`), `apps/frontend/src/sanitizer.ts:125` | Tres avisos (`GHSA-cg2g-xh64-v4q7`, `GHSA-mrv2-3pqr-j5jr`, `GHSA-c6gr-qvv4-5v3f`) sobre `<=3.4.16`, uno clasificado crítico. Dependencia de ejecución del frontend, usada para sanear HTML. La explotabilidad no está demostrada: la configuración de `sanitizer.ts` no usa `SAFE_FOR_TEMPLATES`, `IN_PLACE` ni `PARSER_MEDIA_TYPE`, que son las opciones de los tres avisos. | `P2` | `MEDIUM` | `XS` | `OPEN` | Actualizar a `dompurify 3.4.17` (publicada el 2026-10-12, ya supera `minimumReleaseAge`) con `npm update dompurify --package-lock-only`, y confirmar con `npm audit` y `test:frontend`. Valorar elevar a `P1` si se confirma alguna de las opciones afectadas. |
-| `AUD-DEP-IPADDR-001` | Dependencias / SCA | `package-lock.json` (`ip-address 10.7.3`, vía `express-rate-limit` y `socks`); `apps/backend/src/middleware/rate-limiter.ts` | `GHSA-rxp7-6hxx-x8q5`: `Address6` evalúa un identificador de zona en tiempo cuadrático antes de aplicar el límite de longitud, por lo que una cadena larga puede bloquear el proceso. Se usa de forma transitiva en el limitador de tasa del backend. | `P2` | `MEDIUM` | `XS` | `OPEN` | Actualizar a `ip-address 10.7.4` (publicada el 2026-10-11) con `npm update ip-address --package-lock-only`. Verificar si `express-rate-limit` entrega a `Address6` valores controlados por el cliente. |
+| `AUD-DEP-DOMP-001` | Dependencias / SCA | `apps/frontend/package.json:15` (`dompurify ^3.4.16`), `apps/frontend/src/sanitizer.ts:125` | Tres avisos (`GHSA-cg2g-xh64-v4q7`, `GHSA-mrv2-3pqr-j5jr`, `GHSA-c6gr-qvv4-5v3f`) sobre `<=3.4.16`, uno clasificado crítico. Dependencia de ejecución del frontend, usada para sanear HTML. La explotabilidad no está demostrada: la configuración de `sanitizer.ts` no usa `SAFE_FOR_TEMPLATES`, `IN_PLACE` ni `PARSER_MEDIA_TYPE`, que son las opciones de los tres avisos. | `P2` | `MEDIUM` | `XS` | `CLOSED` | Actualizado a `dompurify 3.4.17` (publicada el 2026-10-12, fuera de `minimumReleaseAge`) y rango `^3.4.17` en `apps/frontend/package.json`, en PR `#923`. `npm audit` en 0. |
+| `AUD-DEP-IPADDR-001` | Dependencias / SCA | `package-lock.json` (`ip-address 10.7.3`, vía `express-rate-limit` y `socks`); `apps/backend/src/middleware/rate-limiter.ts` | `GHSA-rxp7-6hxx-x8q5`: `Address6` evalúa un identificador de zona en tiempo cuadrático antes de aplicar el límite de longitud, por lo que una cadena larga puede bloquear el proceso. Se usa de forma transitiva en el limitador de tasa del backend. | `P2` | `MEDIUM` | `XS` | `CLOSED` | Actualizado solo en el lockfile a `ip-address 10.7.4` (publicada el 2026-10-11), en PR `#923`. No se verificó si `express-rate-limit` entrega a `Address6` valores controlados por el cliente. |
 | `AUD-CI-PIPE-001` | CI / Fiabilidad | `.github/workflows/infra.yaml` (pasos 6 y 8 del job de Kind) | `curl ... \| grep -q` bajo `set -euo pipefail` falla de forma intermitente: `grep -q` sale en el primer acierto, `curl` recibe `SIGPIPE` (exit 23) y `pipefail` hace fallar la tubería aunque la métrica sea correcta. Reproducido en 29 de 300 iteraciones frente a 0 de 300 con captura previa. | `P3` | `HIGH` | `XS` | `CLOSED` | Captura de `/metrics` en una variable y `grep -q <<<`, y test `AUD-CI-PIPE-001` que prohíbe `curl\|wget\|kubectl logs\|gh api ... \| grep -q` en todos los workflows, en PR `#921`. La causa exacta de la ejecución fallida original es una inferencia coherente con toda la evidencia, no una reproducción directa. |
 | `AUD-REL-GHCR-003` | Supply Chain / Retención OCI | `scripts/ghcr-retention.ts` (`collectReleasePinnedDigests`, `assertReleaseProtection`) | La retención solo protegía los digests de GitOps vigentes, por lo que una purga real podía eliminar las imágenes de releases anteriores y dejar sin rollback. | `P3` | `HIGH` | `S` | `CLOSED` | Se protegen las imágenes de los 3 últimos releases estables leyendo sus pines con `git show tag:archivo`; una purga real falla si no hay tags o no son legibles, en PR `#919`. Limitación conocida: las imágenes de `v1.117.0` y `v1.118.0` ya no existían en GHCR, por lo que el rollback queda garantizado desde `v1.119.0`. |
 | `AUD-REL-GHCR-002` | CI / Retención OCI | `.github/workflows/ghcr-retention.yaml` | La ejecución manual podía purgar realmente por defecto. | `P3` | `HIGH` | `XS` | `CLOSED` | `dry_run` con valor por defecto `true`, con test de contrato, en PR `#918`. |
@@ -175,7 +175,7 @@ Candidatos pendientes de aprobación humana (fase 5 del protocolo; no se ejecuta
 ## 7. Cambios Propuestos y Roadmap
 
 1. **Inmediato (P0/P1):** Ninguno requerido.
-2. **Medio Plazo (P2):** actualizar `dompurify` a `3.4.17` e `ip-address` a `10.7.4` solo en el lockfile (`AUD-DEP-DOMP-001`, `AUD-DEP-IPADDR-001`); ambas versiones superan ya el `minimumReleaseAge` de 7 días.
+2. **Medio Plazo (P2):** Ninguno abierto.
 3. **Mantenimiento Continuo (P3):** valorar un reintento automático acotado para el paso `gitsign verify-tag` de `release-tag.yaml`, tras un único fallo transitorio de Rekor observado en el ciclo anterior (evidencia insuficiente para abrir un hallazgo); vigilar el job de Kind tras `#921` y abrir un hallazgo si vuelve a fallar.
 
 ---
@@ -189,7 +189,7 @@ Candidatos pendientes de aprobación humana (fase 5 del protocolo; no se ejecuta
 - [x] **Superficie de Testing:** `npm run test:surface:check` sincronizado (1265 casos en catálogo).
 - [x] **Gobernanza de Secretos:** `npm run secrets:audit-rotation` (12/12 controles).
 - [x] **Supply Chain & GitOps:** `npm run gitops:verify-parity:strict` y `npm run gitops:pin:check` certificados en `v1.119.0`.
-- [ ] **Dependencias:** `npm audit --package-lock-only` reporta 2 vulnerabilidades (`AUD-DEP-DOMP-001`, `AUD-DEP-IPADDR-001`).
+- [x] **Dependencias:** `npm audit --package-lock-only` en 0 vulnerabilidades tras `#923`.
 - [x] **Anti-SSRF & Egress:** `npm run probe:security:egress` verificado en modo determinista.
 - [x] **Gobernanza de Worktrees & MCP:** `npm run worktree:doctor`, `npm run mcp:validate`, `npm run mcp:scan` y `npm run mcp:test` validados.
 - [x] **Retención de Tags y GHCR:** verificadas contra el remoto real en CI, sin simulación.
