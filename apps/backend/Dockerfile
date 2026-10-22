@@ -8,7 +8,7 @@
 # ------------------------------------------------------------------------------
 # Etapa 1: Builder (Compilación con esbuild)
 # ------------------------------------------------------------------------------
-FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS builder
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS builder
 
 WORKDIR /app
 
@@ -34,7 +34,7 @@ RUN npm run lint --workspace=@pokedex/backend && npm run build --workspace=@poke
 # ------------------------------------------------------------------------------
 # Etapa 2: Runner (Entorno de Producción Seguro y Minimalista)
 # ------------------------------------------------------------------------------
-FROM node:24-alpine@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS runner
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runner
 
 # VER-002/OCI-001: los metadatos OCI de version y revision se inyectan desde CI
 # como build-args. El `version="2.0.0"` generico anterior era ficticio y no
@@ -75,7 +75,8 @@ COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
 RUN npm ci --workspace=@pokedex/backend --omit=dev --ignore-scripts \
     && npm cache clean --force \
-    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx /root/.npm /opt/yarn* /usr/local/lib/node_modules/corepack
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
+              /root/.npm /opt/yarn* /usr/local/lib/node_modules/corepack
 
 # Copiar artefactos compilados
 COPY --from=builder /app/apps/backend/dist ./dist

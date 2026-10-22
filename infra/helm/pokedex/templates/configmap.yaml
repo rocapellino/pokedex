@@ -19,3 +19,6 @@ data:
   OTEL_SERVICE_NAME: {{ .Values.api.env.otelServiceName | default "pokedex-api" | quote }}
   CORS_ORIGINS: {{ .Values.api.env.corsOrigins | quote }}
   DB_SSL: {{ .Values.postgresql.ssl | default "false" | quote }}
+  BACKOFFICE_ALLOWED_IP_1: {{ .Values.web.env.backofficeAllowedIp1 | default "10.42.0.1/32" | quote }}
+  BACKOFFICE_ALLOWED_IP_2: {{ .Values.web.env.backofficeAllowedIp2 | default "192.168.1.50/32" | quote }}
+  METRICS_ALLOWED_CIDR: {{ .Values.web.env.metricsAllowedCidr | default "10.42.0.0/24" | quote }}

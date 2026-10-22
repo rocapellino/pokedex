@@ -22,7 +22,7 @@ tmp/
 # distribuyen en 70 YAML (playbooks e inventario de Ansible, manifiestos
 # Kubernetes y Chart de Helm) y 26 TF (OpenTofu), mas documentacion. No hay
 # ningun archivo .ts, .js, .py, .go ni similar, que es el lenguaje sobre el que
-# Semgrep aplica analisis SAST con `--config auto`.
+# Semgrep aplica analisis SAST con reglas de aplicacion explicitas.
 #
 # Ademas, la IaC de esa ruta tiene controles propios y mas especificos:
 #   OpenTofu    -> `tofu fmt -check` + `tofu validate` en Infra CI

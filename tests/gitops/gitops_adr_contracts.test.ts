@@ -284,3 +284,22 @@ test('🛡️ Rotación de Secretos: ADR-005 formaliza Stakater Reloader, refres
     'docs/decisions/README.md debe registrar el histórico consolidado de ADR-022',
   );
 });
+
+test('🛡️ Nginx K8s Env (AUD-INF-NGINX-001): web monta pokemon-config y el configmap parametriza allowlists de red', () => {
+  const defaultDocs = renderChart(PROFILES.default);
+  const config = defaultDocs.find((d: any) => d.kind === 'ConfigMap' && d.metadata?.name === 'pokemon-config');
+  assert.ok(config?.data, 'ConfigMap/pokemon-config debe existir con bloque data');
+  assert.equal(config.data.BACKOFFICE_ALLOWED_IP_1, '10.42.0.1/32');
+  assert.equal(config.data.BACKOFFICE_ALLOWED_IP_2, '192.168.1.50/32');
+  assert.equal(config.data.METRICS_ALLOWED_CIDR, '10.42.0.0/24');
+
+  const web = podWorkloads(defaultDocs).find((w: any) => w.name === 'Deployment/pokedex-web');
+  assert.ok(web, 'Deployment/pokedex-web debe existir');
+  const webContainer = web.spec.containers.find((c: any) => c.name === 'web');
+  assert.ok(webContainer, 'contenedor web debe existir');
+  const envFrom = webContainer.envFrom ?? [];
+  assert.ok(
+    envFrom.some((e: any) => e.configMapRef?.name === 'pokemon-config'),
+    'web debe montar pokemon-config vía envFrom para recibir las allowlists de red',
+  );
+});

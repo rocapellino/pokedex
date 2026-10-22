@@ -212,7 +212,7 @@ Para evitar descargas no deterministas, colisiones de tags y ataques de sustituc
 2. **Soporte de Digest Criptográfico:** Los despliegues de Helm permiten parametrizar `digest: "sha256:..."` garantizando que Kubernetes verifique el hash inmutable antes de la ejecución.
 3. **Imágenes de Infraestructura Fijadas por Digest:**
    - PgBouncer está anclado a `1.25.2@sha256:c0c55b277858ca308eb5df7baf8b83fbaea60b2c666604f29d8fe25e9decac68`.
-   - Frontend Nginx está anclado a `1.31-alpine@sha256:72ba65eb42c10344912a84ff42408db7d34f2feb642204570ab8fc5ffd29f1d3`. La **fuente única de verdad** es la línea `FROM` de `apps/frontend/Dockerfile`: el job *Frontend Web CI* extrae de ahí la versión y el digest para validar la configuración de Nginx, de modo que la versión validada nunca puede divergir de la desplegada.
+   - Frontend Nginx está anclado a `1.31-alpine@sha256:a3554c0d0b48177b1413c26e01f695334428020d9df01243fbae3e11cfd17417`. La **fuente única de verdad** es la línea `FROM` de `apps/frontend/Dockerfile`: el job *Frontend Web CI* extrae de ahí la versión y el digest para validar la configuración de Nginx, de modo que la versión validada nunca puede divergir de la desplegada.
 
 ---
 
