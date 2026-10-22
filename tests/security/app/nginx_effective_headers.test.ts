@@ -183,3 +183,21 @@ test('🛡️ Nginx Security: nginx.conf y template inyectan Cross-Origin-Opener
     );
   }
 });
+
+test('🛡️ Nginx Real IP (AUD-INF-NGINX-001): nginx.conf y template restauran la IP real tras ingress/proxy', () => {
+  const confFiles = ['apps/frontend/nginx.conf', 'apps/frontend/nginx.conf.template'];
+  for (const relPath of confFiles) {
+    const fullPath = path.join(ROOT_DIR, relPath);
+    assert.ok(fs.existsSync(fullPath), `${relPath} debe existir`);
+    const content = fs.readFileSync(fullPath, 'utf-8');
+    assert.ok(
+      content.includes('real_ip_header X-Forwarded-For;'),
+      `${relPath} debe configurar real_ip_header X-Forwarded-For`,
+    );
+    assert.ok(
+      content.includes('set_real_ip_from 10.42.0.0/16;'),
+      `${relPath} debe confiar en la subred de pods K3s (10.42.0.0/16)`,
+    );
+    assert.ok(content.includes('real_ip_recursive on;'), `${relPath} debe habilitar real_ip_recursive on`);
+  }
+});

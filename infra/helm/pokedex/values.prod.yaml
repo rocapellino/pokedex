@@ -72,6 +72,10 @@ web:
       cpu: "100m"
       memory: "128Mi"
       ephemeral-storage: "128Mi"
+  env:
+    backofficeAllowedIp1: "10.42.0.1/32"
+    backofficeAllowedIp2: "192.168.1.50/32"
+    metricsAllowedCidr: "10.42.0.0/24"
 
 postgresql:
   auth:

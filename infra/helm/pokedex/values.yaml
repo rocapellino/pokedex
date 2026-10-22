@@ -118,6 +118,10 @@ web:
   deploymentAnnotations:
     reloader.stakater.com/auto: "true"
   podAnnotations: {}
+  env:
+    backofficeAllowedIp1: "10.42.0.1/32"
+    backofficeAllowedIp2: "192.168.1.50/32"
+    metricsAllowedCidr: "10.42.0.0/24"
 
 # ------------------------------------------------------------------------------
 # 3. Base de Datos Relacional (PostgreSQL 17 StatefulSet)

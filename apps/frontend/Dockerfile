@@ -24,7 +24,7 @@ FROM nginx:1.31-alpine@sha256:72ba65eb42c10344912a84ff42408db7d34f2feb642204570a
 ARG APP_VERSION=unknown
 ARG GIT_SHA=unknown
 
-LABEL maintainer="Grupo 3 - UTEC DevOps" \
+LABEL maintainer="Rodrigo Capellino" \
       org.opencontainers.image.title="pokedex-web" \
       org.opencontainers.image.version="${APP_VERSION}" \
       org.opencontainers.image.revision="${GIT_SHA}" \
