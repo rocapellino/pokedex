@@ -161,6 +161,11 @@ test('☸️ PgBouncer: el job de Kind lo habilita y valida la ruta API → PgBo
   assert.match(script, /POSTGRES_HOST/, 'debe comprobar que la API apunta a pgbouncer-service');
   assert.match(script, /\/readyz/, 'debe comprobar que la API llega a PostgreSQL a través de PgBouncer');
   assert.match(script, /login attempt/, 'debe comprobar que PgBouncer registra la conexión de la API');
+  assert.match(
+    script,
+    /\|\s*uniq\b/,
+    'probe() debe deduplicar líneas repetidas cuando kubectl run --rm -i hace fallback a streaming de logs',
+  );
   for (const rejected of ['authentication failed', 'no such database', 'not allowed']) {
     assert.ok(script.includes(rejected), `debe verificar el rechazo «${rejected}»`);
   }
