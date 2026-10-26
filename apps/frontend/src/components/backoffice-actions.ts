@@ -19,7 +19,7 @@ export async function handleFormSubmit(e: Event): Promise<void> {
   const { id, payload } = extractPokemonPayload();
   const submitBtn = document.getElementById('btnSubmitForm') as HTMLButtonElement;
   submitBtn.disabled = true;
-  submitBtn.innerText = 'Guardando...';
+  submitBtn.textContent = 'Guardando...';
 
   try {
     const isEdit = typeof id === 'number' && !Number.isNaN(id);
@@ -46,7 +46,7 @@ export async function handleFormSubmit(e: Event): Promise<void> {
     showToast(`Error al guardar: ${errorMessage(err)}`, true);
   } finally {
     submitBtn.disabled = false;
-    submitBtn.innerText = 'Guardar Registro';
+    submitBtn.textContent = 'Guardar Registro';
   }
 }
 
@@ -63,7 +63,7 @@ export async function executeDelete(): Promise<void> {
 
   const btn = document.getElementById('btnConfirmDelete') as HTMLButtonElement;
   btn.disabled = true;
-  btn.innerText = 'Eliminando...';
+  btn.textContent = 'Eliminando...';
 
   try {
     await deletePokemon(pendingId);
@@ -81,7 +81,7 @@ export async function executeDelete(): Promise<void> {
     showToast(`Error al eliminar: ${errorMessage(err)}`, true);
   } finally {
     btn.disabled = false;
-    btn.innerText = 'Sí, Eliminar';
+    btn.textContent = 'Sí, Eliminar';
   }
 }
 

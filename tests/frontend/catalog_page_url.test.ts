@@ -31,8 +31,7 @@ const catalog = Array.from({ length: 100 }, (_, i) => mk(i + 1));
 let restoreFetch: () => void;
 
 const firstId = (): string | null => doc.querySelector('.pokemon-card')?.getAttribute('data-pokemon-id') ?? null;
-// jsdom no implementa `innerText` (lo asigna como propiedad corriente), que es lo que escribe el catálogo.
-const pageInfo = (): string => (doc.getElementById('pageInfo') as HTMLElement | null)?.innerText ?? '';
+const pageInfo = (): string => (doc.getElementById('pageInfo') as HTMLElement | null)?.textContent ?? '';
 const search = (): string => win.location.search;
 const entries = (): number => win.history.length;
 
