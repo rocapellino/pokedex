@@ -171,7 +171,7 @@ tools:
       version_args: ["--version"]
       version_regex: '(\d+\.\d+\.\d+)'
     container:
-      image: "renovate/renovate:44.168.1@sha256:8dad02299df7df2c8847b31dd6734256588686c48dd14151f1023650ced92cd2"
+      image: "renovate/renovate:44.170.0@sha256:33f3d1bfb32faba231cb9803474ed054b2cace8a9ba5d5ae3b85a9e790e649df"
       entrypoint: "renovate-config-validator"
       mount_mode: "ro"
       workdir: "/repo"
