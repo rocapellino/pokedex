@@ -536,7 +536,7 @@ export function renderPokemons(): void {
     paginationBar.classList.remove('hidden');
     const pageInfo = document.getElementById('pageInfo');
     if (pageInfo) {
-      pageInfo.innerText = `Página ${currentPage} de ${totalPages} (${filteredPokemons.length} Pokémon)`;
+      pageInfo.textContent = `Página ${currentPage} de ${totalPages} (${filteredPokemons.length} Pokémon)`;
     }
     const btnPrev = document.getElementById('btnPrevPage') as HTMLButtonElement | null;
     const btnNext = document.getElementById('btnNextPage') as HTMLButtonElement | null;

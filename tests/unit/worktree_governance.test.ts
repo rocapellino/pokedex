@@ -1073,6 +1073,23 @@ test('🌲 Worktree Governance: agy-hook.mjs bloquea llamadas no gobernadas y op
   );
   assert.equal(resMutatingGit.decision, 'deny');
 
+  // 4b. Permitir git commit/push cuando el comando apunta explícitamente a un worktree canónico (.worktrees/)
+  const resMutatingCanonical = evaluatePreToolUse(
+    {
+      toolCall: {
+        name: 'run_command',
+        args: {
+          CommandLine:
+            'Set-Location C:\\Users\\Dev\\Documents\\Git\\.worktrees\\pokedex\\fix--test; git commit -m "fix: test"',
+          Cwd: 'C:\\Users\\Dev\\.gemini\\antigravity\\worktrees\\pokedex\\some_chat',
+        },
+      },
+    },
+    { mainRepoRoot: fakeMainRoot },
+  );
+  assert.equal(resMutatingCanonical.decision, 'allow');
+  assert.equal(resMutatingCanonical.overwrite?.Cwd, fakeMainRoot);
+
   // 5. Redirigir Cwd automáticamente hacia mainRepoRoot en comandos de lectura si Cwd apunta a .gemini/antigravity/worktrees/
   const resReadRedirect = evaluatePreToolUse(
     {

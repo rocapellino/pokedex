@@ -19,7 +19,7 @@ export function setPendingDeleteId(id: number | null): void {
 export function openCreateModal(): void {
   if (typeof document === 'undefined') return;
   const title = document.getElementById('crudModalTitle');
-  if (title) title.innerText = '➕ Registrar Nuevo Pokémon';
+  if (title) title.textContent = '➕ Registrar Nuevo Pokémon';
   const idInput = document.getElementById('formPokemonId') as HTMLInputElement | null;
   if (idInput) idInput.value = '';
   const form = document.getElementById('crudForm') as HTMLFormElement | null;
@@ -33,7 +33,7 @@ export function openEditModal(id: number, catalog: Pokemon[]): Pokemon | null {
 
   if (typeof document !== 'undefined') {
     const title = document.getElementById('crudModalTitle');
-    if (title) title.innerText = `✏️ Editar Pokémon ${formatPokemonId(p.id)} - ${p.nombre}`;
+    if (title) title.textContent = `✏️ Editar Pokémon ${formatPokemonId(p.id)} - ${p.nombre}`;
 
     const formId = document.getElementById('formPokemonId') as HTMLInputElement | null;
     if (formId) formId.value = String(p.id);
@@ -84,8 +84,8 @@ export function openDeleteModal(id: number, catalog: Pokemon[]): Pokemon | null 
   if (typeof document !== 'undefined') {
     const nameEl = document.getElementById('deletePokemonName');
     const idEl = document.getElementById('deletePokemonId');
-    if (nameEl) nameEl.innerText = p.nombre;
-    if (idEl) idEl.innerText = formatPokemonId(p.id);
+    if (nameEl) nameEl.textContent = p.nombre;
+    if (idEl) idEl.textContent = formatPokemonId(p.id);
 
     openModal('deleteModal');
   }
