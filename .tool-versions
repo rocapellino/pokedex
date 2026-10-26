@@ -1,4 +1,4 @@
-nodejs 24.21.0
+nodejs 24.22.1
 # renovate: datasource=github-releases depName=opentofu/opentofu extractVersion=^v(?<version>.+)$
 opentofu 1.13.2
 # renovate: datasource=github-releases depName=helm/helm extractVersion=^v(?<version>.+)$
