@@ -265,8 +265,10 @@ test('🔐 Pasaje GitOps: los CronJobs de backup usan una imagen con openssl y u
   assert.match(backupImage.tag, /^17-/, 'pg_dump debe tener la misma major que el servidor PostgreSQL 17');
   assert.match(backupImage.digest, /^sha256:[a-f0-9]{64}$/, 'backup.image debe fijarse por digest (INFRA-005)');
   assert.ok(
-    read('.github/workflows/security-trivy.yaml').includes(`${backupImage.repository}@${backupImage.digest}`),
-    'El escaneo programado de Trivy (WF-001) debe cubrir backup.image',
+    read('.github/workflows/security-trivy.yaml').includes(
+      `${backupImage.repository}:${backupImage.tag}@${backupImage.digest}`,
+    ),
+    'El escaneo programado de Trivy (WF-001) debe cubrir backup.image con su tag y digest',
   );
 
   const rendered = getRenderedPreprodChart();

@@ -62,17 +62,18 @@
     },
     {
       "customType": "regex",
-      "description": "Paridad de imágenes Docker con digest SHA-256 en Taskfile.yaml, tool-catalog.yaml, scripts de DR y documentación técnica verificada por contratos de CI (alpine/helm, node, nginx, postgres y pgbouncer/pgbouncer)",
+      "description": "Paridad de imágenes Docker con digest SHA-256 en Taskfile.yaml, tool-catalog.yaml, security-trivy.yaml, scripts de DR y documentación técnica verificada por contratos de CI (alpine/helm, node, nginx, postgres, valkey/valkey y pgbouncer/pgbouncer)",
       "managerFilePatterns": [
         "/^Taskfile\\.yaml$/",
         "/^\\.agents/skills/repo-tool-exec/references/tool-catalog\\.yaml$/",
+        "/^\\.github/workflows/security-trivy\\.yaml$/",
         "/^docs/runbooks/HELM_DEPLOYMENT_GUIDE\\.md$/",
         "/^docs/architecture/SECURITY_AND_NETWORK_ISOLATION\\.md$/",
         "/^docs/best-practices/MEJORES_PRACTICAS_DOCKERFILE\\.md$/",
         "/^scripts/dr_verify_restore\\.sh$/"
       ],
       "matchStrings": [
-        "(?<depName>alpine/helm|node|nginx|postgres|pgbouncer/pgbouncer):(?<currentValue>\\d[\\w.-]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
+        "(?<depName>alpine/helm|node|nginx|postgres|valkey/valkey|pgbouncer/pgbouncer):(?<currentValue>\\d[\\w.-]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
       "datasourceTemplate": "docker"
     }

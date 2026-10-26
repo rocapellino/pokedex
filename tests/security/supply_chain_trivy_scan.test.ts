@@ -5,11 +5,12 @@ import path from 'node:path';
 import { ROOT_DIR } from '../helpers/repo.js';
 
 /**
- * Normaliza una referencia de imagen a su forma canónica `repository@sha256:...`.
+ * Normaliza una referencia de imagen a su forma canónica `repository:tag@sha256:...`.
  */
 function canonicalImageRef(repository: string, tag: string, digest?: string): string {
   const found = digest?.match(/(sha256:[a-f0-9]{64})$/)?.[1] ?? tag.match(/@?(sha256:[a-f0-9]{64})$/)?.[1];
-  return found ? `${repository}@${found}` : `${repository}:${tag}`;
+  const cleanTag = tag.replace(/@sha256:[a-f0-9]{64}$/, '');
+  return found ? `${repository}:${cleanTag}@${found}` : `${repository}:${cleanTag}`;
 }
 
 /** Extrae `repository` + `tag` del bloque de una clave en values.yaml. */
@@ -73,8 +74,8 @@ test('🚨 WF-001: las imágenes escaneadas están fijadas por digest inmutable'
   for (const image of scanned) {
     assert.match(
       image,
-      /@sha256:[a-f0-9]{64}$/,
-      `${image} debe fijarse por digest: una etiqueta móvil puede dejar de corresponder con lo desplegado`,
+      /^[^:@]+:[a-z0-9._-]+@sha256:[a-f0-9]{64}$/i,
+      `${image} debe fijarse por tag y digest (repo:tag@sha256:...): Renovate necesita el tag para distinguir variantes y el digest evita etiquetas móviles`,
     );
   }
   assert.doesNotMatch(
