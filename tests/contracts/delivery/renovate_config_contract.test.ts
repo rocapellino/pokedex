@@ -383,6 +383,7 @@ test('🛡️ RENOVATE-006: sin PRs duplicados entre github-actions y custom.reg
   const expectedMatchesByFile: Record<string, string[]> = {
     'Taskfile.yaml': ['alpine/helm'],
     '.agents/skills/repo-tool-exec/references/tool-catalog.yaml': ['alpine/helm'],
+    '.github/workflows/security-trivy.yaml': ['pgbouncer/pgbouncer', 'postgres', 'postgres', 'valkey/valkey'],
     'docs/runbooks/HELM_DEPLOYMENT_GUIDE.md': ['alpine/helm'],
     'docs/architecture/SECURITY_AND_NETWORK_ISOLATION.md': ['nginx', 'pgbouncer/pgbouncer'],
     'docs/best-practices/MEJORES_PRACTICAS_DOCKERFILE.md': ['nginx', 'node', 'node', 'node'],
