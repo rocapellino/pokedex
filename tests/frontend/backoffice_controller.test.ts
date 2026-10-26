@@ -56,6 +56,9 @@ import * as backoffice from '../../apps/frontend/src/backoffice.js';
 import * as backofficeHealth from '../../apps/frontend/src/components/backoffice-health.js';
 import * as backofficeState from '../../apps/frontend/src/components/backoffice-state.js';
 import * as backofficeActions from '../../apps/frontend/src/components/backoffice-actions.js';
+import * as modalAuth from '../../apps/frontend/src/components/modal-auth.js';
+import * as modalCrud from '../../apps/frontend/src/components/modal-crud.js';
+import * as adminTable from '../../apps/frontend/src/components/admin-table.js';
 
 const load = async (): Promise<typeof backoffice> => backoffice;
 
@@ -517,4 +520,56 @@ test('Backoffice Actions: invalidateCache tolera fallos de carga', async () => {
     await settle();
   });
   g.fetch = prevFetch;
+});
+
+test('Backoffice Components: textContent en KPIs, Auth y CRUD cubre ramas con y sin nodos DOM', async () => {
+  const input = document.getElementById('adminApiKeyInput') as HTMLInputElement;
+  const saveBtn = document.getElementById('btnSaveKey') as HTMLButtonElement;
+  input.value = 'clave-admin-valida';
+  const submitEvt = new dom.window.Event('submit');
+  await modalAuth.handleAuthSubmit(submitEvt as unknown as Event);
+  assert.equal(saveBtn.textContent, 'Autenticar Sesión');
+  assert.equal(document.getElementById('authStatusText')?.textContent, 'Admin Activo');
+
+  modalAuth.setAdminSessionActive(false);
+  assert.equal(document.getElementById('authStatusText')?.textContent, 'Autenticar');
+
+  modalCrud.openCreateModal();
+  assert.equal(document.getElementById('crudModalTitle')?.textContent, '➕ Registrar Nuevo Pokémon');
+
+  modalCrud.openEditModal(1, CATALOG);
+  assert.match(document.getElementById('crudModalTitle')?.textContent ?? '', /Bulbasaur/);
+
+  modalCrud.openDeleteModal(1, CATALOG);
+  assert.equal(document.getElementById('deletePokemonName')?.textContent, 'Bulbasaur');
+  assert.equal(document.getElementById('deletePokemonId')?.textContent, '#001');
+
+  // Ejercitar ramas defensivas cuando los nodos opcionales no existen en el DOM
+  const removableIds = [
+    'kpiTotal',
+    'kpiAvgForce',
+    'kpiTypes',
+    'adminPageInfo',
+    'authStatusText',
+    'btnSaveKey',
+    'crudModalTitle',
+    'deletePokemonName',
+    'deletePokemonId',
+  ];
+  const removed = removableIds.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => el !== null);
+  for (const el of removed) el.remove();
+
+  const tbody = document.getElementById('adminTableBody')!;
+  const pagination = document.getElementById('adminPagination');
+  adminTable.renderKPIs(CATALOG, CATALOG.length);
+  adminTable.renderAdminTable(tbody, pagination, CATALOG, CATALOG.length, 1, 1);
+  modalAuth.setAdminSessionActive(true);
+  modalAuth.setAdminSessionActive(false);
+  input.value = 'clave-admin-sin-boton';
+  await modalAuth.handleAuthSubmit(new dom.window.Event('submit') as unknown as Event);
+  modalCrud.openCreateModal();
+  modalCrud.openEditModal(1, CATALOG);
+  modalCrud.openDeleteModal(1, CATALOG);
+
+  for (const el of removed) document.body.appendChild(el);
 });

@@ -127,3 +127,18 @@ test('AUD-DEP-LOCK-001 🔒 Paridad de descriptores: cada workspace de package-l
     }
   }
 });
+
+test('AUD-DEP-BIOME-001 🔒 biome.json referencia el schema local en node_modules para evitar desincronización en bumps de Renovate', () => {
+  const biomeConfig = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'biome.json'), 'utf-8')) as {
+    $schema?: string;
+  };
+  assert.equal(
+    biomeConfig.$schema,
+    './node_modules/@biomejs/biome/configuration_schema.json',
+    'AUD-DEP-BIOME-001: biome.json debe usar ./node_modules/@biomejs/biome/configuration_schema.json para no romper biome check al actualizar @biomejs/biome',
+  );
+  assert.ok(
+    fs.existsSync(path.join(ROOT_DIR, 'node_modules/@biomejs/biome/configuration_schema.json')),
+    'AUD-DEP-BIOME-001: el archivo configuration_schema.json debe existir en node_modules/@biomejs/biome',
+  );
+});

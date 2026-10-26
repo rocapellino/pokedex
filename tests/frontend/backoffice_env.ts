@@ -27,12 +27,14 @@ const HTML = `<!doctype html><html><body>
   <select id="adminPageSize"><option value="2">2</option><option value="25">25</option></select>
   <table><tbody id="adminTableBody"></tbody></table>
   <div id="adminPagination"></div>
-  <span id="kpiTotal"></span><span id="kpiAvgForce"></span><span id="kpiUniqueTypes"></span>
-  <span id="pageInfo"></span><div id="toastContainer"></div>
+  <span id="kpiTotal"></span><span id="kpiAvgForce"></span><span id="kpiTypes"></span><span id="kpiUniqueTypes"></span>
+  <span id="pageInfo"></span><span id="adminPageInfo"></span><div id="toastContainer"></div>
   <button id="btnSubmitForm">Guardar Registro</button>
   <button id="btnConfirmDelete">Sí, Eliminar</button>
   <input id="pokemonName" value=""><input id="pokemonTypes" value=""><input id="pokemonForce" value="">
-  <div id="crudModal"></div><div id="authModal"></div><div id="deleteModal"></div>
+  <div id="crudModal"><h2 id="crudModalTitle"></h2></div>
+  <div id="authModal"><span id="authStatusText"></span><input id="adminApiKeyInput" value=""><button id="btnSaveKey">Autenticar Sesión</button></div>
+  <div id="deleteModal"><span id="deletePokemonName"></span><span id="deletePokemonId"></span></div>
   <table><tbody id="tableBody"></tbody></table>
   <form id="crudForm"></form><form id="authForm"></form>
   <button id="btnAdminAuth"></button><button id="btnSyncCache"></button>

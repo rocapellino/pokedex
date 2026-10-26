@@ -95,7 +95,8 @@ export function evaluatePreToolUse(payload, options = {}) {
 
     // 3. Si el Cwd apunta al worktree no canónico de Antigravity (.gemini/antigravity/worktrees/)
     if (NON_CANONICAL_AGY_WT_REGEX.test(cwd)) {
-      if (MUTATING_GIT_CMD_REGEX.test(cmd)) {
+      const targetsCanonicalWorktree = /\.worktrees[\\/]/i.test(cmd) && !NON_CANONICAL_AGY_WT_REGEX.test(cmd);
+      if (MUTATING_GIT_CMD_REGEX.test(cmd) && !targetsCanonicalWorktree) {
         return {
           decision: 'deny',
           reason:
@@ -103,7 +104,7 @@ export function evaluatePreToolUse(payload, options = {}) {
         };
       }
 
-      // Redirigir automáticamente comandos de lectura/diagnóstico a la raíz principal
+      // Redirigir automáticamente comandos de lectura/diagnóstico o comandos anclados a .worktrees hacia la raíz principal
       if (mainRepoRoot) {
         return {
           decision: 'allow',

@@ -69,11 +69,11 @@ export function updateAuthUI(): void {
   if (input) input.value = '';
 
   if (active) {
-    if (statusText) statusText.innerText = 'Admin Activo';
+    if (statusText) statusText.textContent = 'Admin Activo';
     if (btn) btn.classList.add('btn-auth-active');
     if (clearBtn) clearBtn.classList.remove('hidden');
   } else {
-    if (statusText) statusText.innerText = 'Autenticar';
+    if (statusText) statusText.textContent = 'Autenticar';
     if (btn) btn.classList.remove('btn-auth-active');
     if (clearBtn) clearBtn.classList.add('hidden');
   }
@@ -106,7 +106,7 @@ export async function handleAuthSubmit(e: Event): Promise<void> {
 
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.innerText = 'Verificando...';
+    submitBtn.textContent = 'Verificando...';
   }
 
   try {
@@ -119,7 +119,7 @@ export async function handleAuthSubmit(e: Event): Promise<void> {
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.innerText = 'Autenticar Sesión';
+      submitBtn.textContent = 'Autenticar Sesión';
     }
   }
 }

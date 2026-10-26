@@ -153,7 +153,7 @@ export function renderAdminTable(
       pagination.style.display = 'flex';
       const pageInfo = document.getElementById('adminPageInfo');
       if (pageInfo) {
-        pageInfo.innerText = `Página ${currentPage} de ${totalPages} (${totalRecords} registros)`;
+        pageInfo.textContent = `Página ${currentPage} de ${totalPages} (${totalRecords} registros)`;
       }
       const prevBtn = document.getElementById('adminBtnPrev') as HTMLButtonElement | null;
       const nextBtn = document.getElementById('adminBtnNext') as HTMLButtonElement | null;
@@ -168,11 +168,11 @@ export function renderAdminTable(
 export function renderKPIs(pokemons: Pokemon[], totalRecords: number): void {
   const kpis = computeKPIs(pokemons, totalRecords);
   const totalEl = document.getElementById('kpiTotal');
-  if (totalEl) totalEl.innerText = String(kpis.total);
+  if (totalEl) totalEl.textContent = String(kpis.total);
 
   const avgPowerEl = document.getElementById('kpiAvgPower') || document.getElementById('kpiAvgForce');
-  if (avgPowerEl) avgPowerEl.innerText = `${kpis.avgForce} pts`;
+  if (avgPowerEl) avgPowerEl.textContent = `${kpis.avgForce} pts`;
 
   const typesEl = document.getElementById('kpiTypes') || document.getElementById('kpiTypesCount');
-  if (typesEl) typesEl.innerText = String(kpis.uniqueTypesCount);
+  if (typesEl) typesEl.textContent = String(kpis.uniqueTypesCount);
 }
