@@ -3,36 +3,61 @@
  * Controlador de Vista Principal Modularizado (< 300 LOC)
  */
 
-import type { Pokemon } from './types.js';
 import {
-  FALLBACK_IMAGE,
-  TYPE_COLORS,
-  normalizeStr,
-  getTypeColor,
-  getGeneration,
-  formatPokemonId,
-  showToast,
-  renderEmptyState,
-  fetchAllPokemons,
-  errorMessage,
-  focusFirstEnabledControl,
-  pageAnnouncement,
-  revealResults,
-  html,
-  setHtml,
-  type SafeHtml,
-} from './shared/index.js';
+  CLASSIFICATION_CHIP_LABELS,
+  countAdvancedFilters,
+  currentFilterState,
+  getAbility,
+  getAbilityIndex,
+  getAllPokemons,
+  getClassification,
+  getCurrentGeneration,
+  getCurrentPage,
+  getCurrentSort,
+  getCurrentSortDir,
+  getFilteredPokemons,
+  getMinStat,
+  getOnlyWithMega,
+  getSearchQuery,
+  getSelectedTypes,
+  hasActiveFiltersState,
+  hasCustomSortState,
+  ITEMS_PER_PAGE,
+  resetFilterState,
+  SEARCH_DEBOUNCE_MS,
+  setAbility,
+  setAbilityIndex,
+  setAllPokemons,
+  setClassification,
+  setCurrentGeneration,
+  setCurrentPage,
+  setCurrentSort,
+  setCurrentSortDir,
+  setFilteredPokemons,
+  setMinStat,
+  setOnlyWithMega,
+  setSearchQuery,
+  setSelectedTypes,
+} from './components/catalog-state.js';
+import {
+  initFiltersControls,
+  renderFiltersCount,
+  setFiltersPanelOpen,
+  syncTypeDropdown,
+} from './components/filters-panel.js';
+import {
+  closeDetailModal,
+  openDetailModal as openDetailModalComponent,
+  renderPokemonCard,
+  selectMegaTab,
+  toggleMegaDisclosure,
+} from './components/index.js';
 import {
   collectAbilities,
   isClassificationFilter,
   matchesCatalogFilters,
   type CatalogFilters,
-  type ClassificationFilter,
 } from './shared/catalog-filters.js';
-import { commitFiltersToUrl, urlMatchesFilters, type HistoryMode } from './shared/filter-history.js';
-import { autoHideStickyHeader } from './shared/sticky-autohide.js';
-import { trackStickyHeight } from './shared/sticky-header.js';
-import { parseFilterParams, type FilterState } from './shared/filter-url.js';
 import {
   defaultSortDirection,
   isSortKey,
@@ -40,66 +65,50 @@ import {
   MAX_STAT_MIN,
   sortPokemons,
   STAT_LABELS,
-  type MinStat,
-  type SortDirection,
-  type SortKey,
 } from './shared/catalog-sort.js';
+import { commitFiltersToUrl, urlMatchesFilters, type HistoryMode } from './shared/filter-history.js';
+import { parseFilterParams } from './shared/filter-url.js';
 import {
-  openDetailModal as openDetailModalComponent,
-  closeDetailModal,
-  renderPokemonCard,
-  selectMegaTab,
-  toggleMegaDisclosure,
-} from './components/index.js';
-import {
-  initFiltersControls,
-  renderFiltersCount,
-  setFiltersPanelOpen,
-  syncTypeDropdown,
-} from './components/filters-panel.js';
+  errorMessage,
+  FALLBACK_IMAGE,
+  fetchAllPokemons,
+  focusFirstEnabledControl,
+  formatPokemonId,
+  getGeneration,
+  getTypeColor,
+  html,
+  normalizeStr,
+  pageAnnouncement,
+  renderEmptyState,
+  revealResults,
+  type SafeHtml,
+  setHtml,
+  showToast,
+  TYPE_COLORS,
+} from './shared/index.js';
+import { autoHideStickyHeader } from './shared/sticky-autohide.js';
+import { trackStickyHeight } from './shared/sticky-header.js';
 
 export { showToast, getTypeColor, getGeneration, normalizeStr, TYPE_COLORS, formatPokemonId, closeDetailModal };
 
-let allPokemons: Pokemon[] = [];
-let filteredPokemons: Pokemon[] = [];
-let currentPage = 1;
-const ITEMS_PER_PAGE = 48;
-let selectedTypes: string[] = [];
-let currentGeneration = 'all';
-let onlyWithMega = false;
-let searchQuery = '';
-let minStat: MinStat | null = null;
-let classification: ClassificationFilter | null = null;
-let ability: string | null = null;
-/** Habilidad normalizada (sin tildes ni mayúsculas) a su nombre real; alimenta el autocompletado. */
-let abilityIndex = new Map<string, string>();
-let currentSort: SortKey = 'id';
-let currentSortDir: SortDirection = 'asc';
-
-const CLASSIFICATION_CHIP_LABELS: Record<ClassificationFilter, string> = {
-  legendario: 'Legendarios',
-  mitico: 'Míticos',
-  especial: 'Legendarios y míticos',
-};
-
-const SEARCH_DEBOUNCE_MS = 150;
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
 let statTimer: ReturnType<typeof setTimeout> | undefined;
 
 export function openDetailModal(id: number): void {
-  openDetailModalComponent(id, allPokemons);
+  openDetailModalComponent(id, getAllPokemons());
 }
 
 export async function loadPokemons(): Promise<void> {
   const container = document.getElementById('pokemonGrid');
   if (!container) return;
   try {
-    allPokemons = await fetchAllPokemons();
-    allPokemons.sort((a, b) => a.id - b.id);
+    const pokemons = await fetchAllPokemons();
+    pokemons.sort((a, b) => a.id - b.id);
+    setAllPokemons(pokemons);
 
     renderAbilityOptions();
     applyFilters('replace', restoreFiltersFromUrl());
-    showToast(`✅ Catálogo cargado: ${allPokemons.length} Pokémon listos.`);
+    showToast(`✅ Catálogo cargado: ${pokemons.length} Pokémon listos.`);
   } catch (err) {
     console.error('Error al cargar datos:', err);
     showToast(`Error al cargar datos: ${errorMessage(err)}`, true);
@@ -117,82 +126,54 @@ export async function loadPokemons(): Promise<void> {
 }
 
 /**
- * `history` decide si el cambio crea una entrada («atrás» lo deshace) o reescribe la actual. Un cambio de
- * filtros vuelve a la primera página; solo la restauración desde la URL indica otra (`page`), que se
- * ajusta al total de páginas que dejan los filtros.
+ * `history` decide si el cambio crea una entrada («atrás» lo deshace) o reescribe la actual.
  */
 export function applyFilters(history: HistoryMode = 'push', page = 1): void {
+  const all = getAllPokemons();
   const filters: CatalogFilters = currentFilterState();
-  filteredPokemons = sortPokemons(
-    allPokemons.filter((p) => matchesCatalogFilters(p, filters)),
-    currentSort,
-    currentSortDir,
+  const sorted = sortPokemons(
+    all.filter((p) => matchesCatalogFilters(p, filters)),
+    getCurrentSort(),
+    getCurrentSortDir(),
   );
+  setFilteredPokemons(sorted);
 
-  currentPage = Math.min(page, Math.max(1, Math.ceil(filteredPokemons.length / ITEMS_PER_PAGE)));
+  const newCurrentPage = Math.min(page, Math.max(1, Math.ceil(sorted.length / ITEMS_PER_PAGE)));
+  setCurrentPage(newCurrentPage);
   renderPokemons();
   renderActiveFilters();
   renderSortDirection();
   commitFiltersToUrl(currentFilterState(), history);
 }
 
-function currentFilterState(): FilterState {
-  return {
-    searchQuery,
-    types: selectedTypes,
-    generation: currentGeneration,
-    onlyWithMega,
-    minStat,
-    clasificacion: classification,
-    habilidad: ability,
-    sort: currentSort,
-    dir: currentSortDir,
-    page: currentPage,
-  };
-}
-
 /**
  * Aplica al estado y a los controles los filtros que vienen en la URL (enlace compartido o recarga).
- * Devuelve la página pedida, que `applyFilters` ajusta cuando ya hay catálogo filtrado.
  */
 export function restoreFiltersFromUrl(): number {
   const state = parseFilterParams(window.location.search);
-  searchQuery = state.searchQuery;
-  selectedTypes = state.types;
-  currentGeneration = state.generation;
-  onlyWithMega = state.onlyWithMega;
-  minStat = state.minStat;
-  classification = state.clasificacion;
-  ability = state.habilidad ? (abilityIndex.get(state.habilidad) ?? null) : null;
-  currentSort = state.sort;
-  currentSortDir = state.dir;
+  setSearchQuery(state.searchQuery);
+  setSelectedTypes(state.types);
+  setCurrentGeneration(state.generation);
+  setOnlyWithMega(state.onlyWithMega);
+  setMinStat(state.minStat);
+  setClassification(state.clasificacion);
+  setAbility(state.habilidad ? (getAbilityIndex().get(state.habilidad) ?? null) : null);
+  setCurrentSort(state.sort);
+  setCurrentSortDir(state.dir);
 
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
-  if (input) input.value = searchQuery;
+  if (input) input.value = state.searchQuery;
   const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
-  if (select) select.value = currentGeneration;
+  if (select) select.value = state.generation;
   const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
-  if (checkbox) checkbox.checked = onlyWithMega;
+  if (checkbox) checkbox.checked = state.onlyWithMega;
   syncStatControls();
   syncClassControl();
   syncAbilityControl();
   syncSortControl();
   syncTypeControl();
-  // Un filtro del panel activo no puede quedar oculto tras un panel cerrado (enlace compartido o recarga).
   if (countAdvancedFilters() > 0) setFiltersPanelOpen(true);
   return state.page;
-}
-
-/** Filtros que viven dentro del panel "Filtros" (buscador y orden están siempre visibles). Los tipos cuentan como uno. */
-function countAdvancedFilters(): number {
-  return (
-    (currentGeneration !== 'all' ? 1 : 0) +
-    (onlyWithMega ? 1 : 0) +
-    (selectedTypes.length > 0 ? 1 : 0) +
-    (classification ? 1 : 0) +
-    (minStat ? 1 : 0) +
-    (ability ? 1 : 0)
-  );
 }
 
 function renderAdvancedFiltersCount(): void {
@@ -201,8 +182,8 @@ function renderAdvancedFiltersCount(): void {
 
 /** Rellena el autocompletado con las habilidades del catálogo y reconstruye el índice de nombres. */
 function renderAbilityOptions(): void {
-  const names = collectAbilities(allPokemons);
-  abilityIndex = new Map(names.map((name) => [normalizeStr(name), name]));
+  const names = collectAbilities(getAllPokemons());
+  setAbilityIndex(new Map(names.map((name) => [normalizeStr(name), name])));
   const list = document.getElementById('abilityOptions');
   if (!list) return;
   list.replaceChildren(
@@ -217,21 +198,16 @@ function renderAbilityOptions(): void {
 function syncAbilityControl(): void {
   const input = document.getElementById('abilityFilter') as HTMLInputElement | null;
   if (!input) return;
-  input.value = ability ?? '';
+  input.value = getAbility() ?? '';
   input.removeAttribute('aria-invalid');
 }
 
-/**
- * El filtro solo se aplica cuando lo escrito coincide con una habilidad del catálogo (se elige de la
- * lista o se escribe completa, sin importar tildes ni mayúsculas); mientras tanto no filtra y el campo
- * se marca como no válido. La búsqueda de texto ya cubre las coincidencias parciales.
- */
 export function handleAbilityChange(): void {
   const input = document.getElementById('abilityFilter') as HTMLInputElement | null;
   const typed = input?.value.trim() ?? '';
-  const match = abilityIndex.get(normalizeStr(typed)) ?? null;
-  const changed = match !== ability;
-  ability = match;
+  const match = getAbilityIndex().get(normalizeStr(typed)) ?? null;
+  const changed = match !== getAbility();
+  setAbility(match);
   if (input) {
     if (match && input.value !== match) input.value = match;
     if (typed && !match) input.setAttribute('aria-invalid', 'true');
@@ -242,59 +218,55 @@ export function handleAbilityChange(): void {
 
 function syncClassControl(): void {
   const select = document.getElementById('classFilter') as HTMLSelectElement | null;
-  if (select) select.value = classification ?? '';
+  if (select) select.value = getClassification() ?? '';
 }
 
 export function handleClassFilterChange(): void {
   const select = document.getElementById('classFilter') as HTMLSelectElement | null;
-  classification = isClassificationFilter(select?.value) ? select.value : null;
+  setClassification(isClassificationFilter(select?.value) ? select.value : null);
   applyFilters();
 }
 
 function syncStatControls(): void {
+  const stat = getMinStat();
   const key = document.getElementById('statFilter') as HTMLSelectElement | null;
-  if (key) key.value = minStat?.key ?? '';
+  if (key) key.value = stat?.key ?? '';
   const min = document.getElementById('statMin') as HTMLInputElement | null;
-  if (min) min.value = minStat ? String(minStat.min) : '';
+  if (min) min.value = stat ? String(stat.min) : '';
 }
 
-/** Al cambiar de criterio se vuelve a su sentido natural; invertirlo es una decisión posterior. */
 export function handleSortChange(): void {
   const select = document.getElementById('sortFilter') as HTMLSelectElement | null;
-  currentSort = isSortKey(select?.value) ? select.value : 'id';
-  currentSortDir = defaultSortDirection(currentSort);
+  const newSort = isSortKey(select?.value) ? select.value : 'id';
+  setCurrentSort(newSort);
+  setCurrentSortDir(defaultSortDirection(newSort));
   applyFilters();
 }
 
 export function handleSortDirectionToggle(): void {
-  currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+  setCurrentSortDir(getCurrentSortDir() === 'asc' ? 'desc' : 'asc');
   applyFilters();
 }
 
 function syncSortControl(): void {
   const select = document.getElementById('sortFilter') as HTMLSelectElement | null;
-  if (select) select.value = currentSort;
-}
-
-/** El orden natural es por número y ascendente; cualquier otro (criterio o sentido) se ofrece como chip. */
-function hasCustomSort(): boolean {
-  return currentSort !== 'id' || currentSortDir !== defaultSortDirection('id');
+  if (select) select.value = getCurrentSort();
 }
 
 function renderSortDirection(): void {
   const button = document.getElementById('sortDirection');
   if (!button) return;
-  const text = currentSortDir === 'asc' ? 'Ascendente' : 'Descendente';
-  button.textContent = `${currentSortDir === 'asc' ? '↑' : '↓'} ${text}`;
+  const dir = getCurrentSortDir();
+  const text = dir === 'asc' ? 'Ascendente' : 'Descendente';
+  button.textContent = `${dir === 'asc' ? '↑' : '↓'} ${text}`;
   button.setAttribute('aria-label', `Sentido del orden: ${text.toLowerCase()}. Pulsar para invertirlo`);
 }
 
-/** Lee la estadística y el mínimo de los controles; sin ambos (o con mínimo 0) el filtro queda desactivado. */
 export function handleStatFilterChange(history: HistoryMode = 'push'): void {
   clearTimeout(statTimer);
   const key = (document.getElementById('statFilter') as HTMLSelectElement | null)?.value;
   const min = Number.parseInt((document.getElementById('statMin') as HTMLInputElement | null)?.value ?? '', 10);
-  minStat = isStatKey(key) && min >= 1 ? { key, min: Math.min(min, MAX_STAT_MIN) } : null;
+  setMinStat(isStatKey(key) && min >= 1 ? { key, min: Math.min(min, MAX_STAT_MIN) } : null);
   applyFilters(history);
 }
 
@@ -306,7 +278,7 @@ function handleStatMinDebounced(): void {
 export function handleSearch(history: HistoryMode = 'push'): void {
   clearTimeout(searchTimer);
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
-  searchQuery = input ? input.value : '';
+  setSearchQuery(input ? input.value : '');
   applyFilters(history);
 }
 
@@ -316,44 +288,31 @@ function handleSearchDebounced(): void {
 }
 
 function syncTypeControl(): void {
-  syncTypeDropdown(selectedTypes);
+  syncTypeDropdown(getSelectedTypes());
 }
 
-/** Alterna un tipo en la selección; `all` limpia la selección de tipos. */
 export function toggleTypeFilter(type: string): void {
+  let selected = getSelectedTypes();
   if (type === 'all') {
-    selectedTypes = [];
+    selected = [];
   } else {
     const target = normalizeStr(type);
-    const exists = selectedTypes.some((t) => normalizeStr(t) === target);
-    selectedTypes = exists ? selectedTypes.filter((t) => normalizeStr(t) !== target) : [...selectedTypes, type];
+    const exists = selected.some((t) => normalizeStr(t) === target);
+    selected = exists ? selected.filter((t) => normalizeStr(t) !== target) : [...selected, type];
   }
+  setSelectedTypes(selected);
   syncTypeControl();
   applyFilters();
 }
 
 export function hasActiveFilters(): boolean {
-  return (
-    Boolean(searchQuery.trim()) ||
-    selectedTypes.length > 0 ||
-    currentGeneration !== 'all' ||
-    onlyWithMega ||
-    minStat !== null ||
-    classification !== null ||
-    ability !== null
-  );
+  return hasActiveFiltersState();
 }
 
 export function clearAllFilters(): void {
   clearTimeout(searchTimer);
   clearTimeout(statTimer);
-  searchQuery = '';
-  selectedTypes = [];
-  currentGeneration = 'all';
-  onlyWithMega = false;
-  minStat = null;
-  classification = null;
-  ability = null;
+  resetFilterState();
 
   const input = document.getElementById('searchInput') as HTMLInputElement | null;
   if (input) input.value = '';
@@ -376,7 +335,7 @@ interface FilterChip {
 
 function collectActiveChips(): FilterChip[] {
   const chips: FilterChip[] = [];
-  const query = searchQuery.trim();
+  const query = getSearchQuery().trim();
   if (query) {
     chips.push({
       label: `Búsqueda: “${query}”`,
@@ -387,10 +346,11 @@ function collectActiveChips(): FilterChip[] {
       },
     });
   }
-  for (const type of selectedTypes) chips.push({ label: type, remove: () => toggleTypeFilter(type) });
-  if (currentGeneration !== 'all') {
+  for (const type of getSelectedTypes()) chips.push({ label: type, remove: () => toggleTypeFilter(type) });
+  const currentGen = getCurrentGeneration();
+  if (currentGen !== 'all') {
     const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
-    const label = select?.selectedOptions[0]?.textContent?.trim() || `Gen ${currentGeneration}`;
+    const label = select?.selectedOptions[0]?.textContent?.trim() || `Gen ${currentGen}`;
     chips.push({
       label,
       remove: () => {
@@ -399,7 +359,7 @@ function collectActiveChips(): FilterChip[] {
       },
     });
   }
-  if (onlyWithMega) {
+  if (getOnlyWithMega()) {
     chips.push({
       label: 'Con megaevolución',
       remove: () => {
@@ -409,44 +369,47 @@ function collectActiveChips(): FilterChip[] {
       },
     });
   }
-  if (ability) {
+  const currentAbility = getAbility();
+  if (currentAbility) {
     chips.push({
-      label: `Habilidad: ${ability}`,
+      label: `Habilidad: ${currentAbility}`,
       remove: () => {
-        ability = null;
+        setAbility(null);
         syncAbilityControl();
         applyFilters();
       },
     });
   }
-  if (classification) {
+  const currentClassification = getClassification();
+  if (currentClassification) {
     chips.push({
-      label: CLASSIFICATION_CHIP_LABELS[classification],
+      label: CLASSIFICATION_CHIP_LABELS[currentClassification],
       remove: () => {
-        classification = null;
+        setClassification(null);
         syncClassControl();
         applyFilters();
       },
     });
   }
-  if (minStat) {
+  const stat = getMinStat();
+  if (stat) {
     chips.push({
-      label: `${STAT_LABELS[minStat.key]} ≥ ${minStat.min}`,
+      label: `${STAT_LABELS[stat.key]} ≥ ${stat.min}`,
       remove: () => {
-        minStat = null;
+        setMinStat(null);
         syncStatControls();
         applyFilters();
       },
     });
   }
-  if (hasCustomSort()) {
+  if (hasCustomSortState()) {
     const select = document.getElementById('sortFilter') as HTMLSelectElement | null;
-    const criterion = select?.selectedOptions[0]?.textContent?.trim() || currentSort;
+    const criterion = select?.selectedOptions[0]?.textContent?.trim() || getCurrentSort();
     chips.push({
-      label: `Orden: ${criterion} ${currentSortDir === 'asc' ? '↑' : '↓'}`,
+      label: `Orden: ${criterion} ${getCurrentSortDir() === 'asc' ? '↑' : '↓'}`,
       remove: () => {
-        currentSort = 'id';
-        currentSortDir = defaultSortDirection('id');
+        setCurrentSort('id');
+        setCurrentSortDir(defaultSortDirection('id'));
         syncSortControl();
         applyFilters();
       },
@@ -455,15 +418,16 @@ function collectActiveChips(): FilterChip[] {
   return chips;
 }
 
-/** Actualiza el contador de resultados, los chips de filtros activos y el botón de limpiar. */
 export function renderActiveFilters(): void {
   const summary = document.getElementById('resultsSummary');
   const chipList = document.getElementById('activeFilterChips');
   const clearBtn = document.getElementById('btnClearFilters');
+  const filtered = getFilteredPokemons();
+  const all = getAllPokemons();
 
   if (summary) {
-    const n = filteredPokemons.length;
-    summary.textContent = `${n} ${n === 1 ? 'resultado' : 'resultados'} de ${allPokemons.length} Pokémon`;
+    const n = filtered.length;
+    summary.textContent = `${n} ${n === 1 ? 'resultado' : 'resultados'} de ${all.length} Pokémon`;
   }
   if (clearBtn) clearBtn.hidden = !hasActiveFilters();
   renderAdvancedFiltersCount();
@@ -489,17 +453,16 @@ export function renderActiveFilters(): void {
 
 export function handleMegaFilterChange(): void {
   const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
-  onlyWithMega = Boolean(checkbox?.checked);
+  setOnlyWithMega(Boolean(checkbox?.checked));
   applyFilters();
 }
 
 export function handleGenerationChange(): void {
   const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
-  currentGeneration = select ? select.value : 'all';
+  setCurrentGeneration(select ? select.value : 'all');
   applyFilters();
 }
 
-/** Estado del catálogo cuando ningún Pokémon cumple los filtros activos. */
 export function renderNoResults(): SafeHtml {
   return html`
       <div class="empty-state">
@@ -517,17 +480,20 @@ export function renderPokemons(): void {
   const skipLink = document.getElementById('skipToPagination');
   if (!container || !paginationBar) return;
 
-  if (filteredPokemons.length === 0) {
+  const filtered = getFilteredPokemons();
+  const page = getCurrentPage();
+
+  if (filtered.length === 0) {
     setHtml(container, renderNoResults());
     paginationBar.classList.add('hidden');
     if (skipLink) skipLink.hidden = true;
     return;
   }
 
-  const totalPages = Math.ceil(filteredPokemons.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredPokemons.length);
-  const currentBatch = filteredPokemons.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filtered.length);
+  const currentBatch = filtered.slice(startIndex, endIndex);
 
   setHtml(container, html`${currentBatch.map(renderPokemonCard)}`);
 
@@ -536,30 +502,32 @@ export function renderPokemons(): void {
     paginationBar.classList.remove('hidden');
     const pageInfo = document.getElementById('pageInfo');
     if (pageInfo) {
-      pageInfo.textContent = `Página ${currentPage} de ${totalPages} (${filteredPokemons.length} Pokémon)`;
+      pageInfo.textContent = `Página ${page} de ${totalPages} (${filtered.length} Pokémon)`;
     }
     const btnPrev = document.getElementById('btnPrevPage') as HTMLButtonElement | null;
     const btnNext = document.getElementById('btnNextPage') as HTMLButtonElement | null;
-    if (btnPrev) btnPrev.disabled = currentPage === 1;
-    if (btnNext) btnNext.disabled = currentPage === totalPages;
+    if (btnPrev) btnPrev.disabled = page === 1;
+    if (btnNext) btnNext.disabled = page === totalPages;
   } else {
     paginationBar.classList.add('hidden');
   }
 }
 
 export function changePage(delta: number): void {
-  const totalPages = Math.ceil(filteredPokemons.length / ITEMS_PER_PAGE);
-  const newPage = currentPage + delta;
+  const filtered = getFilteredPokemons();
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const current = getCurrentPage();
+  const newPage = current + delta;
   if (newPage >= 1 && newPage <= totalPages) {
-    currentPage = newPage;
+    setCurrentPage(newPage);
     renderPokemons();
     commitFiltersToUrl(currentFilterState(), 'push');
     const grid = document.getElementById('pokemonGrid');
     if (grid) revealResults(grid);
     const announcer = document.getElementById('pageAnnouncer');
     if (announcer) {
-      const shown = Math.min(ITEMS_PER_PAGE, filteredPokemons.length - (currentPage - 1) * ITEMS_PER_PAGE);
-      announcer.textContent = pageAnnouncement(currentPage, totalPages, shown);
+      const shown = Math.min(ITEMS_PER_PAGE, filtered.length - (newPage - 1) * ITEMS_PER_PAGE);
+      announcer.textContent = pageAnnouncement(newPage, totalPages, shown);
     }
   }
 }
@@ -579,19 +547,14 @@ window.addEventListener(
   true,
 );
 
-/**
- * «Atrás» y «adelante» restauran los filtros de la entrada de historial. Se ignora si la URL ya los
- * describe (un cambio de ancla) y se cancelan las escrituras pendientes para que no las reapliquen.
- */
 function handleHistoryNavigation(): void {
-  if (allPokemons.length === 0 || urlMatchesFilters(currentFilterState())) return;
+  if (getAllPokemons().length === 0 || urlMatchesFilters(currentFilterState())) return;
   clearTimeout(searchTimer);
   clearTimeout(statTimer);
   applyFilters('replace', restoreFiltersFromUrl());
 }
 
 export function initInteractiveListeners(): void {
-  // La misma referencia: registrar los listeners más de una vez no duplica el manejador.
   window.addEventListener('popstate', handleHistoryNavigation);
   trackStickyHeight();
   autoHideStickyHeader();
@@ -681,7 +644,6 @@ export function initInteractiveListeners(): void {
     });
   }
 
-  // El salto mueve el foco con JavaScript y no navega al ancla: `replaceState` conserva el hash.
   document.getElementById('skipToPagination')?.addEventListener('click', (e) => {
     e.preventDefault();
     focusFirstEnabledControl(document.getElementById('paginationBar'));
