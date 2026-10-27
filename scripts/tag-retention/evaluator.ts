@@ -17,42 +17,16 @@ import {
   type TagEvaluation,
 } from './types.ts';
 
-/**
- * Evalúa el inventario de tags contra la política de retención jerárquica (Opción B).
- *
- * Jerarquía:
- * 1. Clasificación: descarta y preserva tags inválidos, prereleases o con ambigüedad en 'excluded'.
- * 2. Major: Selecciona las últimas M majors estables.
- * 3. Minor: Dentro de cada major seleccionada, selecciona las últimas N minors estables.
- * 4. Patch: Dentro de cada minor seleccionada, conserva el último P patch estable.
- * 5. Protegidos: Cualquier tag fuera de la jerarquía que esté en protectedTagsMap se conserva en 'protected'.
- * 6. Purga: Los tags restantes se marcan para purga en 'pruned'.
- */
-export function evaluateHierarchicalTagRetention(
-  tags: GitTagRef[],
-  config: HierarchicalRetentionConfig = DEFAULT_CONFIG,
-  protectedTagsMap: Map<string, string> = new Map(),
-): {
-  summary: HierarchicalRetentionSummary;
-  kept: TagEvaluation[];
-  pruned: TagEvaluation[];
-  excluded: TagEvaluation[];
-  protected: TagEvaluation[];
-} {
-  if (!Array.isArray(tags) || tags.length === 0) {
-    return {
-      summary: { selectedMajors: [], selectedMinorsByMajor: {}, retainedPatchesByMinor: {} },
-      kept: [],
-      pruned: [],
-      excluded: [],
-      protected: [],
-    };
-  }
+type StableTagEvaluation = TagEvaluation & { semver: ParsedSemver };
+type HierarchyMap = Map<number, Map<number, StableTagEvaluation[]>>;
 
-  const eligibleStable: Array<TagEvaluation & { semver: ParsedSemver }> = [];
+function classifyTags(
+  tags: GitTagRef[],
+  protectedTagsMap: Map<string, string>,
+): { eligibleStable: StableTagEvaluation[]; excluded: TagEvaluation[] } {
+  const eligibleStable: StableTagEvaluation[] = [];
   const excluded: TagEvaluation[] = [];
 
-  // 1. Clasificación inicial y filtro de seguridad
   for (const tag of tags) {
     const semver = parseSemverTag(tag.name);
     const isProtected = protectedTagsMap.has(tag.name);
@@ -98,7 +72,10 @@ export function evaluateHierarchicalTagRetention(
     });
   }
 
-  // 2. Detección de ambigüedad o versiones duplicadas con distinto SHA
+  return { eligibleStable, excluded };
+}
+
+function checkAmbiguousVersions(eligibleStable: StableTagEvaluation[]): void {
   const versionToTagMap = new Map<string, GitTagRef>();
   for (const item of eligibleStable) {
     const key = `${item.semver.major}.${item.semver.minor}.${item.semver.patch}`;
@@ -112,9 +89,10 @@ export function evaluateHierarchicalTagRetention(
       versionToTagMap.set(key, item.tag);
     }
   }
+}
 
-  // 3. Estructura jerárquica anidada: Major -> Minor -> Patches[]
-  const hierarchy = new Map<number, Map<number, Array<TagEvaluation & { semver: ParsedSemver }>>>();
+function buildHierarchyMap(eligibleStable: StableTagEvaluation[]): HierarchyMap {
+  const hierarchy: HierarchyMap = new Map();
 
   for (const item of eligibleStable) {
     const { major, minor } = item.semver;
@@ -131,17 +109,60 @@ export function evaluateHierarchicalTagRetention(
     patchList.push(item);
   }
 
-  // 4. Selección Nivel 1: Major
+  return hierarchy;
+}
+
+function selectPatchesForMinor(
+  patchItems: StableTagEvaluation[],
+  major: number,
+  minor: number,
+  keepPatchCount: number,
+  retainedTagNames: Set<string>,
+  retainedPatchesByMinor: Record<string, string>,
+  kept: TagEvaluation[],
+): void {
+  patchItems.sort((a, b) => {
+    if (b.semver.patch !== a.semver.patch) {
+      return b.semver.patch - a.semver.patch;
+    }
+    if (a.tag.date && b.tag.date) {
+      return new Date(b.tag.date).getTime() - new Date(a.tag.date).getTime();
+    }
+    return 0;
+  });
+
+  const selectedPatches = patchItems.slice(0, Math.max(0, keepPatchCount));
+  const minorKey = `${major}.${minor}`;
+
+  for (const item of selectedPatches) {
+    retainedTagNames.add(item.tag.name);
+    item.retentionDecision = {
+      level: 'patch',
+      reason: `Retenido por jerarquía SemVer: último patch de la línea v${major}.${minor}.x (Major ${major}, Minor ${minor}, Patch ${item.semver.patch})`,
+    };
+    kept.push(item);
+    retainedPatchesByMinor[minorKey] = item.tag.name;
+  }
+}
+
+function selectKeptHierarchicalTags(
+  hierarchy: HierarchyMap,
+  config: HierarchicalRetentionConfig,
+): {
+  kept: TagEvaluation[];
+  retainedTagNames: Set<string>;
+  selectedMajors: number[];
+  selectedMinorsByMajor: Record<number, number[]>;
+  retainedPatchesByMinor: Record<string, string>;
+} {
   const allMajors = Array.from(hierarchy.keys()).sort((a, b) => b - a);
   const selectedMajors = allMajors.slice(0, Math.max(0, config.keepMajorCount));
 
   const selectedMinorsByMajor: Record<number, number[]> = {};
   const retainedPatchesByMinor: Record<string, string> = {};
-
   const retainedTagNames = new Set<string>();
   const kept: TagEvaluation[] = [];
 
-  // 5. Selección Nivel 2 y 3: Minor y Patch dentro de cada Major seleccionada
   for (const major of selectedMajors) {
     const minorMap = hierarchy.get(major);
     if (!minorMap) continue;
@@ -154,39 +175,60 @@ export function evaluateHierarchicalTagRetention(
       const patchItems = minorMap.get(minor);
       if (!patchItems) continue;
 
-      // Ordenar patches de mayor a menor patch numérico
-      patchItems.sort((a, b) => {
-        if (b.semver.patch !== a.semver.patch) {
-          return b.semver.patch - a.semver.patch;
-        }
-        if (a.tag.date && b.tag.date) {
-          return new Date(b.tag.date).getTime() - new Date(a.tag.date).getTime();
-        }
-        return 0;
-      });
-
-      // Conservar los últimos P patches (por defecto 1)
-      const selectedPatches = patchItems.slice(0, Math.max(0, config.keepPatchCount));
-
-      for (const item of selectedPatches) {
-        retainedTagNames.add(item.tag.name);
-        item.retentionDecision = {
-          level: 'patch',
-          reason: `Retenido por jerarquía SemVer: último patch de la línea v${major}.${minor}.x (Major ${major}, Minor ${minor}, Patch ${item.semver.patch})`,
-        };
-        kept.push(item);
-        retainedPatchesByMinor[`${major}.${minor}`] = item.tag.name;
-      }
+      selectPatchesForMinor(
+        patchItems,
+        major,
+        minor,
+        config.keepPatchCount,
+        retainedTagNames,
+        retainedPatchesByMinor,
+        kept,
+      );
     }
   }
 
-  // Ordenar 'kept' por SemVer descendente
   kept.sort((a, b) => {
     if (!a.semver || !b.semver) return 0;
     return compareSemver(b.semver, a.semver);
   });
 
-  // 6. Clasificar los tags estables restantes entre 'protected' y 'pruned'
+  return {
+    kept,
+    retainedTagNames,
+    selectedMajors,
+    selectedMinorsByMajor,
+    retainedPatchesByMinor,
+  };
+}
+
+function resolvePruneReason(
+  major: number,
+  minor: number,
+  patch: number,
+  selectedMajors: number[],
+  selectedMinorsByMajor: Record<number, number[]>,
+  retainedPatchesByMinor: Record<string, string>,
+  config: HierarchicalRetentionConfig,
+): string {
+  if (!selectedMajors.includes(major)) {
+    return `Línea Major v${major}.x fuera del límite de las últimas ${config.keepMajorCount} majors retenidas (${selectedMajors.join(', ')})`;
+  }
+  if (!selectedMinorsByMajor[major]?.includes(minor)) {
+    return `Línea Minor v${major}.${minor}.x fuera del límite de las últimas ${config.keepMinorCount} minors retenidas para Major ${major}`;
+  }
+  const minorKey = `${major}.${minor}`;
+  const retainedPatch = retainedPatchesByMinor[minorKey];
+  return `Patch histórico v${major}.${minor}.${patch} superado por el patch más reciente retenido (${retainedPatch})`;
+}
+
+function partitionRemainingTags(
+  eligibleStable: StableTagEvaluation[],
+  retainedTagNames: Set<string>,
+  selectedMajors: number[],
+  selectedMinorsByMajor: Record<number, number[]>,
+  retainedPatchesByMinor: Record<string, string>,
+  config: HierarchicalRetentionConfig,
+): { protectedList: TagEvaluation[]; pruned: TagEvaluation[] } {
   const protectedList: TagEvaluation[] = [];
   const pruned: TagEvaluation[] = [];
 
@@ -196,15 +238,15 @@ export function evaluateHierarchicalTagRetention(
     }
 
     const { major, minor, patch } = item.semver;
-    let pruneReason = '';
-
-    if (!selectedMajors.includes(major)) {
-      pruneReason = `Línea Major v${major}.x fuera del límite de las últimas ${config.keepMajorCount} majors retenidas (${selectedMajors.join(', ')})`;
-    } else if (!selectedMinorsByMajor[major]?.includes(minor)) {
-      pruneReason = `Línea Minor v${major}.${minor}.x fuera del límite de las últimas ${config.keepMinorCount} minors retenidas para Major ${major}`;
-    } else {
-      pruneReason = `Patch histórico v${major}.${minor}.${patch} superado por el patch más reciente retenido (${retainedPatchesByMinor[`${major}.${minor}`]})`;
-    }
+    const pruneReason = resolvePruneReason(
+      major,
+      minor,
+      patch,
+      selectedMajors,
+      selectedMinorsByMajor,
+      retainedPatchesByMinor,
+      config,
+    );
 
     if (item.isProtected) {
       item.retentionDecision = {
@@ -229,6 +271,57 @@ export function evaluateHierarchicalTagRetention(
     if (!a.semver || !b.semver) return 0;
     return compareSemver(b.semver, a.semver);
   });
+
+  return { protectedList, pruned };
+}
+
+/**
+ * Evalúa el inventario de tags contra la política de retención jerárquica (Opción B).
+ *
+ * Jerarquía:
+ * 1. Clasificación: descarta y preserva tags inválidos, prereleases o con ambigüedad en 'excluded'.
+ * 2. Major: Selecciona las últimas M majors estables.
+ * 3. Minor: Dentro de cada major seleccionada, selecciona las últimas N minors estables.
+ * 4. Patch: Dentro de cada minor seleccionada, conserva el último P patch estable.
+ * 5. Protegidos: Cualquier tag fuera de la jerarquía que esté en protectedTagsMap se conserva en 'protected'.
+ * 6. Purga: Los tags restantes se marcan para purga en 'pruned'.
+ */
+export function evaluateHierarchicalTagRetention(
+  tags: GitTagRef[],
+  config: HierarchicalRetentionConfig = DEFAULT_CONFIG,
+  protectedTagsMap: Map<string, string> = new Map(),
+): {
+  summary: HierarchicalRetentionSummary;
+  kept: TagEvaluation[];
+  pruned: TagEvaluation[];
+  excluded: TagEvaluation[];
+  protected: TagEvaluation[];
+} {
+  if (!Array.isArray(tags) || tags.length === 0) {
+    return {
+      summary: { selectedMajors: [], selectedMinorsByMajor: {}, retainedPatchesByMinor: {} },
+      kept: [],
+      pruned: [],
+      excluded: [],
+      protected: [],
+    };
+  }
+
+  const { eligibleStable, excluded } = classifyTags(tags, protectedTagsMap);
+  checkAmbiguousVersions(eligibleStable);
+
+  const hierarchy = buildHierarchyMap(eligibleStable);
+  const { kept, retainedTagNames, selectedMajors, selectedMinorsByMajor, retainedPatchesByMinor } =
+    selectKeptHierarchicalTags(hierarchy, config);
+
+  const { protectedList, pruned } = partitionRemainingTags(
+    eligibleStable,
+    retainedTagNames,
+    selectedMajors,
+    selectedMinorsByMajor,
+    retainedPatchesByMinor,
+    config,
+  );
 
   return {
     summary: {
