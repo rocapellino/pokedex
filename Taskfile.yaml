@@ -74,7 +74,7 @@ tasks:
       - packages/contracts/package.json
       - tsconfig.json
     generates:
-      - apps/backend/dist/server.cjs
+      - apps/backend/dist/server.js
       - apps/frontend/dist/index.html
       - apps/frontend/dist/backoffice.html
     cmds:
@@ -90,7 +90,7 @@ tasks:
       - packages/contracts/package.json
       - tsconfig.json
     generates:
-      - apps/backend/dist/server.cjs
+      - apps/backend/dist/server.js
     cmds:
       - npm run build:backend
 

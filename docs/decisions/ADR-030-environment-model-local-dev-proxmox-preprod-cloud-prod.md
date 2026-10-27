@@ -72,7 +72,7 @@ repositorio. El dataset se genera con un script desde PokeAPI (nombres, tipos, h
 categoría y descripción en español) y se verifica contra el mismo validador de payloads del
 backend. El seed job:
 
-- Usa la imagen de la API con el mismo digest (`dist/seed.cjs` ya forma parte del build), sin
+- Usa la imagen de la API con el mismo digest (`dist/seed.js` ya forma parte del build), sin
   una imagen de seed aparte.
 - Selecciona el dataset con `SEED_DATASET=full`; el valor por defecto sigue siendo la muestra.
 - Corre como hook `PostSync`, después de que PostgreSQL y las migraciones estén disponibles.

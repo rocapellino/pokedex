@@ -47,7 +47,7 @@ jobs:
       - name: 4. Compilar y Levantar Servidor Pokédex Node.js
         run: |
           npm run build
-          node apps/backend/dist/server.cjs &
+          node apps/backend/dist/server.js &
           sleep 4
           # In ephemeral CI runners, the test server operates on local port without TLS certificates
           # nosemgrep: generic.text.ban-http-url, checkov:CKV_GIT_4

@@ -22,7 +22,7 @@ Este documento establece las mejores prácticas y estándares DevSecOps implemen
 
 El proyecto utiliza dos contenedores especializados:
 
-- **Backend API (`apps/backend/Dockerfile`)**: Runtime Node.js 24 Alpine con TypeScript compilado estáticamente con `esbuild` en formato CommonJS (`apps/backend/dist/server.cjs`), ejecutando en modo unificado para endpoints REST, telemetría y agentes de IA.
+- **Backend API (`apps/backend/Dockerfile`)**: Runtime Node.js 24 Alpine con TypeScript compilado estáticamente con `esbuild` en formato ESM nativo (`apps/backend/dist/server.js`), ejecutando en modo unificado para endpoints REST, telemetría y agentes de IA.
 - **Frontend Web (`apps/frontend/Dockerfile`)**: Servidor web Nginx 1.31 Alpine como reverse proxy inverso para la API (`/api/` y `/pokemons`) y servidor de assets estáticos (HTML5, CSS3, TypeScriptVanilla).
 
 ---
@@ -140,7 +140,7 @@ USER 1000:1000
 HEALTHCHECK --interval=20s --timeout=3s --start-period=5s --retries=3 \
   CMD ["/bin/sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3000}/healthz || exit 1"]
 EXPOSE 3000
-CMD ["node", "dist/server.cjs"]
+CMD ["node", "dist/server.js"]
 ```
 
 ---

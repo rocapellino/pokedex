@@ -27,7 +27,7 @@ test('🌱 Seed Job: pre-prod siembra el catálogo completo con la imagen y el e
   assert.equal(seeder.image, api.image, 'El seed job debe usar la misma imagen (y digest firmado) que la API');
   assert.match(seeder.image, /@sha256:[a-f0-9]{64}$/, 'La imagen del seed job debe fijarse por digest');
   assert.deepEqual(seeder.envFrom, api.envFrom, 'El seed job debe leer el mismo ConfigMap y Secret que la API');
-  assert.deepEqual(seeder.command, ['node', 'dist/seed.cjs']);
+  assert.deepEqual(seeder.command, ['node', 'dist/seed.js']);
 
   const env = Object.fromEntries((seeder.env as Array<{ name: string; value: string }>).map((e) => [e.name, e.value]));
   assert.equal(env.SEED_DATASET, 'full', 'pre-prod debe sembrar el catálogo completo');

@@ -6,7 +6,7 @@
 //   `scripts/generate-pokemon-catalog.ts` (pre-prod y prod).
 //
 // Solo el seed job importa este módulo: el JSON completo se empaqueta en
-// `dist/seed.cjs` y no en `dist/server.cjs`.
+// `dist/seed.js` y no en `dist/server.js`.
 import type { MegaEvolution, Pokemon, PokemonClassification } from '../types.js';
 import { initialPokemons } from './initialPokemons.js';
 import { LEGACY_SAMPLE_TEXTS, type LegacyTextCandidates } from './legacy-sample-texts.js';

@@ -46,7 +46,7 @@ jobs:
       - name: 4. Compilar y Levantar Servidor Pokédex Node.js
         run: |
           npm run build
-          node apps/backend/dist/server.cjs &
+          node apps/backend/dist/server.js &
           sleep 4
           curl -f http://127.0.0.1:3000/healthz
 
