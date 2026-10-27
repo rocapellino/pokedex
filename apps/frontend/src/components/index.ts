@@ -12,3 +12,4 @@ export * from './admin-events.js';
 export * from './backoffice-health.js';
 export * from './backoffice-state.js';
 export * from './backoffice-actions.js';
+export * from './active-filter-chips.js';

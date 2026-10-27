@@ -49,7 +49,11 @@ export async function connectRedis(): Promise<boolean> {
     if (redisClient) {
       try {
         redisClient.disconnect();
-      } catch {}
+      } catch (disconnectErr) {
+        logger.debug(
+          `[Cache: Redis] Error ignorado al desconectar cliente no disponible: ${errorMessage(disconnectErr)}`,
+        );
+      }
       redisClient = null;
     }
     isRedisConnected = false;

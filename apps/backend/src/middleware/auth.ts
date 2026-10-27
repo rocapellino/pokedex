@@ -81,10 +81,6 @@ export function extractSessionTokenFromRequest(req: Request): string {
   return '';
 }
 
-export function extractSessionToken(req: Request): string {
-  return extractSessionTokenFromRequest(req);
-}
-
 export function buildSessionCookie(token: string, expiresInSeconds: number): string {
   const value = encodeURIComponent(token.trim());
   const secure = process.env.NODE_ENV === 'production' || process.env.SECURE_COOKIES === 'true';
@@ -101,7 +97,7 @@ export function buildSessionCookie(token: string, expiresInSeconds: number): str
 /**
  * Extrae exclusivamente claves de API maestras (X-API-Key o Basic/Custom auth).
  */
-export function extractApiKey(req: Request): string {
+function extractApiKey(req: Request): string {
   const keyHeader = (req.headers['x-api-key'] || '') as string;
   if (keyHeader) {
     return keyHeader.trim();
@@ -123,7 +119,7 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
     });
   }
 
-  const sessionToken = extractSessionToken(req);
+  const sessionToken = extractSessionTokenFromRequest(req);
   const apiKey = extractApiKey(req);
 
   if (!sessionToken && !apiKey) {
