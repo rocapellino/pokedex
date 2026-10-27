@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build:css": "tsx ../../scripts/build-css.ts",
-    "build": "tsx ../../scripts/build-css.ts && tsc && vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
