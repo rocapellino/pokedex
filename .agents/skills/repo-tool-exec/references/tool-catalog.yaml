@@ -184,7 +184,8 @@ tools:
       version_args: ["--version"]
       version_regex: 'pre-commit\s+(\d+\.\d+\.\d+)'
     container:
-      image: "ghcr.io/pre-commit-ci/runner-image:2024.11.19"
+      image: "ghcr.io/burakince/pre-commit:sha-40d56b6@sha256:6fd573f760e4016fb48757bbd547c23a8ec268a05738f862436b32e00187779c"
+      entrypoint: "pre-commit"
       network: "bridge" # instala los entornos de los hooks
       mount_mode: "rw"
       workdir: "/repo"

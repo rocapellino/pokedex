@@ -123,6 +123,20 @@ export const BACKEND_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Verifica repo-tool-exec: parseo del catálogo, comparación semver, detección local, ejecución en contenedor y validación de version_regex.',
   },
+  'tests/unit/prepare_pr_body.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Gobernanza / Preparación de Pull Requests',
+    targetArtifacts: ['scripts/prepare-pr-body.ts', '.github/pull_request_template.md'],
+    description:
+      'Verifica la generación y validación de borradores de Pull Request body en UTF-8 con la matriz de impacto resuelta.',
+  },
+  'tests/unit/run_pre_commit.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Tooling / Hooks de Calidad',
+    targetArtifacts: ['scripts/run-pre-commit.ts', '.pre-commit-config.yaml'],
+    description:
+      'Verifica la ejecución reproducible de pre-commit con resolución local y fallback a contenedor efímero.',
+  },
   'tests/unit/seed_catalog.test.ts': {
     type: 'Unit',
     targetDomain: 'Catálogo / Selección de Dataset de Siembra',
