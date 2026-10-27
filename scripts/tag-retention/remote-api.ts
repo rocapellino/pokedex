@@ -201,6 +201,66 @@ export async function fetchRemoteTagRef(
   };
 }
 
+function parseStrictMatchingRefItem(
+  rawItem: { ref?: unknown; object?: { sha?: unknown; type?: unknown } },
+  owner: string,
+  repo: string,
+): { tagName: string; refSha: string; type: 'tag' | 'commit' } {
+  const rawRef = rawItem.ref;
+  const rawSha = rawItem.object?.sha;
+
+  if (typeof rawRef !== 'string' || !rawRef.startsWith('refs/tags/')) {
+    throw new Error(
+      `Referencia remota malformada en matching-refs de ${owner}/${repo}: 'ref' ('${String(rawRef)}') no tiene el formato esperado 'refs/tags/*'. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
+    );
+  }
+
+  const tagName = rawRef.slice('refs/tags/'.length);
+  if (!tagName || tagName.trim() === '') {
+    throw new Error(
+      `Referencia remota malformada en matching-refs de ${owner}/${repo}: nombre de tag vacío en ref '${rawRef}'. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
+    );
+  }
+
+  if (typeof rawSha !== 'string' || !isValidGitSha(rawSha)) {
+    throw new Error(
+      `Referencia remota inválida o malformada en matching-refs de ${owner}/${repo} para '${rawRef}': object.sha ('${String(rawSha)}') ausente o no es un hash de Git válido. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
+    );
+  }
+
+  return {
+    tagName,
+    refSha: rawSha,
+    type: rawItem.object?.type === 'tag' ? 'tag' : 'commit',
+  };
+}
+
+function parseNonStrictMatchingRefItem(rawItem: {
+  ref?: unknown;
+  object?: { sha?: unknown; type?: unknown };
+}): { tagName: string; refSha: string; type: 'tag' | 'commit' } | null {
+  const rawRef = rawItem.ref;
+  const rawSha = rawItem.object?.sha;
+
+  if (
+    typeof rawRef === 'string' &&
+    rawRef.startsWith('refs/tags/') &&
+    typeof rawSha === 'string' &&
+    isValidGitSha(rawSha)
+  ) {
+    const tagName = rawRef.slice('refs/tags/'.length);
+    if (tagName && tagName.trim() !== '') {
+      return {
+        tagName,
+        refSha: rawSha,
+        type: rawItem.object?.type === 'tag' ? 'tag' : 'commit',
+      };
+    }
+  }
+
+  return null;
+}
+
 function parseMatchingRefItem(
   item: unknown,
   strict: boolean,
@@ -218,47 +278,52 @@ function parseMatchingRefItem(
   }
 
   const rawItem = item as { ref?: unknown; object?: { sha?: unknown; type?: unknown } };
-  const rawRef = rawItem.ref;
-  const rawSha = rawItem.object?.sha;
+  const parsed = strict ? parseStrictMatchingRefItem(rawItem, owner, repo) : parseNonStrictMatchingRefItem(rawItem);
 
-  if (strict) {
-    if (typeof rawRef !== 'string' || !rawRef.startsWith('refs/tags/')) {
-      throw new Error(
-        `Referencia remota malformada en matching-refs de ${owner}/${repo}: 'ref' ('${String(rawRef)}') no tiene el formato esperado 'refs/tags/*'. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
-      );
-    }
-
-    const tagName = rawRef.slice('refs/tags/'.length);
-    if (!tagName || tagName.trim() === '') {
-      throw new Error(
-        `Referencia remota malformada en matching-refs de ${owner}/${repo}: nombre de tag vacío en ref '${rawRef}'. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
-      );
-    }
-
-    if (typeof rawSha !== 'string' || !isValidGitSha(rawSha)) {
-      throw new Error(
-        `Referencia remota inválida o malformada en matching-refs de ${owner}/${repo} para '${rawRef}': object.sha ('${String(rawSha)}') ausente o no es un hash de Git válido. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
-      );
-    }
-
-    refsMap.set(tagName, {
-      refSha: rawSha,
-      type: rawItem.object?.type === 'tag' ? 'tag' : 'commit',
+  if (parsed) {
+    refsMap.set(parsed.tagName, {
+      refSha: parsed.refSha,
+      type: parsed.type,
     });
-  } else if (
-    typeof rawRef === 'string' &&
-    rawRef.startsWith('refs/tags/') &&
-    typeof rawSha === 'string' &&
-    isValidGitSha(rawSha)
-  ) {
-    const tagName = rawRef.slice('refs/tags/'.length);
-    if (tagName && tagName.trim() !== '') {
-      refsMap.set(tagName, {
-        refSha: rawSha,
-        type: rawItem.object?.type === 'tag' ? 'tag' : 'commit',
-      });
-    }
   }
+}
+
+async function fetchMatchingRefsPage(
+  token: string,
+  owner: string,
+  repo: string,
+  page: number,
+  perPage: number,
+  fetchFn: typeof fetch,
+): Promise<{ data: Array<{ ref: string; object?: { sha?: string; type?: string } }>; hasNextPage: boolean }> {
+  const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/matching-refs/tags?per_page=${perPage}&page=${page}`;
+  const response = await fetchFn(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${token}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'pokedex-tag-retention-script',
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Error ${response.status} al consultar matching-refs de ${owner}/${repo} (página ${page}): ${errorText}`,
+    );
+  }
+
+  const data = (await response.json()) as Array<{
+    ref: string;
+    object?: { sha?: string; type?: string };
+  }>;
+
+  const validData = Array.isArray(data) ? data : [];
+  const hasNextPage =
+    validData.length > 0 ? hasMorePages(response.headers?.get?.('link'), validData.length, perPage) : false;
+
+  return { data: validData, hasNextPage };
 }
 
 async function fetchMatchingRefsMap(
@@ -283,30 +348,9 @@ async function fetchMatchingRefsMap(
         );
       }
 
-      const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/matching-refs/tags?per_page=${perPage}&page=${page}`;
-      const response = await fetchFn(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/vnd.github+json',
-          Authorization: `Bearer ${token}`,
-          'X-GitHub-Api-Version': '2022-11-28',
-          'User-Agent': 'pokedex-tag-retention-script',
-        },
-      });
+      const { data, hasNextPage } = await fetchMatchingRefsPage(token, owner, repo, page, perPage, fetchFn);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Error ${response.status} al consultar matching-refs de ${owner}/${repo} (página ${page}): ${errorText}`,
-        );
-      }
-
-      const data = (await response.json()) as Array<{
-        ref: string;
-        object?: { sha?: string; type?: string };
-      }>;
-
-      if (!Array.isArray(data) || data.length === 0) {
+      if (data.length === 0) {
         break;
       }
 
@@ -314,13 +358,11 @@ async function fetchMatchingRefsMap(
         parseMatchingRefItem(item, strict, owner, repo, refsMap);
       }
 
-      const nextAvailable = hasMorePages(response.headers?.get?.('link'), data.length, perPage);
-
-      if (!nextAvailable) {
+      if (!hasNextPage) {
         break;
       }
 
-      if (page === maxPages && nextAvailable) {
+      if (page === maxPages && hasNextPage) {
         throw new Error(
           `Límite de seguridad superado en matching-refs: el repositorio contiene más de ${maxPages * perPage} referencias (${maxPages} páginas). Detención de seguridad FAIL-CLOSED.`,
         );
