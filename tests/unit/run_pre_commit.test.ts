@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import test from 'node:test';
 import { runPreCommit } from '../../scripts/run-pre-commit.ts';
 import type { SystemDependencies } from '../../.agents/skills/repo-tool-exec/scripts/tool-exec.ts';
@@ -12,7 +13,7 @@ test('🔧 run-pre-commit: ejecuta pre-commit local cuando está disponible', ()
       }
       return { status: 0, stdout: 'PASS', stderr: '' };
     },
-    fsReadFn: () => '',
+    fsReadFn: (p) => fs.readFileSync(p, 'utf-8'),
   };
 
   const code = runPreCommit(['--version'], mockDeps);
@@ -31,7 +32,7 @@ test('🐳 run-pre-commit: ejecuta en contenedor cuando pre-commit local no exis
       }
       return { status: 0, stdout: '', stderr: '' };
     },
-    fsReadFn: () => '',
+    fsReadFn: (p) => fs.readFileSync(p, 'utf-8'),
   };
 
   const code = runPreCommit(['--version'], mockDeps);
@@ -42,7 +43,7 @@ test('⚠️ run-pre-commit: propaga código de fallo cuando pre-commit falla', 
   const mockDeps: SystemDependencies = {
     lookPathFn: (cmd) => (cmd === 'pre-commit' ? '/usr/bin/pre-commit' : null),
     execSyncFn: () => ({ status: 1, stdout: '', stderr: 'hook failed' }),
-    fsReadFn: () => '',
+    fsReadFn: (p) => fs.readFileSync(p, 'utf-8'),
   };
 
   const code = runPreCommit(['run', '--all-files'], mockDeps);
