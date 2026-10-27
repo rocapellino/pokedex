@@ -17,7 +17,7 @@ export default defineConfig({
   webServer: process.env.BASE_URL
     ? undefined
     : {
-        command: 'node apps/backend/dist/server.cjs',
+        command: 'node apps/backend/dist/server.js',
         cwd: ROOT_DIR,
         url: 'http://127.0.0.1:3000/healthz',
         reuseExistingServer: !process.env.CI,

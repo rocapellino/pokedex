@@ -6,7 +6,7 @@ Siembra del catálogo (ADR-030).
   la API ya están sanos. Como PreSync corría antes de crear el StatefulSet de
   PostgreSQL, fallaba en la primera instalación.
 - Imagen: por defecto, la misma de la API (mismo digest firmado con Cosign):
-  `dist/seed.cjs` forma parte de su build. `seedJob.image.repository` solo se
+  `dist/seed.js` forma parte de su build. `seedJob.image.repository` solo se
   declara para usar una imagen distinta.
 - Entorno: el mismo ConfigMap y Secret que la API.
 */ -}}
@@ -55,7 +55,7 @@ spec:
             capabilities:
               drop:
                 - ALL
-          command: ["node", "dist/seed.cjs"]
+          command: ["node", "dist/seed.js"]
           envFrom:
             - configMapRef:
                 name: pokemon-config

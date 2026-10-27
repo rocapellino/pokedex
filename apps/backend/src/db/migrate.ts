@@ -113,9 +113,12 @@ export async function runMigrations(connectionString?: string): Promise<void> {
   }
 }
 
-// Ejecución directa vía CLI (tsx src/db/migrate.ts o node dist/migrate.cjs)
+// Ejecución directa vía CLI (tsx src/db/migrate.ts o node dist/migrate.js)
 const isCli = Boolean(
-  process.argv[1] && (process.argv[1].endsWith('migrate.ts') || process.argv[1].endsWith('migrate.cjs')),
+  process.argv[1] &&
+    (process.argv[1].endsWith('migrate.ts') ||
+      process.argv[1].endsWith('migrate.cjs') ||
+      process.argv[1].endsWith('migrate.js')),
 );
 
 if (isCli) {

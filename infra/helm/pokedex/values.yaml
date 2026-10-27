@@ -377,7 +377,7 @@ seedJob:
   # Dataset de seed.ts (ADR-030): "sample" (35 Pokémon) o "full" (catálogo nacional).
   dataset: "sample"
   image:
-    # Vacío = misma imagen y digest que api.image (`dist/seed.cjs` forma parte de su
+    # Vacío = misma imagen y digest que api.image (`dist/seed.js` forma parte de su
     # build y el digest ya está firmado con Cosign). Declarar solo para otra imagen.
     repository: ""
     tag: ""

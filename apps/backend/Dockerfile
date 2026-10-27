@@ -90,4 +90,4 @@ HEALTHCHECK --interval=20s --timeout=3s --start-period=5s --retries=3 \
 
 EXPOSE 3000
 
-CMD ["node", "dist/server.cjs"]
+CMD ["node", "dist/server.js"]
