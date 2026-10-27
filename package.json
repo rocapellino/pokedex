@@ -80,6 +80,8 @@
     "tags:retention:dry-run": "node --experimental-strip-types scripts/tag-retention.ts --dry-run",
     "ci:detect-impact": "tsx scripts/detect-change-impact.ts",
     "pr:validate": "tsx scripts/validate-pr-body.ts",
+    "pr:prepare": "tsx scripts/prepare-pr-body.ts",
+    "pre-commit": "node --experimental-strip-types scripts/run-pre-commit.ts",
     "linear:sonar-sync": "node --experimental-strip-types scripts/sonar-linear-sync.ts",
     "linear:security-sync": "tsx scripts/github-security-linear-sync.ts",
     "linear:list": "tsx scripts/list-linear-issues.ts",

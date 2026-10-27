@@ -4060,6 +4060,29 @@
       "description": "Verifica comportamiento fail-closed ante indisponibilidad de PostgreSQL, reintentos con backoff y aislamiento de errores."
     },
     {
+      "path": "tests/unit/prepare_pr_body.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Gobernanza / Preparación de Pull Requests",
+      "targetArtifacts": [
+        "scripts/prepare-pr-body.ts",
+        ".github/pull_request_template.md"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Verifica la generación y validación de borradores de Pull Request body en UTF-8 con la matriz de impacto resuelta."
+    },
+    {
       "path": "tests/unit/repo_tool_exec.test.ts",
       "suite": "unit",
       "type": "Unit",
@@ -4103,6 +4126,29 @@
         ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Valida ok, err, tryCatch y fromPromise: desenvoltura, valor por defecto y transformación con map."
+    },
+    {
+      "path": "tests/unit/run_pre_commit.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Tooling / Hooks de Calidad",
+      "targetArtifacts": [
+        "scripts/run-pre-commit.ts",
+        ".pre-commit-config.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Verifica la ejecución reproducible de pre-commit con resolución local y fallback a contenedor efímero."
     },
     {
       "path": "tests/unit/seed_catalog.test.ts",
