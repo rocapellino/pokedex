@@ -10,6 +10,13 @@
 import { areShasEqual, isValidGitSha } from './semver.ts';
 import type { EnrichTagsOptions, GitRemoteRefDetail, GitTagRef, TagDeletePrecondition } from './types.ts';
 
+function hasMorePages(linkHeader: string | null | undefined, dataLength: number, perPage: number): boolean {
+  if (typeof linkHeader === 'string') {
+    return linkHeader.includes('rel="next"');
+  }
+  return dataLength === perPage;
+}
+
 /**
  * Consulta los tags remotos de GitHub vía REST API paginada.
  * Implementa control estricto FAIL-CLOSED: si se alcanza el límite máximo de páginas
@@ -69,14 +76,13 @@ export async function fetchRemoteTags(
       });
     }
 
-    const linkHeader = response.headers?.get?.('link');
-    const hasNextPage = typeof linkHeader === 'string' ? linkHeader.includes('rel="next"') : data.length === perPage;
+    const nextAvailable = hasMorePages(response.headers?.get?.('link'), data.length, perPage);
 
-    if (!hasNextPage) {
+    if (!nextAvailable) {
       break;
     }
 
-    if (page === maxPages && hasNextPage) {
+    if (page === maxPages && nextAvailable) {
       throw new Error(
         `Límite de seguridad superado: el repositorio contiene más de ${maxPages * perPage} tags (${maxPages} páginas). Detención de seguridad FAIL-CLOSED para evitar purgas destructivas sobre un inventario incompleto.`,
       );
@@ -100,9 +106,9 @@ export async function fetchRemoteTagRef(
   tagName: string,
   fetchFn: typeof fetch = fetch,
 ): Promise<GitRemoteRefDetail | null> {
-  const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/ref/tags/${encodeURIComponent(tagName)}`;
+  const refUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/ref/tags/${encodeURIComponent(tagName)}`;
 
-  const response = await fetchFn(url, {
+  const response = await fetchFn(refUrl, {
     method: 'GET',
     headers: {
       Accept: 'application/vnd.github+json',
@@ -118,16 +124,22 @@ export async function fetchRemoteTagRef(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Error ${response.status} al verificar tag refs/tags/${tagName}: ${errorText}`);
+    throw new Error(`Error ${response.status} al consultar ref/tags/${tagName}: ${errorText}`);
   }
 
   const data = (await response.json()) as {
-    ref?: string;
-    object?: { sha?: string; type?: string; url?: string };
+    ref: string;
+    node_id?: string;
+    url?: string;
+    object: {
+      sha: string;
+      type: string;
+      url: string;
+    };
   };
 
   const refSha = data.object?.sha;
-  const objType = data.object?.type || 'commit';
+  const objType = data.object?.type;
 
   if (!refSha || !isValidGitSha(refSha)) {
     throw new Error(
@@ -135,12 +147,10 @@ export async function fetchRemoteTagRef(
     );
   }
 
-  // Si es un tag anotado ("type": "tag"), desreferenciarlo para obtener el commit SHA destino
+  // Si es un tag anotado, desreferenciar el commit destino mediante el endpoint de tags
   if (objType === 'tag') {
-    const tagUrl =
-      data.object?.url ||
-      `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/tags/${encodeURIComponent(refSha)}`;
-    const tagResponse = await fetchFn(tagUrl, {
+    const tagObjUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/tags/${refSha}`;
+    const tagObjResponse = await fetchFn(tagObjUrl, {
       method: 'GET',
       headers: {
         Accept: 'application/vnd.github+json',
@@ -150,18 +160,25 @@ export async function fetchRemoteTagRef(
       },
     });
 
-    if (!tagResponse.ok) {
-      const errorText = await tagResponse.text();
+    if (!tagObjResponse.ok) {
+      const errorText = await tagObjResponse.text();
       throw new Error(
-        `Error ${tagResponse.status} al resolver objeto tag anotado ${refSha} para ${tagName}: ${errorText}`,
+        `Error ${tagObjResponse.status} al resolver objeto tag anotado ${tagName} (${refSha}): ${errorText}`,
       );
     }
 
-    const tagData = (await tagResponse.json()) as { object?: { sha?: string } };
+    const tagData = (await tagObjResponse.json()) as {
+      sha: string;
+      object: {
+        sha: string;
+        type: string;
+      };
+    };
+
     const targetCommitSha = tagData.object?.sha;
     if (!targetCommitSha || !isValidGitSha(targetCommitSha)) {
       throw new Error(
-        `Estructura inválida en objeto tag anotado ${refSha} para ${tagName}: commit destino ('${targetCommitSha}') malformado o ausente.`,
+        `Estructura inválida o SHA malformado al resolver objeto tag anotado ${tagName}: object.sha destino ('${targetCommitSha}') no es un hash de Git válido.`,
       );
     }
 
@@ -174,6 +191,7 @@ export async function fetchRemoteTagRef(
     };
   }
 
+  // Tag ligero (apunta directamente a un commit)
   return {
     tagName,
     refSha,
@@ -183,35 +201,76 @@ export async function fetchRemoteTagRef(
   };
 }
 
-/**
- * Enriquece el inventario de tags con el SHA exacto del objeto de referencia (refSha)
- * consultando git/matching-refs/tags con paginación completa y control FAIL-CLOSED.
- */
-export async function enrichTagsWithRemoteRefs(
-  token: string,
+function parseMatchingRefItem(
+  item: unknown,
+  strict: boolean,
   owner: string,
   repo: string,
-  tags: GitTagRef[],
-  optionsOrFetchFn: EnrichTagsOptions | typeof fetch = {},
-): Promise<void> {
-  const options: EnrichTagsOptions =
-    typeof optionsOrFetchFn === 'function' ? { fetchFn: optionsOrFetchFn } : optionsOrFetchFn;
-
-  if (tags.length === 0) return;
-
-  const fetchFn = options.fetchFn ?? fetch;
-  const strict = options.strict ?? false;
-  const perPage = options.perPage ?? 100;
-  const maxPages = options.maxPages ?? 30;
-
-  if (!token) {
+  refsMap: Map<string, { refSha: string; type: string }>,
+): void {
+  if (!item || typeof item !== 'object') {
     if (strict) {
       throw new Error(
-        'Token de GitHub no configurado para enriquecer referencias en modo destructivo. Operación cancelada por seguridad.',
+        `Respuesta remota malformada en matching-refs de ${owner}/${repo}: elemento inválido recibido de la API.`,
       );
     }
     return;
   }
+
+  const rawItem = item as { ref?: unknown; object?: { sha?: unknown; type?: unknown } };
+  const rawRef = rawItem.ref;
+  const rawSha = rawItem.object?.sha;
+
+  if (strict) {
+    if (typeof rawRef !== 'string' || !rawRef.startsWith('refs/tags/')) {
+      throw new Error(
+        `Referencia remota malformada en matching-refs de ${owner}/${repo}: 'ref' ('${String(rawRef)}') no tiene el formato esperado 'refs/tags/*'. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
+      );
+    }
+
+    const tagName = rawRef.slice('refs/tags/'.length);
+    if (!tagName || tagName.trim() === '') {
+      throw new Error(
+        `Referencia remota malformada en matching-refs de ${owner}/${repo}: nombre de tag vacío en ref '${rawRef}'. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
+      );
+    }
+
+    if (typeof rawSha !== 'string' || !isValidGitSha(rawSha)) {
+      throw new Error(
+        `Referencia remota inválida o malformada en matching-refs de ${owner}/${repo} para '${rawRef}': object.sha ('${String(rawSha)}') ausente o no es un hash de Git válido. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
+      );
+    }
+
+    refsMap.set(tagName, {
+      refSha: rawSha,
+      type: typeof rawItem.object?.type === 'string' ? rawItem.object.type : 'commit',
+    });
+  } else if (
+    typeof rawRef === 'string' &&
+    rawRef.startsWith('refs/tags/') &&
+    typeof rawSha === 'string' &&
+    isValidGitSha(rawSha)
+  ) {
+    const tagName = rawRef.slice('refs/tags/'.length);
+    if (tagName && tagName.trim() !== '') {
+      refsMap.set(tagName, {
+        refSha: rawSha,
+        type: typeof rawItem.object?.type === 'string' ? rawItem.object.type : 'commit',
+      });
+    }
+  }
+}
+
+async function fetchMatchingRefsMap(
+  token: string,
+  owner: string,
+  repo: string,
+  options: EnrichTagsOptions,
+): Promise<Map<string, { refSha: string; type: string }> | null> {
+  const fetchFn = options.fetchFn ?? fetch;
+  const strict = options.strict ?? false;
+  const perPage = options.perPage ?? 100;
+  const maxPages = options.maxPages ?? 30;
 
   const refsMap = new Map<string, { refSha: string; type: string }>();
   let page = 1;
@@ -252,63 +311,16 @@ export async function enrichTagsWithRemoteRefs(
       }
 
       for (const item of data) {
-        if (!item || typeof item !== 'object') {
-          if (strict) {
-            throw new Error(
-              `Respuesta remota malformada en matching-refs de ${owner}/${repo}: elemento inválido recibido de la API.`,
-            );
-          }
-          continue;
-        }
-
-        const rawRef = item.ref;
-        const rawSha = item.object?.sha;
-
-        if (strict) {
-          if (typeof rawRef !== 'string' || !rawRef.startsWith('refs/tags/')) {
-            throw new Error(
-              `Referencia remota malformada en matching-refs de ${owner}/${repo}: 'ref' ('${String(rawRef)}') no tiene el formato esperado 'refs/tags/*'. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
-            );
-          }
-
-          const tagName = rawRef.slice('refs/tags/'.length);
-          if (!tagName || tagName.trim() === '') {
-            throw new Error(
-              `Referencia remota malformada en matching-refs de ${owner}/${repo}: nombre de tag vacío en ref '${rawRef}'. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
-            );
-          }
-
-          if (typeof rawSha !== 'string' || !isValidGitSha(rawSha)) {
-            throw new Error(
-              `Referencia remota inválida o malformada en matching-refs de ${owner}/${repo} para '${rawRef}': object.sha ('${String(rawSha)}') ausente o no es un hash de Git válido. Abortando en modo estricto por seguridad (FAIL-CLOSED).`,
-            );
-          }
-
-          refsMap.set(tagName, {
-            refSha: rawSha,
-            type: item.object?.type || 'commit',
-          });
-        } else {
-          if (rawRef?.startsWith('refs/tags/') && rawSha && isValidGitSha(rawSha)) {
-            const tagName = rawRef.slice('refs/tags/'.length);
-            if (tagName && tagName.trim() !== '') {
-              refsMap.set(tagName, {
-                refSha: rawSha,
-                type: item.object?.type || 'commit',
-              });
-            }
-          }
-        }
+        parseMatchingRefItem(item, strict, owner, repo, refsMap);
       }
 
-      const linkHeader = response.headers?.get?.('link');
-      const hasNextPage = typeof linkHeader === 'string' ? linkHeader.includes('rel="next"') : data.length === perPage;
+      const nextAvailable = hasMorePages(response.headers?.get?.('link'), data.length, perPage);
 
-      if (!hasNextPage) {
+      if (!nextAvailable) {
         break;
       }
 
-      if (page === maxPages && hasNextPage) {
+      if (page === maxPages && nextAvailable) {
         throw new Error(
           `Límite de seguridad superado en matching-refs: el repositorio contiene más de ${maxPages * perPage} referencias (${maxPages} páginas). Detención de seguridad FAIL-CLOSED.`,
         );
@@ -326,12 +338,17 @@ export async function enrichTagsWithRemoteRefs(
     console.warn(
       `⚠️  Advertencia: No se pudieron enriquecer las referencias remotas: ${err instanceof Error ? err.message : String(err)}`,
     );
-    return;
+    return null;
   }
 
-  // Mapeo y validación de cobertura de tags (consistencia bidireccional estricta)
-  const initialTagNames = new Set(tags.map((t) => t.name));
+  return refsMap;
+}
 
+function applyRefsToTags(
+  tags: GitTagRef[],
+  refsMap: Map<string, { refSha: string; type: string }>,
+  strict: boolean,
+): void {
   for (const tag of tags) {
     const refDetail = refsMap.get(tag.name);
     if (refDetail) {
@@ -349,21 +366,61 @@ export async function enrichTagsWithRemoteRefs(
       );
     }
   }
+}
 
-  // Validación inversa: en modo estricto, comprobar que NO existan referencias adicionales
-  if (strict) {
-    const extraneousRefs: string[] = [];
-    for (const remoteTagName of refsMap.keys()) {
-      if (!initialTagNames.has(remoteTagName)) {
-        extraneousRefs.push(remoteTagName);
-      }
+function validateBidirectionalConsistency(
+  tags: GitTagRef[],
+  refsMap: Map<string, { refSha: string; type: string }>,
+): void {
+  const initialTagNames = new Set(tags.map((t) => t.name));
+  const extraneousRefs: string[] = [];
+  for (const remoteTagName of refsMap.keys()) {
+    if (!initialTagNames.has(remoteTagName)) {
+      extraneousRefs.push(remoteTagName);
     }
+  }
 
-    if (extraneousRefs.length > 0) {
+  if (extraneousRefs.length > 0) {
+    throw new Error(
+      `Inconsistencia bidireccional de inventario: se detectaron ${extraneousRefs.length} referencias remotas en matching-refs que no existían en el inventario inicial (${extraneousRefs.slice(0, 5).join(', ')}${extraneousRefs.length > 5 ? '...' : ''}). Posible publicación concurrente de tags durante la ejecución. Cancelando operación destructiva por seguridad (FAIL-CLOSED).`,
+    );
+  }
+}
+
+/**
+ * Enriquece el inventario de tags con el SHA exacto del objeto de referencia (refSha)
+ * consultando git/matching-refs/tags con paginación completa y control FAIL-CLOSED.
+ */
+export async function enrichTagsWithRemoteRefs(
+  token: string,
+  owner: string,
+  repo: string,
+  tags: GitTagRef[],
+  optionsOrFetchFn: EnrichTagsOptions | typeof fetch = {},
+): Promise<void> {
+  const options: EnrichTagsOptions =
+    typeof optionsOrFetchFn === 'function' ? { fetchFn: optionsOrFetchFn } : optionsOrFetchFn;
+
+  if (tags.length === 0) return;
+
+  const strict = options.strict ?? false;
+
+  if (!token) {
+    if (strict) {
       throw new Error(
-        `Inconsistencia bidireccional de inventario: se detectaron ${extraneousRefs.length} referencias remotas en matching-refs que no existían en el inventario inicial (${extraneousRefs.slice(0, 5).join(', ')}${extraneousRefs.length > 5 ? '...' : ''}). Posible publicación concurrente de tags durante la ejecución. Cancelando operación destructiva por seguridad (FAIL-CLOSED).`,
+        'Token de GitHub no configurado para enriquecer referencias en modo destructivo. Operación cancelada por seguridad.',
       );
     }
+    return;
+  }
+
+  const refsMap = await fetchMatchingRefsMap(token, owner, repo, options);
+  if (!refsMap) return;
+
+  applyRefsToTags(tags, refsMap, strict);
+
+  if (strict) {
+    validateBidirectionalConsistency(tags, refsMap);
   }
 }
 
