@@ -97,36 +97,57 @@ function printExecutionHeader(
   console.log('----------------------------------------------------------------');
 }
 
-async function fetchInitialTags(
-  effectiveSimulate: boolean,
-  options: TagRetentionOptions,
-  token: string,
-  owner: string,
-  repo: string,
-  fetchFn: typeof fetch,
-  validatedMaxPages?: number,
-  isDestructive?: boolean,
-): Promise<GitTagRef[]> {
+function formatErrorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    return err.message;
+  }
+  if (typeof err === 'string') {
+    return err;
+  }
+  if (typeof err === 'object' && err !== null) {
+    try {
+      return JSON.stringify(err);
+    } catch {
+      // Ignorar fallos de serialización ante posibles ciclos
+    }
+  }
+  return String(err);
+}
+
+interface FetchInitialTagsParams {
+  effectiveSimulate: boolean;
+  mockTags?: GitTagRef[];
+  token: string;
+  owner: string;
+  repo: string;
+  fetchFn: typeof fetch;
+  maxPages?: number;
+  isDestructive?: boolean;
+}
+
+async function fetchInitialTags(params: FetchInitialTagsParams): Promise<GitTagRef[]> {
+  const { effectiveSimulate, mockTags, token, owner, repo, fetchFn, maxPages, isDestructive } = params;
+
   if (effectiveSimulate) {
-    const mockTags = options.mockTags || generateMockTags();
-    console.log(`   [Simulación] Se evaluarán ${mockTags.length} tags sintéticos locales.`);
-    return mockTags;
+    const tags = mockTags || generateMockTags();
+    console.log(`   [Simulación] Se evaluarán ${tags.length} tags sintéticos locales.`);
+    return tags;
   }
 
   try {
     console.log('🔍 Consultando inventario de tags remotos en GitHub...');
     const rawTags = await fetchRemoteTags(token, owner, repo, {
       fetchFn,
-      maxPages: validatedMaxPages,
+      maxPages,
     });
     await enrichTagsWithRemoteRefs(token, owner, repo, rawTags, {
       fetchFn,
-      maxPages: validatedMaxPages,
+      maxPages,
       strict: isDestructive,
     });
     return rawTags;
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = formatErrorMessage(err);
     console.error(`❌ Error al consultar tags de ${owner}/${repo}: ${msg}`);
     throw err;
   }
@@ -280,7 +301,7 @@ async function executePurge(
         deletedTags.push(tagName);
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = formatErrorMessage(err);
       console.error(`    ❌ Fallo al eliminar tag ${tagName}: ${msg}`);
       throw err;
     }
@@ -330,16 +351,16 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
   printExecutionHeader(owner, repo, config, dryRun, simulationLabel, autoSimulated, protectedTagsMap);
 
   const isDestructive = !dryRun;
-  const rawTags = await fetchInitialTags(
+  const rawTags = await fetchInitialTags({
     effectiveSimulate,
-    options,
+    mockTags: options.mockTags,
     token,
     owner,
     repo,
     fetchFn,
-    validatedMaxPages,
+    maxPages: validatedMaxPages,
     isDestructive,
-  );
+  });
   console.log(`• Total de tags encontrados  : ${rawTags.length}`);
 
   if (!effectiveSimulate && options.protectedTags === undefined) {
