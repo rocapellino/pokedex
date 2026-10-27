@@ -196,7 +196,7 @@ export async function fetchRemoteTagRef(
     tagName,
     refSha,
     targetCommitSha: refSha,
-    type: objType,
+    type: objType === 'tag' ? 'tag' : 'commit',
     isAnnotated: false,
   };
 }
@@ -206,7 +206,7 @@ function parseMatchingRefItem(
   strict: boolean,
   owner: string,
   repo: string,
-  refsMap: Map<string, { refSha: string; type: string }>,
+  refsMap: Map<string, { refSha: string; type: 'tag' | 'commit' }>,
 ): void {
   if (!item || typeof item !== 'object') {
     if (strict) {
@@ -243,7 +243,7 @@ function parseMatchingRefItem(
 
     refsMap.set(tagName, {
       refSha: rawSha,
-      type: typeof rawItem.object?.type === 'string' ? rawItem.object.type : 'commit',
+      type: rawItem.object?.type === 'tag' ? 'tag' : 'commit',
     });
   } else if (
     typeof rawRef === 'string' &&
@@ -255,7 +255,7 @@ function parseMatchingRefItem(
     if (tagName && tagName.trim() !== '') {
       refsMap.set(tagName, {
         refSha: rawSha,
-        type: typeof rawItem.object?.type === 'string' ? rawItem.object.type : 'commit',
+        type: rawItem.object?.type === 'tag' ? 'tag' : 'commit',
       });
     }
   }
@@ -266,13 +266,13 @@ async function fetchMatchingRefsMap(
   owner: string,
   repo: string,
   options: EnrichTagsOptions,
-): Promise<Map<string, { refSha: string; type: string }> | null> {
+): Promise<Map<string, { refSha: string; type: 'tag' | 'commit' }> | null> {
   const fetchFn = options.fetchFn ?? fetch;
   const strict = options.strict ?? false;
   const perPage = options.perPage ?? 100;
   const maxPages = options.maxPages ?? 30;
 
-  const refsMap = new Map<string, { refSha: string; type: string }>();
+  const refsMap = new Map<string, { refSha: string; type: 'tag' | 'commit' }>();
   let page = 1;
 
   try {
@@ -346,7 +346,7 @@ async function fetchMatchingRefsMap(
 
 function applyRefsToTags(
   tags: GitTagRef[],
-  refsMap: Map<string, { refSha: string; type: string }>,
+  refsMap: Map<string, { refSha: string; type: 'tag' | 'commit' }>,
   strict: boolean,
 ): void {
   for (const tag of tags) {
@@ -370,7 +370,7 @@ function applyRefsToTags(
 
 function validateBidirectionalConsistency(
   tags: GitTagRef[],
-  refsMap: Map<string, { refSha: string; type: string }>,
+  refsMap: Map<string, { refSha: string; type: 'tag' | 'commit' }>,
 ): void {
   const initialTagNames = new Set(tags.map((t) => t.name));
   const extraneousRefs: string[] = [];

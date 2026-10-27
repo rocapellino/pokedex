@@ -20,7 +20,7 @@ export interface GitRemoteRefDetail {
   tagName: string;
   refSha: string;
   targetCommitSha: string;
-  type: 'tag' | 'commit' | string;
+  type: 'tag' | 'commit';
   isAnnotated: boolean;
 }
 
@@ -117,8 +117,7 @@ export const DEFAULT_ROLLBACK_WINDOW_COUNT = 3;
  * Expresión regular SemVer 2.0 canónica que admite prefijo 'v' opcional.
  * Grupos: 1=major, 2=minor, 3=patch, 4=prerelease, 5=build metadata.
  */
-export const SEMVER_TAG_REGEX =
-  /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+export const SEMVER_TAG_REGEX = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+([0-9A-Za-z.-]+))?$/;
 
 /** Expresión regular canónica para Git SHA-1 (40 caracteres hexadecimales completos). */
 export const GIT_SHA_REGEX = /^[0-9a-f]{40}$/i;
