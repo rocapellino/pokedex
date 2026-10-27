@@ -106,6 +106,7 @@
     "db:studio": "npm run db:studio --workspace=@pokedex/backend"
   },
   "overrides": {
+    "zod": "^4.6.7",
     "qs": "^6.16.0",
     "uuid": "^14.0.0",
     "tmp": "^0.2.6",
