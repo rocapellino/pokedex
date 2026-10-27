@@ -1,6 +1,6 @@
 import express, { type Request, type Response } from 'express';
 import { authRateLimiter, authRateLimiterStandard } from '../middleware/rate-limiter.js';
-import { extractSessionToken, safeCompareKeys, buildSessionCookie } from '../middleware/auth.js';
+import { extractSessionTokenFromRequest, safeCompareKeys, buildSessionCookie } from '../middleware/auth.js';
 import { generateSessionToken, verifySessionTokenDetailed, revokeSessionTokenDetailed } from '../services/auth.js';
 import { asyncHandler } from '../utils/async-handler.js';
 
@@ -38,7 +38,7 @@ authRouter.post('/api/v1/auth/session', authRateLimiterStandard, authRateLimiter
 authRouter.get(
   '/api/v1/auth/session',
   asyncHandler(async (req: Request, res: Response) => {
-    const token = extractSessionToken(req);
+    const token = extractSessionTokenFromRequest(req);
     if (!token) {
       return res.status(200).json({ authenticated: false });
     }
@@ -58,7 +58,7 @@ authRouter.post(
   authRateLimiterStandard,
   authRateLimiter,
   asyncHandler(async (req: Request, res: Response) => {
-    const token = extractSessionToken(req);
+    const token = extractSessionTokenFromRequest(req);
     res.setHeader('Set-Cookie', 'pokedex_admin_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
     if (token) {
       const revokeResult = await revokeSessionTokenDetailed(token);

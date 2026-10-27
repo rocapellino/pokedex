@@ -4,24 +4,19 @@
  */
 
 import {
-  CLASSIFICATION_CHIP_LABELS,
   countAdvancedFilters,
   currentFilterState,
   getAbility,
   getAbilityIndex,
   getAllPokemons,
   getClassification,
-  getCurrentGeneration,
   getCurrentPage,
   getCurrentSort,
   getCurrentSortDir,
   getFilteredPokemons,
   getMinStat,
-  getOnlyWithMega,
-  getSearchQuery,
   getSelectedTypes,
   hasActiveFiltersState,
-  hasCustomSortState,
   ITEMS_PER_PAGE,
   resetFilterState,
   SEARCH_DEBOUNCE_MS,
@@ -48,6 +43,7 @@ import {
 import {
   closeDetailModal,
   openDetailModal as openDetailModalComponent,
+  renderActiveFilterChips,
   renderPokemonCard,
   selectMegaTab,
   toggleMegaDisclosure,
@@ -58,14 +54,7 @@ import {
   matchesCatalogFilters,
   type CatalogFilters,
 } from './shared/catalog-filters.js';
-import {
-  defaultSortDirection,
-  isSortKey,
-  isStatKey,
-  MAX_STAT_MIN,
-  sortPokemons,
-  STAT_LABELS,
-} from './shared/catalog-sort.js';
+import { defaultSortDirection, isSortKey, isStatKey, MAX_STAT_MIN, sortPokemons } from './shared/catalog-sort.js';
 import { commitFiltersToUrl, urlMatchesFilters, type HistoryMode } from './shared/filter-history.js';
 import { parseFilterParams } from './shared/filter-url.js';
 import {
@@ -328,127 +317,20 @@ export function clearAllFilters(): void {
   applyFilters();
 }
 
-interface FilterChip {
-  label: string;
-  remove: () => void;
-}
-
-function collectActiveChips(): FilterChip[] {
-  const chips: FilterChip[] = [];
-  const query = getSearchQuery().trim();
-  if (query) {
-    chips.push({
-      label: `Búsqueda: “${query}”`,
-      remove: () => {
-        const input = document.getElementById('searchInput') as HTMLInputElement | null;
-        if (input) input.value = '';
-        handleSearch();
-      },
-    });
-  }
-  for (const type of getSelectedTypes()) chips.push({ label: type, remove: () => toggleTypeFilter(type) });
-  const currentGen = getCurrentGeneration();
-  if (currentGen !== 'all') {
-    const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
-    const label = select?.selectedOptions[0]?.textContent?.trim() || `Gen ${currentGen}`;
-    chips.push({
-      label,
-      remove: () => {
-        if (select) select.value = 'all';
-        handleGenerationChange();
-      },
-    });
-  }
-  if (getOnlyWithMega()) {
-    chips.push({
-      label: 'Con megaevolución',
-      remove: () => {
-        const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
-        if (checkbox) checkbox.checked = false;
-        handleMegaFilterChange();
-      },
-    });
-  }
-  const currentAbility = getAbility();
-  if (currentAbility) {
-    chips.push({
-      label: `Habilidad: ${currentAbility}`,
-      remove: () => {
-        setAbility(null);
-        syncAbilityControl();
-        applyFilters();
-      },
-    });
-  }
-  const currentClassification = getClassification();
-  if (currentClassification) {
-    chips.push({
-      label: CLASSIFICATION_CHIP_LABELS[currentClassification],
-      remove: () => {
-        setClassification(null);
-        syncClassControl();
-        applyFilters();
-      },
-    });
-  }
-  const stat = getMinStat();
-  if (stat) {
-    chips.push({
-      label: `${STAT_LABELS[stat.key]} ≥ ${stat.min}`,
-      remove: () => {
-        setMinStat(null);
-        syncStatControls();
-        applyFilters();
-      },
-    });
-  }
-  if (hasCustomSortState()) {
-    const select = document.getElementById('sortFilter') as HTMLSelectElement | null;
-    const criterion = select?.selectedOptions[0]?.textContent?.trim() || getCurrentSort();
-    chips.push({
-      label: `Orden: ${criterion} ${getCurrentSortDir() === 'asc' ? '↑' : '↓'}`,
-      remove: () => {
-        setCurrentSort('id');
-        setCurrentSortDir(defaultSortDirection('id'));
-        syncSortControl();
-        applyFilters();
-      },
-    });
-  }
-  return chips;
-}
-
 export function renderActiveFilters(): void {
-  const summary = document.getElementById('resultsSummary');
-  const chipList = document.getElementById('activeFilterChips');
-  const clearBtn = document.getElementById('btnClearFilters');
-  const filtered = getFilteredPokemons();
-  const all = getAllPokemons();
-
-  if (summary) {
-    const n = filtered.length;
-    summary.textContent = `${n} ${n === 1 ? 'resultado' : 'resultados'} de ${all.length} Pokémon`;
-  }
-  if (clearBtn) clearBtn.hidden = !hasActiveFilters();
-  renderAdvancedFiltersCount();
-  if (!chipList) return;
-
-  chipList.replaceChildren(
-    ...collectActiveChips().map(({ label, remove }) => {
-      const li = document.createElement('li');
-      li.className = 'filter-chip';
-      const text = document.createElement('span');
-      text.textContent = label;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'filter-chip-remove';
-      btn.textContent = '✕';
-      btn.setAttribute('aria-label', `Quitar filtro ${label}`);
-      btn.addEventListener('click', remove);
-      li.append(text, btn);
-      return li;
-    }),
-  );
+  renderActiveFilterChips({
+    handleSearch,
+    toggleTypeFilter,
+    handleGenerationChange,
+    handleMegaFilterChange,
+    syncAbilityControl,
+    syncClassControl,
+    syncStatControls,
+    syncSortControl,
+    applyFilters,
+    hasActiveFilters,
+    renderAdvancedFiltersCount,
+  });
 }
 
 export function handleMegaFilterChange(): void {

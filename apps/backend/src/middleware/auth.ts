@@ -81,10 +81,6 @@ export function extractSessionTokenFromRequest(req: Request): string {
   return '';
 }
 
-export function extractSessionToken(req: Request): string {
-  return extractSessionTokenFromRequest(req);
-}
-
 export function buildSessionCookie(token: string, expiresInSeconds: number): string {
   const value = encodeURIComponent(token.trim());
   const secure = process.env.NODE_ENV === 'production' || process.env.SECURE_COOKIES === 'true';
@@ -101,7 +97,7 @@ export function buildSessionCookie(token: string, expiresInSeconds: number): str
 /**
  * Extrae exclusivamente claves de API maestras (X-API-Key o Basic/Custom auth).
  */
-export function extractApiKey(req: Request): string {
+function extractApiKey(req: Request): string {
   const keyHeader = (req.headers['x-api-key'] || '') as string;
   if (keyHeader) {
     return keyHeader.trim();
@@ -111,6 +107,87 @@ export function extractApiKey(req: Request): string {
     return authHeader.trim();
   }
   return '';
+}
+
+function validateSessionCsrf(req: Request): { status: number; detail: string } | null {
+  // Mitigación CSRF para mutaciones respaldadas por cookie de sesión (AUD-SEC-CSRF-001).
+  // El token proviene de la cookie solo si no hay Bearer (extractSessionTokenFromRequest
+  // prioriza la cabecera Authorization, que un sitio ajeno no puede fijar).
+  const isMutative = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method);
+  const hasBearer = String(req.headers.authorization || '').startsWith('Bearer ');
+  const isCookieAuth = !hasBearer && Boolean(req.headers.cookie?.includes('pokedex_admin_session='));
+
+  if (!isMutative || !isCookieAuth) {
+    return null;
+  }
+
+  const originHeader = (req.headers.origin || req.headers.referer) as string | undefined;
+  if (!originHeader) {
+    logger.warn('Rechazo CSRF en operación administrativa: mutación por cookie sin Origin ni Referer', {
+      path: req.path,
+    });
+    return {
+      status: 403,
+      detail: 'Cabecera Origin/Referer requerida para mutaciones administrativas mediante cookie (CSRF protection).',
+    };
+  }
+
+  try {
+    const originUrl = new URL(originHeader);
+    const originHost = originUrl.origin;
+    const allowed = getConfiguredCorsOrigins() || DEFAULT_DEV_CORS_ORIGINS;
+    // Igualdad exacta de host[:puerto]: una comparación por subcadena aceptaba
+    // orígenes como `https://<host>.evil.test`.
+    const isSameHost = Boolean(req.headers.host) && originUrl.host === req.headers.host;
+    const isAllowed = allowed.includes(originHost) || isSameHost;
+    if (!isAllowed) {
+      logger.warn('Rechazo CSRF en operación administrativa: Origen no permitido', {
+        origin: originHost,
+        path: req.path,
+      });
+      return {
+        status: 403,
+        detail: 'Origen no autorizado para ejecutar mutaciones administrativas mediante cookie (CSRF protection).',
+      };
+    }
+  } catch {
+    return {
+      status: 403,
+      detail: 'Cabecera Origin/Referer inválida para operación administrativa.',
+    };
+  }
+
+  return null;
+}
+
+async function tryAuthenticateSession(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  sessionToken: string,
+): Promise<boolean> {
+  const sessionCheck = await verifySessionTokenDetailed(sessionToken);
+  if (sessionCheck.valid) {
+    const csrfError = validateSessionCsrf(req);
+    if (csrfError) {
+      res.status(csrfError.status).json({ detail: csrfError.detail });
+      return true;
+    }
+    req.authMechanism = 'hmac_session_token';
+    next();
+    return true;
+  }
+
+  // Fail-Closed: si el servicio distribuido de revocación está caído, rechazar con 503 por seguridad
+  if (sessionCheck.reason === 'service_unavailable') {
+    res.status(503).json({
+      detail:
+        'Servicio de autenticación distribuida temporalmente no disponible (Redis offline). Operación administrativa bloqueada por seguridad (Fail-Closed).',
+    });
+    return true;
+  }
+
+  return false;
 }
 
 export async function verifyAdmin(req: Request, res: Response, next: NextFunction) {
@@ -123,7 +200,7 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
     });
   }
 
-  const sessionToken = extractSessionToken(req);
+  const sessionToken = extractSessionTokenFromRequest(req);
   const apiKey = extractApiKey(req);
 
   if (!sessionToken && !apiKey) {
@@ -133,64 +210,8 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
   }
 
   // 1. Validar si se suministra un token de sesión firmado de corta duración
-  if (sessionToken) {
-    const sessionCheck = await verifySessionTokenDetailed(sessionToken);
-    if (sessionCheck.valid) {
-      // Mitigación CSRF para mutaciones respaldadas por cookie de sesión (AUD-SEC-CSRF-001).
-      // El token proviene de la cookie solo si no hay Bearer (extractSessionTokenFromRequest
-      // prioriza la cabecera Authorization, que un sitio ajeno no puede fijar).
-      const isMutative = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method);
-      const hasBearer = String(req.headers.authorization || '').startsWith('Bearer ');
-      const isCookieAuth = !hasBearer && Boolean(req.headers.cookie?.includes('pokedex_admin_session='));
-      const originHeader = (req.headers.origin || req.headers.referer) as string | undefined;
-
-      if (isMutative && isCookieAuth && !originHeader) {
-        logger.warn('Rechazo CSRF en operación administrativa: mutación por cookie sin Origin ni Referer', {
-          path: req.path,
-        });
-        return res.status(403).json({
-          detail:
-            'Cabecera Origin/Referer requerida para mutaciones administrativas mediante cookie (CSRF protection).',
-        });
-      }
-
-      if (isMutative && isCookieAuth && originHeader) {
-        try {
-          const originUrl = new URL(originHeader);
-          const originHost = originUrl.origin;
-          const allowed = getConfiguredCorsOrigins() || DEFAULT_DEV_CORS_ORIGINS;
-          // Igualdad exacta de host[:puerto]: una comparación por subcadena aceptaba
-          // orígenes como `https://<host>.evil.test`.
-          const isSameHost = Boolean(req.headers.host) && originUrl.host === req.headers.host;
-          const isAllowed = allowed.includes(originHost) || isSameHost;
-          if (!isAllowed) {
-            logger.warn('Rechazo CSRF en operación administrativa: Origen no permitido', {
-              origin: originHost,
-              path: req.path,
-            });
-            return res.status(403).json({
-              detail:
-                'Origen no autorizado para ejecutar mutaciones administrativas mediante cookie (CSRF protection).',
-            });
-          }
-        } catch {
-          return res.status(403).json({
-            detail: 'Cabecera Origin/Referer inválida para operación administrativa.',
-          });
-        }
-      }
-
-      req.authMechanism = 'hmac_session_token';
-      return next();
-    }
-
-    // Fail-Closed: si el servicio distribuido de revocación está caído, rechazar con 503 por seguridad
-    if (sessionCheck.reason === 'service_unavailable') {
-      return res.status(503).json({
-        detail:
-          'Servicio de autenticación distribuida temporalmente no disponible (Redis offline). Operación administrativa bloqueada por seguridad (Fail-Closed).',
-      });
-    }
+  if (sessionToken && (await tryAuthenticateSession(req, res, next, sessionToken))) {
+    return;
   }
 
   // 2. Validar si es la API key maestra (retrocompatibilidad para scripts, pipelines de CI y curl)
@@ -262,6 +283,31 @@ function normalizeIp(ip: string): string {
   return ip.trim().replace(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i, '$1');
 }
 
+function registerAllowedIpEntry(blockList: BlockList, raw: string): void {
+  const entry = normalizeIp(raw);
+  const [address, prefix] = entry.split('/');
+  const family = isIP(address);
+  if (family === 0) {
+    logger.warn('ADMIN_ALLOWED_IPS contiene una entrada inválida y se ignora', { entry: raw });
+    return;
+  }
+
+  const type = family === 4 ? 'ipv4' : 'ipv6';
+  if (prefix === undefined) {
+    blockList.addAddress(address, type);
+    return;
+  }
+
+  const bits = Number(prefix);
+  const maxBits = family === 4 ? 32 : 128;
+  if (!/^\d+$/.test(prefix) || bits > maxBits) {
+    logger.warn('ADMIN_ALLOWED_IPS contiene un prefijo CIDR inválido y se ignora', { entry: raw });
+    return;
+  }
+
+  blockList.addSubnet(address, bits, type);
+}
+
 /**
  * Indica si `clientIp` está autorizada por la lista de `ADMIN_ALLOWED_IPS`.
  * Cada entrada puede ser una IP exacta (`10.42.0.1`) o un rango CIDR (`10.42.0.0/16`,
@@ -278,24 +324,7 @@ export function isAdminIpAllowed(clientIp: string, entries: string[]): boolean {
 
   const blockList = new BlockList();
   for (const raw of entries) {
-    const entry = normalizeIp(raw);
-    const [address, prefix] = entry.split('/');
-    const family = isIP(address);
-    if (family === 0) {
-      logger.warn('ADMIN_ALLOWED_IPS contiene una entrada inválida y se ignora', { entry: raw });
-      continue;
-    }
-    if (prefix === undefined) {
-      blockList.addAddress(address, family === 4 ? 'ipv4' : 'ipv6');
-      continue;
-    }
-    const bits = Number(prefix);
-    const maxBits = family === 4 ? 32 : 128;
-    if (!/^\d+$/.test(prefix) || bits > maxBits) {
-      logger.warn('ADMIN_ALLOWED_IPS contiene un prefijo CIDR inválido y se ignora', { entry: raw });
-      continue;
-    }
-    blockList.addSubnet(address, bits, family === 4 ? 'ipv4' : 'ipv6');
+    registerAllowedIpEntry(blockList, raw);
   }
   return blockList.check(ip, ipFamily === 4 ? 'ipv4' : 'ipv6');
 }
