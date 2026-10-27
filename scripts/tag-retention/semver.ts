@@ -34,7 +34,7 @@ export function areShasEqual(a: unknown, b: unknown): boolean {
  */
 export function parseStrictPositiveInt(value: unknown, paramName: string): number {
   if (typeof value !== 'string' && typeof value !== 'number') {
-    throw new Error(
+    throw new TypeError(
       `Valor inválido para '${paramName}': se esperaba una cadena numérica o entero positivo, recibido ${typeof value}.`,
     );
   }
@@ -59,7 +59,7 @@ export function parseStrictPositiveInt(value: unknown, paramName: string): numbe
  * Devuelve null si no cumple el formato '[v]X.Y.Z[-prerelease][+build]'.
  */
 export function parseSemverTag(name: string): ParsedSemver | null {
-  const match = name.match(SEMVER_TAG_REGEX);
+  const match = SEMVER_TAG_REGEX.exec(name);
   if (!match) return null;
 
   const hasVPrefix = name.startsWith('v');
@@ -69,13 +69,43 @@ export function parseSemverTag(name: string): ParsedSemver | null {
   return {
     raw: name,
     hasVPrefix,
-    major: parseInt(match[1], 10),
-    minor: parseInt(match[2], 10),
-    patch: parseInt(match[3], 10),
+    major: Number.parseInt(match[1], 10),
+    minor: Number.parseInt(match[2], 10),
+    patch: Number.parseInt(match[3], 10),
     prerelease,
     build,
     isPrerelease: Boolean(prerelease),
   };
+}
+
+function comparePrereleasePart(pA?: string, pB?: string): number {
+  if (pA === undefined) return -1;
+  if (pB === undefined) return 1;
+  if (pA === pB) return 0;
+
+  const isNumA = /^\d+$/.test(pA);
+  const isNumB = /^\d+$/.test(pB);
+
+  if (isNumA && isNumB) {
+    return Number.parseInt(pA, 10) - Number.parseInt(pB, 10);
+  }
+  if (isNumA) return -1;
+  if (isNumB) return 1;
+
+  return pA.localeCompare(pB);
+}
+
+function comparePrereleases(prereleaseA?: string, prereleaseB?: string): number {
+  const partsA = (prereleaseA || '').split('.');
+  const partsB = (prereleaseB || '').split('.');
+  const maxLen = Math.max(partsA.length, partsB.length);
+
+  for (let i = 0; i < maxLen; i++) {
+    const diff = comparePrereleasePart(partsA[i], partsB[i]);
+    if (diff !== 0) return diff;
+  }
+
+  return 0;
 }
 
 /**
@@ -89,39 +119,11 @@ export function compareSemver(a: ParsedSemver, b: ParsedSemver): number {
   if (a.minor !== b.minor) return a.minor - b.minor;
   if (a.patch !== b.patch) return a.patch - b.patch;
 
-  // Prerelease handling
-  if (!a.isPrerelease && b.isPrerelease) return 1; // a estable, b prerelease -> a > b
-  if (a.isPrerelease && !b.isPrerelease) return -1; // a prerelease, b estable -> a < b
-  if (!a.isPrerelease && !b.isPrerelease) return 0; // ambas estables -> iguales
+  // Prerelease handling: estable > prerelease
+  if (!a.isPrerelease && b.isPrerelease) return 1;
+  if (a.isPrerelease && !b.isPrerelease) return -1;
+  if (!a.isPrerelease && !b.isPrerelease) return 0;
 
   // Ambas tienen prerelease
-  const partsA = (a.prerelease || '').split('.');
-  const partsB = (b.prerelease || '').split('.');
-  const maxLen = Math.max(partsA.length, partsB.length);
-
-  for (let i = 0; i < maxLen; i++) {
-    const pA = partsA[i];
-    const pB = partsB[i];
-
-    if (pA === undefined) return -1;
-    if (pB === undefined) return 1;
-    if (pA === pB) continue;
-
-    const numA = /^\d+$/.test(pA) ? parseInt(pA, 10) : null;
-    const numB = /^\d+$/.test(pB) ? parseInt(pB, 10) : null;
-
-    if (numA !== null && numB !== null) {
-      return numA - numB;
-    }
-    if (numA !== null && numB === null) {
-      return -1;
-    }
-    if (numA === null && numB !== null) {
-      return 1;
-    }
-
-    return pA.localeCompare(pB);
-  }
-
-  return 0;
+  return comparePrereleases(a.prerelease, b.prerelease);
 }
