@@ -1,0 +1,567 @@
+/* Detail Modal Styling */
+/* ==========================================================================
+   Official Pokédex Detail View (Diseño Oficial de Ficha y Evoluciones)
+   ========================================================================== */
+.detail-modal-card {
+  max-width: 840px;
+  width: 95vw;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+@supports (scrollbar-width: thin) {
+  .detail-modal-card {
+    scrollbar-width: thin;
+  }
+}
+
+.detail-modal-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.detail-modal-card::-webkit-scrollbar-thumb {
+  background: var(--border-glass);
+  border-radius: var(--radius-full);
+}
+
+/* Header estilizado con muescas */
+.pokedex-notched-header {
+  position: relative;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  clip-path: polygon(15px 0%, calc(100% - 15px) 0%, 100% 15px, 100% calc(100% - 15px), calc(100% - 15px) 100%, 15px 100%, 0% calc(100% - 15px), 0% 15px);
+}
+
+.pokedex-notched-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.pokedex-notched-number {
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* Grilla principal de 2 columnas */
+.pokedex-entry-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .pokedex-entry-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Columna Izquierda: Caja de Arte y Puntos de Base */
+.pokedex-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.pokedex-artwork-box {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+}
+
+.pokedex-artwork-img {
+  max-width: 240px;
+  max-height: 240px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 25px rgba(0, 0, 0, 0.25));
+  transition: transform 0.3s ease;
+}
+
+.pokedex-artwork-img:hover {
+  transform: scale(1.05);
+}
+
+/* Panel de Puntos de Base */
+.pokedex-stats-panel {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.1rem;
+  color: var(--text-primary);
+}
+
+.stats-panel-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: inherit;
+}
+
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.base-stat-row {
+  display: grid;
+  grid-template-columns: 5.5rem 2.25rem 1fr;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+}
+
+.base-stat-name {
+  color: var(--text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.base-stat-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.base-stat-track {
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-glass-hover);
+  overflow: hidden;
+}
+
+.base-stat-fill {
+  height: 100%;
+  border-radius: inherit;
+  transform-origin: left center;
+  animation: base-stat-fill-grow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.base-stat-tier--low { background: var(--accent-red); }
+.base-stat-tier--mid { background: var(--accent-yellow); }
+.base-stat-tier--high { background: var(--accent-green); }
+.base-stat-tier--top { background: var(--accent-blue); }
+
+/* Escala sobre 255 en pasos de 5 %: la CSP (style-src 'self') bloquea anchos inline */
+.base-stat-fill--w0 { width: 0%; }
+.base-stat-fill--w5 { width: 5%; }
+.base-stat-fill--w10 { width: 10%; }
+.base-stat-fill--w15 { width: 15%; }
+.base-stat-fill--w20 { width: 20%; }
+.base-stat-fill--w25 { width: 25%; }
+.base-stat-fill--w30 { width: 30%; }
+.base-stat-fill--w35 { width: 35%; }
+.base-stat-fill--w40 { width: 40%; }
+.base-stat-fill--w45 { width: 45%; }
+.base-stat-fill--w50 { width: 50%; }
+.base-stat-fill--w55 { width: 55%; }
+.base-stat-fill--w60 { width: 60%; }
+.base-stat-fill--w65 { width: 65%; }
+.base-stat-fill--w70 { width: 70%; }
+.base-stat-fill--w75 { width: 75%; }
+.base-stat-fill--w80 { width: 80%; }
+.base-stat-fill--w85 { width: 85%; }
+.base-stat-fill--w90 { width: 90%; }
+.base-stat-fill--w95 { width: 95%; }
+.base-stat-fill--w100 { width: 100%; }
+
+.base-stat-total {
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-glass);
+}
+
+.base-stat-total .base-stat-name {
+  color: var(--text-primary);
+}
+
+.stats-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+@keyframes base-stat-fill-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .base-stat-fill { animation: none; }
+}
+
+/* Columna Derecha */
+.pokedex-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.pokedex-description-text {
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.pokedex-versions-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.version-pokeball-icon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.version-pokeball-icon:hover {
+  transform: scale(1.15);
+}
+
+/* Tarjeta Azul de Atributos */
+.pokedex-blue-card {
+  background: #30a7d7;
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  color: #ffffff;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  box-shadow: 0 8px 20px rgba(48, 167, 215, 0.3);
+}
+
+.blue-card-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.blue-card-label {
+  font-size: 0.95rem;
+  color: #0b2a38; /* contraste AA (≥4.5:1) sobre #30a7d7; el blanco daba 2.5:1 */
+  opacity: 1;
+  font-weight: 500;
+}
+
+.blue-card-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #212121;
+}
+
+[data-theme="dark"] .blue-card-value {
+  color: #ffffff;
+}
+
+/* Secciones de Tipos y Debilidades */
+.type-section-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.type-group-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.type-pill-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.official-type-pill {
+  padding: 0.4rem 1.25rem;
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-shadow: var(--official-shadow, 0 1px 2px rgba(0, 0, 0, 0.4));
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  display: inline-block;
+  min-width: 90px;
+  text-align: center;
+}
+
+/* Panel Inferior de Evoluciones Oficial */
+.pokedex-evolutions-official-panel {
+  /* Paleta propia del panel: oscura por defecto (estilo Pokédex oficial) y clara en el tema claro. */
+  --evo-bg: #424242;
+  --evo-stripe: #383838;
+  --evo-text: #ffffff;
+  --evo-text-muted: #a4acaf;
+  --evo-border: rgba(255, 255, 255, 0.1);
+  --evo-inset-shadow: rgba(0, 0, 0, 0.4);
+  --evo-frame-border: #ffffff;
+  --evo-frame-inner: #5a5a5a;
+  --evo-frame-outer: #2b2b2b;
+  --evo-frame-shadow: rgba(0, 0, 0, 0.4);
+  --evo-accent: #30a7d7;
+  --evo-accent-text: #30a7d7;
+  --evo-fork-bg: rgba(0, 0, 0, 0.4);
+  --evo-fork-border: rgba(255, 255, 255, 0.3);
+
+  background-color: var(--evo-bg);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--evo-stripe),
+    var(--evo-stripe) 12px,
+    var(--evo-bg) 12px,
+    var(--evo-bg) 24px
+  );
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  color: var(--evo-text);
+  border: 1px solid var(--evo-border);
+  box-shadow: inset 0 2px 10px var(--evo-inset-shadow);
+}
+
+[data-theme="light"] .pokedex-evolutions-official-panel {
+  --evo-bg: #e3ebf2;
+  --evo-stripe: #d9e3ec;
+  --evo-text: #0f172a;
+  --evo-text-muted: #475569;
+  --evo-border: rgba(15, 23, 42, 0.12);
+  --evo-inset-shadow: rgba(15, 23, 42, 0.12);
+  --evo-frame-border: #ffffff;
+  --evo-frame-inner: #ffffff;
+  --evo-frame-outer: #cbd8e3;
+  --evo-frame-shadow: rgba(15, 23, 42, 0.22);
+  --evo-accent: #1f8fbf;
+  --evo-accent-text: #0b5f82; /* contraste AA (≥4.5:1) sobre el fondo claro del panel */
+  --evo-fork-bg: rgba(255, 255, 255, 0.7);
+  --evo-fork-border: rgba(15, 23, 42, 0.3);
+}
+
+.evolutions-panel-header {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--evo-text);
+  margin-bottom: 1.25rem;
+}
+
+.evolutions-nodes-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.evolution-node-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: transform 0.25s ease;
+  min-width: 140px;
+}
+
+.evolution-node-item:hover {
+  transform: translateY(-4px);
+}
+
+.evolution-node-item:focus-visible {
+  outline: 3px solid var(--evo-accent);
+  outline-offset: 6px;
+  border-radius: var(--radius-sm);
+}
+
+.evolution-circle-frame {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 5px solid var(--evo-frame-border);
+  background: radial-gradient(circle, var(--evo-frame-inner) 0%, var(--evo-frame-outer) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px var(--evo-frame-shadow);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.evolution-node-item:hover .evolution-circle-frame {
+  border-color: var(--evo-accent);
+  box-shadow: 0 0 20px rgba(48, 167, 215, 0.6);
+}
+
+.evolution-node-item.active-current .evolution-circle-frame {
+  border-color: var(--evo-accent);
+  box-shadow: 0 0 25px rgba(48, 167, 215, 0.8);
+}
+
+.evolution-circle-img {
+  width: 85px;
+  height: 85px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+  transition: transform 0.3s;
+}
+
+.evolution-node-item:hover .evolution-circle-img {
+  transform: scale(1.15);
+}
+
+.evolution-name-tag {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--evo-text);
+  text-align: center;
+}
+
+.evolution-number-sub {
+  font-size: 0.85rem;
+  color: var(--evo-text-muted);
+  font-weight: 400;
+  margin-left: 0.25rem;
+}
+
+.evolution-types-row {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.evolution-type-mini {
+  padding: 0.2rem 0.6rem;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: var(--official-shadow, 0 1px 1px rgba(0, 0, 0, 0.4));
+}
+
+.evolution-transition-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin: 0 0.5rem;
+  min-width: 90px;
+}
+
+.evolution-trigger-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(48, 167, 215, 0.18);
+  border: 1px solid rgba(48, 167, 215, 0.45);
+  color: var(--evo-accent-text);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  max-width: 145px;
+  line-height: 1.2;
+}
+
+.evolution-chevron-arrow {
+  color: var(--evo-text);
+  font-size: 1.8rem;
+  font-weight: 300;
+  opacity: 0.85;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Ramificaciones Evolutivas (Branched Evolutions like Eevee) */
+.branched-evolution-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.branched-parent-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.branched-fork-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1.2rem;
+  background: var(--evo-fork-bg);
+  border: 1px dashed var(--evo-fork-border);
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--evo-text);
+}
+
+.fork-arrow-down {
+  font-size: 1.1rem;
+}
+
+.branched-children-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+  justify-items: center;
+}
+
+.evolution-method-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--evo-accent-text);
+  background: rgba(48, 167, 215, 0.2);
+  border: 1px solid rgba(48, 167, 215, 0.4);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  text-align: center;
+  max-width: 135px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

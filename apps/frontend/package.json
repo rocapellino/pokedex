@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build:css": "tsx ../../scripts/build-css.ts",
+    "build": "tsx ../../scripts/build-css.ts && tsc && vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit"

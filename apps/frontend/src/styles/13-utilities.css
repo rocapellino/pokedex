@@ -1,0 +1,38 @@
+/* Clases de Utilidad de Layout y Espaciado para CSP Strict */
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+.text-white { color: #ffffff !important; }
+.text-danger { color: #ef4444 !important; }
+.text-sm { font-size: 0.9rem; }
+.text-body { font-size: 0.95rem; line-height: 1.5; }
+.text-2xl { font-size: 1.5rem; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-4 { margin-top: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.py-4 { padding: 1rem 0; }
+.py-12 { padding: 3rem; }
+.flex-center-gap { display: flex; gap: 0.35rem; align-items: center; }
+.modal-close-btn { position: absolute; right: 1rem; }
+.col-span-full { grid-column: 1 / -1; }
+.w-80px { width: 80px; }
+.w-90px { width: 90px; }
+.w-170px { width: 170px; }
+.spinner-centered { margin: 0 auto 1rem; }
+.token-code { color: var(--primary, #3b82f6); }
+.btn-download-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.btn-auth-active {
+  border-color: #10b981 !important;
+  color: #10b981 !important;
+}

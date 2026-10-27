@@ -1,0 +1,84 @@
+/* Cabecera, búsqueda y filtros quedan a la vista al desplazarse: cambiar el tema o un filtro no obliga a
+   volver arriba. `top` negativo esconde parte del relleno superior al pegarse y deja una franja de 0,5rem. */
+.sticky-top {
+  position: sticky;
+  top: -1.5rem;
+  z-index: 50;
+  margin: 0 calc(var(--page-gutter) * -1) 1rem;
+  padding: 2rem var(--page-gutter) 0.75rem;
+  /* Mismo fondo fijo que el body: las tarjetas se ocultan limpiamente por debajo y la banda no se distingue. */
+  background-color: var(--bg-primary);
+  background-image: var(--body-bg-gradient);
+  background-attachment: fixed;
+}
+
+/* Con el panel abierto la zona fija no puede ocupar toda la ventana: el panel se desplaza por dentro. */
+.sticky-top .filters-panel {
+  max-height: 60vh;
+  max-height: 60dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2rem;
+  background: var(--bg-card);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.pokeball-logo {
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(0 0 10px var(--accent-red-glow));
+  transition: transform var(--transition-normal);
+}
+
+.brand:hover .pokeball-logo {
+  transform: rotate(180deg);
+}
+
+.brand-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--accent-red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-full);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}

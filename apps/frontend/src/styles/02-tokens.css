@@ -1,0 +1,96 @@
+:root,
+[data-theme="dark"] {
+  /* Color Palette - Dark Mode */
+  --bg-primary: #0b0f19;
+  --bg-secondary: #111827;
+  --bg-card: rgba(17, 24, 39, 0.7);
+  --bg-glass: rgba(255, 255, 255, 0.04);
+  --bg-glass-hover: rgba(255, 255, 255, 0.08);
+
+  --border-glass: rgba(255, 255, 255, 0.1);
+  --border-focus: rgba(239, 68, 68, 0.5);
+
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+
+  --bg-input: rgba(0, 0, 0, 0.3);
+  --bg-stats-matrix: rgba(0, 0, 0, 0.2);
+  --bg-modal-overlay: rgba(5, 8, 15, 0.82);
+  --brand-gradient: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+  --body-bg-gradient:
+    radial-gradient(circle at 15% 15%, rgba(239, 68, 68, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.05) 0%, transparent 60%);
+
+  --accent-red: #ef4444;
+  --accent-red-glow: rgba(239, 68, 68, 0.4);
+  --accent-yellow: #f59e0b;
+  --accent-yellow-glow: rgba(245, 158, 11, 0.4);
+  --accent-blue: #3b82f6;
+  --accent-blue-glow: rgba(59, 130, 246, 0.4);
+  --accent-green: #10b981;
+  --accent-purple: #8b5cf6;
+
+  /* Pokémon Types Colors */
+  --type-electrico: #f59e0b;
+  --type-fuego: #ef4444;
+  --type-agua: #3b82f6;
+  --type-planta: #10b981;
+  --type-psiquico: #ec4899;
+  --type-roca: #b45309;
+  --type-tierra: #d97706;
+  --type-hielo: #06b6d4;
+  --type-fantasma: #8b5cf6;
+  --type-dragon: #6366f1;
+  --type-normal: #6b7280;
+  --type-lucha: #dc2626;
+  --type-veneno: #a855f7;
+  --type-bicho: #84cc16;
+  --type-volador: #38bdf8;
+  --type-acero: #94a3b8;
+  --type-siniestro: #334155;
+  --type-hada: #f472b6;
+
+  /* UI Tokens */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 25px var(--accent-red-glow);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] {
+  /* Color Palette - Light Mode */
+  --bg-primary: #f3f4f8;
+  --bg-secondary: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.88);
+  --bg-glass: rgba(0, 0, 0, 0.035);
+  --bg-glass-hover: rgba(0, 0, 0, 0.07);
+
+  --border-glass: rgba(0, 0, 0, 0.08);
+  --border-focus: rgba(239, 68, 68, 0.6);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --bg-input: rgba(248, 250, 252, 0.95);
+  --bg-stats-matrix: rgba(241, 245, 249, 0.85);
+  --bg-modal-overlay: rgba(15, 23, 42, 0.55);
+  --brand-gradient: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+  --body-bg-gradient:
+    radial-gradient(circle at 15% 15%, rgba(239, 68, 68, 0.09) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.09) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.04) 0%, transparent 60%);
+
+  --shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.06);
+  --shadow-glow: 0 0 20px rgba(239, 68, 68, 0.25);
+  --shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.07), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+}

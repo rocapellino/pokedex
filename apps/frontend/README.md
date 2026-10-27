@@ -29,6 +29,21 @@ apps/frontend/
 │   │   ├── admin-table.ts      # Tabla de administración con paginación
 │   │   ├── admin-events.ts     # Suscripción a eventos del panel
 │   │   └── index.ts            # Barrel de exportación
+│   ├── styles/         # SSOT modular de estilos CSS (< 600 LOC por módulo)
+│   │   ├── 01-fonts.css        # Declaraciones @font-face autoalojadas
+│   │   ├── 02-tokens.css       # Variables de diseño y paletas clara/oscura
+│   │   ├── 03-base.css         # Reset box-sizing, a11y (.sr-only, .skip-link)
+│   │   ├── 04-layout.css       # Contenedor, sticky-header y autohide móvil
+│   │   ├── 05-theme-switcher.css # Control selector de tema Zero-FOUC
+│   │   ├── 06-catalog.css      # Grilla del catálogo y tarjetas interactivas
+│   │   ├── 07-modal-base.css   # Estructura del modal nativo <dialog> y overlay
+│   │   ├── 08-filters.css      # Búsqueda, selects, sliders y chips activos
+│   │   ├── 09-pagination.css   # Barra de paginación accesible
+│   │   ├── 10-modal-detail.css # Detalle: cabecera con muescas y atributos
+│   │   ├── 11-feedback.css     # Spinners, loading y toasts de notificación
+│   │   ├── 12-types.css        # Colores e insignias por tipo Pokémon
+│   │   ├── 13-utilities.css    # Clases de utilidad de layout para CSP estricta
+│   │   └── 14-evolutions-advanced.css # Evoluciones oficiales y ramificaciones
 │   └── shared/         # Lógica compartida (client API, constantes, formato, UI)
 │       ├── api.ts            # Cliente HTTP tipado contra el backend
 │       ├── constants.ts      # Colores por tipo, catálogos y umbrales
@@ -48,6 +63,11 @@ apps/frontend/
 > No edites `nginx.conf` a mano: cualquier cambio se perdería al regenerar.
 > Edita la plantilla y ejecuta `npm run nginx:conf`. El gate
 > `npm run nginx:conf:check` falla si el artefacto queda desactualizado.
+>
+> **`src/styles/*.css` es el SSOT; `public/css/style.css` es un artefacto generado.**
+> No edites `public/css/style.css` a mano: cualquier cambio se perdería al regenerar.
+> Edita los módulos en `src/styles/` y ejecuta `npm run build:css`. El gate
+> `npm run build:css:check` falla si el artefacto queda desactualizado.
 >
 > `src/components/` y `src/shared/` existen para evitar duplicación entre el
 > catálogo público y el backoffice: ambos consumen los mismos helpers de API,

@@ -1294,6 +1294,28 @@
       "description": "Módulo de arranque de navegador simulado con JSDOM para ejecución determinista y cobertura estática V8 en pruebas frontend."
     },
     {
+      "path": "tests/frontend/build_css.test.ts",
+      "suite": "frontend",
+      "type": "Unit / CSS Contract",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Estilos Modulares / Compilador CSS",
+      "targetArtifacts": [
+        "scripts/build-css.ts",
+        "apps/frontend/public/css/style.css"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Valida que el compilador concatene los módulos CSS en apps/frontend/src/styles/, mantenga paridad 1:1 con style.css y respete el umbral de complejidad (< 600 LOC)."
+    },
+    {
       "path": "tests/frontend/catalog_ability_controller.test.ts",
       "suite": "frontend",
       "type": "Component / DOM",
