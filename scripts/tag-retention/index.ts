@@ -11,3 +11,4 @@ export * from './semver.ts';
 export * from './protection.ts';
 export * from './evaluator.ts';
 export * from './remote-api.ts';
+export * from './runner.ts';
