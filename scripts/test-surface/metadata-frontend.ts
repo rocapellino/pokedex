@@ -7,6 +7,13 @@ import type { FileMetadata } from './metadata.js';
 const SRC = 'apps/frontend/src';
 
 export const FRONTEND_FILE_METADATA: Record<string, FileMetadata> = {
+  'tests/frontend/build_css.test.ts': {
+    type: 'Unit / CSS Contract',
+    targetDomain: 'Estilos Modulares / Compilador CSS',
+    targetArtifacts: ['scripts/build-css.ts', 'apps/frontend/public/css/style.css'],
+    description:
+      'Valida que el compilador concatene los módulos CSS en apps/frontend/src/styles/, mantenga paridad 1:1 con style.css y respete el umbral de complejidad (< 600 LOC).',
+  },
   'tests/frontend/catalog_ability_controller.test.ts': {
     type: 'Component / DOM',
     targetDomain: 'Catálogo / Filtro por Habilidad',

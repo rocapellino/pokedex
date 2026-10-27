@@ -1,0 +1,180 @@
+/* El catálogo recibe el foco por programa tras cambiar de página; no es interactivo, así que no lleva
+   contorno (las tarjetas y los botones conservan el suyo). */
+.pokemon-grid:focus {
+  outline: none;
+}
+
+.pokemon-card {
+  background: var(--bg-card);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+}
+
+.pokemon-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--type-color, var(--accent-red)), transparent);
+  opacity: 0.8;
+}
+
+.pokemon-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.6), 0 0 20px var(--card-glow, rgba(239, 68, 68, 0.15));
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.card-header .flex-center-gap {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.card-header .pokemon-id {
+  flex-shrink: 0;
+}
+
+.card-header .flex-center-gap > span {
+  white-space: nowrap;
+}
+
+.pokemon-id {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-glass);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-glass);
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.image-container {
+  width: 100%;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 1.25rem;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+  border-radius: var(--radius-md);
+}
+
+.pokemon-img {
+  max-height: 150px;
+  max-width: 150px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.4));
+  transition: transform var(--transition-normal);
+}
+
+.pokemon-card:hover .pokemon-img {
+  transform: scale(1.08) translateY(-4px);
+}
+
+.pokemon-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+/* Acción principal de la tarjeta: botón nativo cuyo ::after cubre toda la tarjeta (Enter, Espacio y clic). */
+.card-open {
+  all: unset;
+  cursor: pointer;
+}
+
+.card-open::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+/* La tarjeta recorta con overflow: hidden, por eso el contorno de foco va hacia dentro. */
+.pokemon-card:has(.card-open:focus-visible) {
+  outline: 3px solid var(--accent-blue);
+  outline-offset: -3px;
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  margin-bottom: 1.25rem;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.stats-matrix {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+  background: var(--bg-stats-matrix);
+  padding: 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+  margin-bottom: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-item-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.stat-item-val {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.skills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: auto;
+}
+
+.skill-pill {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
