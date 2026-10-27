@@ -156,4 +156,34 @@ for (const { app, values, valueFiles } of environments) {
       );
     }
   });
+
+  // AUD-INF-NGINX-002: tras activar set_real_ip_from 10.42.0.0/16 en nginx, $remote_addr
+  // contiene la IP real del cliente detrás de Traefik. Si el entorno activo en Proxmox no
+  // declara web.env.backofficeAllowedIp1/2, hereda 10.42.0.1/32 y 192.168.1.50/32 del chart
+  // base y responde 403 al Bastion (10.10.13.120) y a la red de gestión (10.10.13.0/24).
+  test(`🛡️ AUD-INF-NGINX-002: ${app} declara allowlists de backoffice coherentes con el inventario de gestión`, () => {
+    if (values.global?.environment !== 'onprem-proxmox-preprod') return;
+
+    const proxmoxInventory = readYaml(path.join(ROOT_DIR, 'infra/ansible/inventories/proxmox/hosts.yaml'));
+    const mgmtCidr = String(proxmoxInventory.all?.vars?.mgmt_cidr ?? '');
+    const bastionIp = String(proxmoxInventory.all?.children?.bastion_servers?.hosts?.bastion?.ansible_host ?? '');
+    assert.ok(mgmtCidr && bastionIp, 'El inventario de Proxmox debe declarar mgmt_cidr y bastion.ansible_host');
+
+    const allowed = [
+      String(values.web?.env?.backofficeAllowedIp1 ?? ''),
+      String(values.web?.env?.backofficeAllowedIp2 ?? ''),
+    ];
+    assert.ok(
+      !allowed.includes('192.168.1.50/32'),
+      `${app}: web.env.backofficeAllowedIp* hereda el placeholder 192.168.1.50/32 del chart base`,
+    );
+    assert.ok(
+      allowed.includes(`${bastionIp}/32`) || allowed.includes(bastionIp),
+      `${app}: web.env.backofficeAllowedIp* debe autorizar al Bastion (${bastionIp}/32); declarado: ${allowed.join(', ')}`,
+    );
+    assert.ok(
+      allowed.includes(mgmtCidr),
+      `${app}: web.env.backofficeAllowedIp* debe autorizar la red de gestión (${mgmtCidr}); declarado: ${allowed.join(', ')}`,
+    );
+  });
 }

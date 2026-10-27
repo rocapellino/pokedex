@@ -201,3 +201,26 @@ test('🛡️ Nginx Real IP (AUD-INF-NGINX-001): nginx.conf y template restauran
     assert.ok(content.includes('real_ip_recursive on;'), `${relPath} debe habilitar real_ip_recursive on`);
   }
 });
+
+test('🛡️ Nginx efectivo (AUD-INF-NGINX-002): toda location de proxy a la API propaga X-Forwarded-Proto, X-Forwarded-For y X-Real-IP', () => {
+  const apiLocations = locations.filter((l) => /^\/(api\/|pokemons)/.test(l.header));
+  assert.ok(apiLocations.length >= 2, 'Debe haber locations de proxy /api/ y /pokemons');
+
+  for (const location of apiLocations) {
+    assert.match(
+      location.body,
+      /proxy_set_header\s+X-Real-IP\s+\$remote_addr\s*;/,
+      `location ${location.header} debe propagar X-Real-IP $remote_addr`,
+    );
+    assert.match(
+      location.body,
+      /proxy_set_header\s+X-Forwarded-For\s+\$proxy_add_x_forwarded_for\s*;/,
+      `location ${location.header} debe propagar X-Forwarded-For $proxy_add_x_forwarded_for`,
+    );
+    assert.match(
+      location.body,
+      /proxy_set_header\s+X-Forwarded-Proto\s+\$scheme\s*;/,
+      `location ${location.header} debe propagar X-Forwarded-Proto $scheme`,
+    );
+  }
+});

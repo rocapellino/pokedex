@@ -59,7 +59,7 @@ tools:
       version_args: ["version"]
       version_regex: '(\d+\.\d+\.\d+)'
     container:
-      image: "zricethezav/gitleaks:v8.24.2"
+      image: "zricethezav/gitleaks:v8.30.1"
       mount_mode: "ro"
       workdir: "/repo"
       default_args: []
@@ -135,7 +135,7 @@ tools:
       version_args: ["-v"]
       version_regex: 'v(\d+\.\d+\.\d+)'
     container:
-      image: "ghcr.io/yannh/kubeconform:v0.6.7"
+      image: "ghcr.io/yannh/kubeconform:v0.8.0"
       mount_mode: "ro"
       workdir: "/repo"
       default_args: []
@@ -147,7 +147,7 @@ tools:
       version_args: ["version"]
       version_regex: 'v(\d+\.\d+\.\d+)'
     container:
-      image: "stackrox/kube-linter:v0.7.2"
+      image: "stackrox/kube-linter:v0.8.3"
       mount_mode: "ro"
       workdir: "/repo"
       default_args: []
@@ -159,7 +159,7 @@ tools:
       version_args: ["version"]
       version_regex: 'Version:\s*(\d+\.\d+\.\d+)'
     container:
-      image: "ghcr.io/kyverno/kyverno-cli:v1.12.5"
+      image: "ghcr.io/kyverno/kyverno-cli:v1.19.2"
       mount_mode: "ro"
       workdir: "/repo"
       default_args: []

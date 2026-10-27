@@ -17,6 +17,7 @@
  * ==============================================================================
  */
 
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -115,6 +116,8 @@ export const DEFAULT_CONFIG: HierarchicalRetentionConfig = {
 
 export const DEFAULT_OWNER = 'rocapellino';
 export const DEFAULT_REPO = 'pokedex';
+/** Ventana de releases estables protegidos para rollback OCI en GHCR (N, N-1, N-2). */
+export const DEFAULT_ROLLBACK_WINDOW_COUNT = 3;
 
 /**
  * Expresión regular SemVer 2.0 canónica que admite prefijo 'v' opcional.
@@ -254,12 +257,42 @@ export function compareSemver(a: ParsedSemver, b: ParsedSemver): number {
 }
 
 /**
- * Recolecta todos los tags que están activamente protegidos por GitOps, Helm, package.json
- * y una lista personalizada de excepciones.
+ * Protege los últimos `rollbackCount` tags SemVer estables (N, N-1, N-2) para mantener
+ * paridad con la ventana de rollback de imágenes en GHCR (`collectReleasePinnedDigests`).
+ */
+export function protectRollbackWindowTags(
+  tagNames: Iterable<string>,
+  protectedMap: Map<string, string>,
+  rollbackCount: number = DEFAULT_ROLLBACK_WINDOW_COUNT,
+): void {
+  const stableParsed: ParsedSemver[] = [];
+  for (const rawName of tagNames) {
+    const trimmed = rawName.trim();
+    if (!trimmed) continue;
+    const parsed = parseSemverTag(trimmed);
+    if (parsed && !parsed.isPrerelease) {
+      stableParsed.push(parsed);
+    }
+  }
+  stableParsed.sort((a, b) => compareSemver(b, a));
+  for (const item of stableParsed.slice(0, Math.max(0, rollbackCount))) {
+    if (!protectedMap.has(item.raw)) {
+      protectedMap.set(
+        item.raw,
+        `GHCR Rollback: ventana de los últimos ${rollbackCount} releases estables (N, N-1, N-2)`,
+      );
+    }
+  }
+}
+
+/**
+ * Recolecta todos los tags que están activamente protegidos por GitOps, Helm, package.json,
+ * la ventana de rollback de GHCR (N, N-1, N-2) y una lista personalizada de excepciones.
  */
 export function collectProtectedTags(
   root: string = process.cwd(),
   customExceptions: string[] = [],
+  rollbackCount: number = DEFAULT_ROLLBACK_WINDOW_COUNT,
 ): Map<string, string> {
   const protectedMap = new Map<string, string>();
 
@@ -323,6 +356,20 @@ export function collectProtectedTags(
       }
     } catch {
       // Ignorar errores de parseo en entornos de test si package.json no es JSON válido
+    }
+  }
+
+  // 5. AUD-REL-RET-002: Ventana de rollback de GHCR (últimos N releases estables vX.Y.Z)
+  if (rollbackCount > 0) {
+    try {
+      const listed = execFileSync('git', ['tag', '--list', 'v*'], {
+        cwd: root,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
+      protectRollbackWindowTags(listed.split(/\r?\n/), protectedMap, rollbackCount);
+    } catch {
+      // Si el directorio no es un repositorio Git o git no está disponible, se omite sin fallar
     }
   }
 
@@ -1228,6 +1275,16 @@ export async function applyTagRetention(options: TagRetentionOptions = {}): Prom
   }
 
   console.log(`• Total de tags encontrados  : ${rawTags.length}`);
+
+  // AUD-REL-RET-002: En ejecución real sin mapa de protección inyectado manualmente,
+  // asegurar que los últimos 3 tags SemVer estables del inventario remoto también
+  // queden protegidos aunque el clon local no tuviera todos los tags descargados.
+  if (!effectiveSimulate && options.protectedTags === undefined) {
+    protectRollbackWindowTags(
+      rawTags.map((t) => t.name),
+      protectedTagsMap,
+    );
+  }
 
   const {
     summary,

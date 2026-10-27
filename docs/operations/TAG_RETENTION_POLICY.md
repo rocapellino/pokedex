@@ -10,7 +10,7 @@ Esta política sustituye la regla plana anterior por una **estrategia jerárquic
 
 1. **Trazabilidad por Línea de Versión (Major → Minor → Patch):** Preserva la línea actual y la previa inmediata (`N` y `N-1` majors), permitiendo dar soporte y auditar versiones vivas en paralelo.
 2. **Último Estado Estable (Latest Patch):** Dentro de cada línea minor seleccionada, se conserva únicamente el último patch publicado, eliminando los parches intermedios históricos superados.
-3. **Protección Multicapa de Despliegues Activos:** Las versiones referenciadas en GitOps ArgoCD (`gitops/apps/*`), plantillas Helm (`infra/helm/pokedex/Chart.yaml`) o listas explícitas de excepciones están blindadas frente a cualquier eliminación.
+3. **Protección Multicapa de Despliegues Activos y Ventana de Rollback OCI (`AUD-REL-RET-002`):** Las versiones referenciadas en GitOps ArgoCD (`gitops/apps/*`), plantillas Helm (`infra/helm/pokedex/Chart.yaml`), `package.json`, listas explícitas de excepciones y la **ventana de los últimos 3 releases estables ($N, N-1, N-2$)** están blindadas frente a cualquier eliminación, garantizando que `ghcr-retention.ts` nunca pierda las referencias de tag necesarias para preservar las imágenes de rollback en GHCR.
 4. **Demarcación de Alcance de Objetos:** Opera exclusivamente sobre referencias remotas de Git (`refs/tags/*`). No elimina GitHub Releases, artefactos compilados, imágenes ni paquetes OCI en GHCR.
 
 ---

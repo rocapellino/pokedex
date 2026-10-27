@@ -164,3 +164,40 @@ test('🛡️ CI Tooling Parity: la versión de OpenTofu de infra.yaml y tool-ca
     `tool-catalog.yaml debe mantener paridad con config-linters.yaml (${zizmorMatch[0]})`,
   );
 });
+
+test('🛡️ CI Tooling Parity (AUD-TOOL-CAT-001): kubeconform, kube-linter, kyverno y gitleaks en tool-catalog.yaml coinciden con los workflows de CI', () => {
+  const infra = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/infra.yaml'), 'utf-8');
+  const gitleaksWf = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/security-gitleaks.yaml'), 'utf-8');
+  const toolCatalog = fs.readFileSync(
+    path.join(ROOT_DIR, '.agents/skills/repo-tool-exec/references/tool-catalog.yaml'),
+    'utf-8',
+  );
+
+  const kubeconformVer = infra.match(/KUBECONFORM_VERSION="(v\d+\.\d+\.\d+)"/)?.[1];
+  assert.ok(kubeconformVer, 'infra.yaml debe definir KUBECONFORM_VERSION');
+  assert.ok(
+    toolCatalog.includes(`ghcr.io/yannh/kubeconform:${kubeconformVer}`),
+    `AUD-TOOL-CAT-001: tool-catalog.yaml debe fijar ghcr.io/yannh/kubeconform:${kubeconformVer} en paridad con infra.yaml`,
+  );
+
+  const kubeLinterVer = infra.match(/KUBELINTER_VERSION="(v\d+\.\d+\.\d+)"/)?.[1];
+  assert.ok(kubeLinterVer, 'infra.yaml debe definir KUBELINTER_VERSION');
+  assert.ok(
+    toolCatalog.includes(`stackrox/kube-linter:${kubeLinterVer}`),
+    `AUD-TOOL-CAT-001: tool-catalog.yaml debe fijar stackrox/kube-linter:${kubeLinterVer} en paridad con infra.yaml`,
+  );
+
+  const kyvernoVer = infra.match(/KYVERNO_VERSION="(v\d+\.\d+\.\d+)"/)?.[1];
+  assert.ok(kyvernoVer, 'infra.yaml debe definir KYVERNO_VERSION');
+  assert.ok(
+    toolCatalog.includes(`ghcr.io/kyverno/kyverno-cli:${kyvernoVer}`),
+    `AUD-TOOL-CAT-001: tool-catalog.yaml debe fijar ghcr.io/kyverno/kyverno-cli:${kyvernoVer} en paridad con infra.yaml`,
+  );
+
+  const gitleaksVer = gitleaksWf.match(/GITLEAKS_VERSION:\s*"(\d+\.\d+\.\d+)"/)?.[1];
+  assert.ok(gitleaksVer, 'security-gitleaks.yaml debe definir GITLEAKS_VERSION');
+  assert.ok(
+    toolCatalog.includes(`zricethezav/gitleaks:v${gitleaksVer}`),
+    `AUD-TOOL-CAT-001: tool-catalog.yaml debe fijar zricethezav/gitleaks:v${gitleaksVer} en paridad con security-gitleaks.yaml`,
+  );
+});

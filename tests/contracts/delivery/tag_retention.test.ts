@@ -14,6 +14,7 @@ import {
   DEFAULT_CONFIG,
   type GitTagRef,
 } from '../../../scripts/tag-retention.ts';
+import { collectReleasePinnedDigests } from '../../../scripts/ghcr-retention.ts';
 
 function createMockTag(name: string, date?: string, sha?: string): GitTagRef {
   return {
@@ -365,6 +366,31 @@ test('🏷️ Protección: collectProtectedTags detecta referencias activas y ex
 
   assert.ok(protectedMap.has('v9.9.9-custom'), 'Debe incluir excepciones personalizadas');
   assert.ok(protectedMap.size >= 2, 'Debe incluir referencias de GitOps o Chart');
+});
+
+test('🏷️ Protección [AUD-REL-RET-002]: collectProtectedTags protege la ventana de rollback de GHCR (N, N-1, N-2)', () => {
+  const ghcrRollback = collectReleasePinnedDigests(ROOT_DIR, 3);
+  assert.ok(ghcrRollback.tags.length > 0, 'Debe existir al menos un tag de release en el repositorio');
+
+  const protectedMap = collectProtectedTags(ROOT_DIR);
+  for (const tag of ghcrRollback.tags) {
+    assert.ok(
+      protectedMap.has(tag),
+      `AUD-REL-RET-002: el tag de rollback de GHCR ${tag} debe estar protegido en collectProtectedTags para no desproteger sus imágenes OCI`,
+    );
+  }
+
+  // Al evaluar la retención jerárquica con patch_count=1 sobre múltiples patches de la misma minor,
+  // ninguno de los 3 releases de rollback de GHCR puede quedar en candidatos a purga (pruned).
+  const tags = ghcrRollback.tags.map((name) => createMockTag(name));
+  const evaluation = evaluateHierarchicalTagRetention(tags, DEFAULT_CONFIG, protectedMap);
+  const prunedNames = evaluation.pruned.map((item) => item.tag.name);
+  for (const tag of ghcrRollback.tags) {
+    assert.ok(
+      !prunedNames.includes(tag),
+      `AUD-REL-RET-002: ${tag} no puede marcarse como candidato a purga mientras forme parte de la ventana de rollback de GHCR`,
+    );
+  }
 });
 
 test('🔒 Seguridad: la simulación automática por falta de GITHUB_TOKEN se declara y advierte sobre el resultado', async () => {

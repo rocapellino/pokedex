@@ -59,6 +59,12 @@ web:
       memory: "64Mi"
   autoscaling:
     enabled: false
+  env:
+    # AUD-INF-NGINX-002: tras activar set_real_ip_from 10.42.0.0/16 en nginx,
+    # $remote_addr es la IP real del cliente detrás de Traefik. Autoriza al
+    # Bastion (LXC 820, 10.10.13.120) y a la red de gestión Proxmox (10.10.13.0/24).
+    backofficeAllowedIp1: "10.10.13.120/32"
+    backofficeAllowedIp2: "10.10.13.0/24"
 
 ingress:
   enabled: true
