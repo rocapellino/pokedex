@@ -196,12 +196,13 @@ test('🌐 nginx: cada ruta /api/ del frontend llega al backend como una ruta re
   const frontendCalls = [
     ...new Set([...read('apps/frontend/src').matchAll(/['`"](\/api\/[^'`"?$]+)/g)].map((m) => m[1])),
   ];
+  // Express admite una ruta o un array de rutas por registro (p. ej. ['/version', '/api/v1/version']).
   const backendRoutes = new Set(
     [
       ...(
         read('apps/backend/src/routes') + fs.readFileSync(path.join(ROOT_DIR, 'apps/backend/server.ts'), 'utf-8')
-      ).matchAll(/(?:Router|app)\.(?:get|post|put|patch|delete)\(\s*'([^']+)'/g),
-    ].map((m) => m[1]),
+      ).matchAll(/(?:Router|app)\.(?:get|post|put|patch|delete)\(\s*('[^']+'|\[[^\]]+\])/g),
+    ].flatMap((m) => [...m[1].matchAll(/'([^']+)'/g)].map((r) => r[1])),
   );
 
   assert.ok(frontendCalls.length > 0, 'El frontend debe consumir al menos una ruta /api/');

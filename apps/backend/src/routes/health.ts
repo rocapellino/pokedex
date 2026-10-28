@@ -4,6 +4,7 @@ import { getLifecycleStatus } from '../utils/lifecycle.js';
 import { startTime, generatePrometheusMetrics } from '../middleware/metrics.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import { requireMetricsToken } from '../middleware/metrics-auth.js';
+import type { ServiceVersionResponse } from '../types.js';
 
 export const healthRouter = express.Router();
 
@@ -71,7 +72,7 @@ healthRouter.get(
         redis_connected: health.redis_connected,
         mode: health.postgres_connected ? 'normal' : 'degraded',
       },
-    });
+    } satisfies ServiceVersionResponse);
   }),
 );
 

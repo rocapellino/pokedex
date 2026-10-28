@@ -40,6 +40,23 @@ const CATALOG: Pokemon[] = [
   { id: 7, nombre: 'Squirtle', tipo: 'Agua', tipos: ['Agua'], fuerza: 44 },
 ];
 
+/** Respuesta de `/api/v1/version` con PostgreSQL y Redis conectados. */
+const HEALTHY_VERSION = {
+  app: 'pokedex',
+  version: '0.0.0-test',
+  git_sha: 'test',
+  node_version: 'v24',
+  uptime_seconds: 1,
+  environment: 'test',
+  database: {
+    engine: 'postgresql',
+    postgres_connected: true,
+    postgres_version: '17',
+    redis_connected: true,
+    mode: 'normal',
+  },
+};
+
 const realSetInterval = globalThis.setInterval;
 const realClearInterval = globalThis.clearInterval;
 const realFetch = globalThis.fetch;
@@ -78,8 +95,8 @@ beforeEach(() => {
   const g = globalThis as Record<string, unknown>;
   g.fetch = async (url: string | URL) => {
     const href = String(url);
-    if (href.includes('/healthz')) {
-      return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({}) };
+    if (href.includes('/api/v1/version')) {
+      return { ok: true, status: 200, headers: { get: () => null }, json: async () => HEALTHY_VERSION };
     }
     // `fetchPokemonsWithCount` lee el total de la cabecera `X-Total-Count`.
     return {
@@ -98,6 +115,45 @@ test('Backoffice: checkHealthStatus reporta backend saludable', async () => {
   const dot = document.getElementById('statusDot')!;
   assert.match(status.textContent ?? '', /Saludables/, 'el estado debe indicar salud');
   assert.equal(dot.style.backgroundColor, 'rgb(16, 185, 129)', 'el punto debe pintarse en verde');
+});
+
+/**
+ * AUD-ARCH-ROUTE-001: `/healthz` lo responde nginx (compose, pre-prod) sin consultar la API y el borde
+ * de ingress-nginx lo bloquea con 403 (blueprint cloud). El monitor debe consultar una ruta que el
+ * Ingress enruta a la API en todos los entornos y que informe el estado de PostgreSQL.
+ */
+test('Backoffice: checkHealthStatus consulta la API (/api/v1/version) y no el /healthz de nginx', async () => {
+  const { checkHealthStatus } = await load();
+  const g = globalThis as Record<string, unknown>;
+  const requested: string[] = [];
+  const prevFetch = g.fetch as (url: string) => Promise<unknown>;
+  g.fetch = async (url: string) => {
+    requested.push(String(url));
+    return prevFetch(url);
+  };
+  await checkHealthStatus();
+  g.fetch = prevFetch;
+  assert.deepEqual(requested, ['/api/v1/version'], 'el monitor debe consultar únicamente /api/v1/version');
+});
+
+test('Backoffice: checkHealthStatus marca ámbar si la API responde sin PostgreSQL (modo degradado)', async () => {
+  const { checkHealthStatus } = await load();
+  const g = globalThis as Record<string, unknown>;
+  g.fetch = async () => ({
+    ok: true,
+    status: 200,
+    headers: { get: () => null },
+    json: async () => ({
+      ...HEALTHY_VERSION,
+      database: { ...HEALTHY_VERSION.database, postgres_connected: false, mode: 'degraded' },
+    }),
+  });
+  await checkHealthStatus();
+  const status = document.getElementById('backendStatus')!;
+  const dot = document.getElementById('statusDot')!;
+  assert.match(status.textContent ?? '', /degradado/i, 'debe informar el modo degradado');
+  assert.doesNotMatch(status.textContent ?? '', /Saludables/, 'no puede reportar salud sin PostgreSQL');
+  assert.equal(dot.style.backgroundColor, 'rgb(245, 158, 11)', 'el punto debe pintarse en ámbar');
 });
 
 test('Backoffice: checkHealthStatus marca rojo ante respuesta no-ok', async () => {
