@@ -426,7 +426,7 @@ backup:
   image:
     repository: postgres
     tag: "17-bookworm"
-    digest: "sha256:858bb5e98eed02eb8cafbcdc007f9a65d1b613972028944a8ec2133ccaf80d27"
+    digest: "sha256:839fbb5a4942a7758dd93e18b42ea5649807491a0545b5eeeb8f0b8bb11857a5"
     pullPolicy: IfNotPresent
   retentionDays: 7
   # Autenticación de los backups (Encrypt-then-MAC). El cifrado AES-256-CBC no autentica y el .sha256 solo
