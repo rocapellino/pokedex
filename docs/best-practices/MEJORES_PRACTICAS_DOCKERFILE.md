@@ -108,7 +108,7 @@ Permiten a Docker y Kubernetes orquestar reinicios automáticos y evitar enviar 
 
 ```dockerfile
 # Etapa 1: Builder (Compilación con esbuild)
-FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS builder
+FROM node:26-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS builder
 WORKDIR /app
 COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
@@ -119,7 +119,7 @@ COPY apps/backend/src/ ./apps/backend/src/
 RUN npm run lint --workspace=@pokedex/backend && npm run build --workspace=@pokedex/backend
 
 # Etapa 2: Runner (Entorno de Producción Seguro y Minimalista)
-FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runner
+FROM node:26-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS runner
 ARG APP_VERSION=unknown
 ARG GIT_SHA=unknown
 WORKDIR /app
@@ -149,7 +149,7 @@ CMD ["node", "dist/server.js"]
 
 ```dockerfile
 # Etapa 1: Builder (Vite + Node 24 LTS — alineado con runtime de producción del backend)
-FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS builder
+FROM node:26-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS builder
 WORKDIR /app
 COPY package*.json ./
 COPY apps/frontend/package*.json ./apps/frontend/
