@@ -9,7 +9,7 @@ import type { ServiceVersionResponse } from '../types.js';
  * AUD-ARCH-ROUTE-001: `/healthz` lo responde nginx sin consultar la API (y el borde de
  * ingress-nginx lo bloquea); `/api/v1/version` llega a la API en todos los entornos.
  */
-const HEALTH_ENDPOINT = '/api/v1/version';
+export const HEALTH_ENDPOINT = '/api/v1/version';
 
 function paintDot(dotEl: HTMLElement, color: string): void {
   dotEl.style.backgroundColor = color;
