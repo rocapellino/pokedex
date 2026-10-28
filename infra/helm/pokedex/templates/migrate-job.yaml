@@ -1,0 +1,81 @@
+{{- /*
+Migración del esquema Drizzle (ADR-011, AUD-ARCH-DB-001).
+
+- Hook Sync en la wave 1: ArgoCD lo ejecuta cuando PostgreSQL (wave 0) está sano y
+  espera a que termine antes de desplegar la API (wave 2). PreSync correría antes
+  del StatefulSet de PostgreSQL y fallaría en la primera instalación.
+- Sin ArgoCD, `post-install,pre-upgrade` conserva el orden en las actualizaciones.
+- Única vía de DDL en los entornos productivos: la API solo verifica el esquema al
+  arrancar (fail-closed), sin carreras entre réplicas.
+- Conexión directa a PostgreSQL: POSTGRES_HOST/PORT sustituyen al PgBouncer que puede
+  declarar el ConfigMap; `dist/migrate.js` prioriza DIRECT_DATABASE_URL y luego POSTGRES_*.
+- Imagen: la misma de la API (mismo digest firmado), que ya incluye `dist/migrate.js`
+  y `dist/migrations`.
+*/ -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "pokedex.fullname" . }}-db-migrate
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+    app.kubernetes.io/component: db-migrator
+  annotations:
+    "helm.sh/hook": post-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "argocd.argoproj.io/hook": Sync
+    "argocd.argoproj.io/sync-wave": "1"
+    "argocd.argoproj.io/hook-delete-policy": BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 2
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        {{- include "pokedex.selectorLabels" . | nindent 8 }}
+        app: pokemon-db-migrate
+        app.kubernetes.io/component: db-migrator
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: db-migrator
+          image: "{{ .Values.api.image.repository }}{{ if .Values.api.image.digest }}@{{ .Values.api.image.digest }}{{ else }}:{{ .Values.api.image.tag | default .Chart.AppVersion }}{{ end }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy | default "IfNotPresent" }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          command: ["node", "dist/migrate.js"]
+          envFrom:
+            - configMapRef:
+                name: pokemon-config
+            - secretRef:
+                name: {{ include "pokedex.secretName" . }}
+          env:
+            - name: POSTGRES_HOST
+              value: "postgres-service"
+            - name: POSTGRES_PORT
+              value: {{ .Values.postgresql.port | quote }}
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: 32Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+              ephemeral-storage: 64Mi

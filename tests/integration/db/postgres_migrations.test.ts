@@ -2,7 +2,12 @@ import { afterEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { BASELINE_REQUIRED_COLUMNS, getMigrationsFolder, runMigrations } from '../../../apps/backend/src/db/migrate.js';
+import {
+  BASELINE_REQUIRED_COLUMNS,
+  getMigrationsFolder,
+  getSchemaStatus,
+  runMigrations,
+} from '../../../apps/backend/src/db/migrate.js';
 import { createTestDatabase, postgresSkip, queryRows, type TestDatabase } from '../../helpers/services.js';
 
 const journalEntries = (
@@ -92,6 +97,19 @@ describe('🐘 Migraciones Drizzle sobre PostgreSQL real', { skip: postgresSkip 
     assert.equal((await journalRows(database.url))[0].total, String(journalEntries));
     const rows = await queryRows<{ nombre: string }>(database.url, 'SELECT nombre FROM pokedex_entries WHERE id = 7');
     assert.deepEqual(rows, [{ nombre: 'Heredado' }]);
+  });
+
+  // AUD-ARCH-DB-001: la API productiva verifica con getSchemaStatus lo que dejó el Job de migración.
+  test('getSchemaStatus marca pendiente una base sin migrar y al día tras runMigrations', async () => {
+    database = await createTestDatabase();
+    const url = database.url;
+    const client = { query: async <R>(text: string) => ({ rows: (await queryRows(url, text)) as R[] }) };
+
+    assert.equal((await getSchemaStatus(client)).upToDate, false, 'sin journal el esquema está pendiente');
+    await runMigrations(url);
+    const status = await getSchemaStatus(client);
+    assert.equal(status.upToDate, true, 'tras migrar el esquema debe estar al día');
+    assert.equal(status.applied, status.expected);
   });
 
   test('una tabla heredada a la que le faltan columnas aborta la migración en lugar de adivinar', async () => {

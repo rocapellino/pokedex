@@ -232,6 +232,10 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/component: db-seeder
+        # Job de migración (ADR-011): única vía de DDL, siempre directa a PostgreSQL.
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: db-migrator
         {{- if and .Values.backup .Values.backup.enabled }}
         # Backup (pg_dump) y verificación de restauración (base efímera). Sin estas
         # reglas el default-deny rechazaba sus conexiones y ningún backup se generaba.
@@ -274,4 +278,36 @@ spec:
           port: 6379
   # Zero-Trust: El motor de caché no requiere peticiones de salida
   egress: []
+---
+# Job de migración (ADR-011, AUD-ARCH-DB-001): solo resuelve DNS y habla con PostgreSQL.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "pokedex.fullname" . }}-allow-db-migrator-egress
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: db-migrator
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: database
+      ports:
+        - protocol: TCP
+          port: {{ .Values.postgresql.port }}
 {{- end }}
