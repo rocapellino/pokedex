@@ -59,7 +59,7 @@ pokedex/
 │   │       ├── services/
 │   │       │   ├── ai.ts         # Integración Google AI Studio (@google/genai) con Gemini
 │   │       │   ├── auth.ts       # Criptografía timing-safe y sesiones revocables
-│   │       │   └── db.ts         # Persistencia PostgreSQL 16 (JSONB/Drizzle) + Redis 7
+│   │       │   └── db.ts         # Persistencia PostgreSQL 17 (JSONB/Drizzle) + Valkey 8
 │   │       ├── utils/
 │   │       │   ├── lifecycle.ts  # Estado de ciclo de vida para graceful shutdown
 │   │       │   ├── async-handler.ts # Captura de promesas asíncronas
@@ -129,7 +129,7 @@ pokedex/
   - Autenticación timing-safe mediante `crypto.timingSafeEqual` sobre digests SHA-256.
   - Exportador nativo de métricas Prometheus (`/metrics`) y endpoints de salud (`/healthz`, `/readyz`).
 - **`src/services/`**:
-  - **`db.ts`**: Cliente relacional PostgreSQL 16 para almacenamiento `JSONB` de entidades y secuencias atómicas (`pokedex_id_seq`), coordinado con Redis 7 para almacenamiento en caché sub-3ms (`pokedex:list:*`) e invalidación reactiva.
+  - **`db.ts`**: Cliente relacional PostgreSQL 17 para almacenamiento `JSONB` de entidades y secuencias atómicas (`pokedex_id_seq`), coordinado con Valkey 8 para almacenamiento en caché sub-3ms (`pokedex:list:*`) e invalidación reactiva.
   - **`auth.ts`**: Gestión estricta de credenciales con desacoplamiento entre `ADMIN_API_KEY` (clave administrativa) y `ADMIN_SESSION_SECRET` (firma HMAC SHA-256 de tokens con payload `role`, `exp`, `jti`).
   - **`ai.ts`**: Integración con Google Gemini 2.5 Flash (`@google/genai`) con timeout de 12s, límites de cuota diaria y fallbacks deterministas locales.
 

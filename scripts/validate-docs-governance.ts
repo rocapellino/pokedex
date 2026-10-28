@@ -3,7 +3,8 @@
  * scripts/validate-docs-governance.ts
  * ==============================================================================
  * Motor de validación determinista y compuerta de gobernanza para docs/,
- * .agents/ (skills y reglas) y los documentos raíz (README, SECURITY, AGENTS).
+ * .agents/ (skills y reglas), los documentos raíz (README, SECURITY, AGENTS) y
+ * los README satélite de infra/, gitops/, apps/, packages/, .github/ y .mcp/.
  *
  * Verificaciones:
  *   1. Broken Relative Links: Todo enlace markdown relativo debe resolver a un
@@ -23,6 +24,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT_DOCS = ['README.md', 'SECURITY.md', 'AGENTS.md'];
+
+/** Directorios con documentación satélite (README de componente) fuera de docs/ y .agents/. */
+const SATELLITE_DIRS = ['infra', 'gitops', 'apps', 'packages', '.github', '.mcp'];
 
 const INDEXED_DIRS = [
   'api',
@@ -103,26 +107,29 @@ function extractMarkdownLinkTargets(text: string): string[] {
   return targets;
 }
 
+/**
+ * Universo markdown del gate: docs/, .agents/, los documentos raíz y los README satélite.
+ *
+ * - .agents/ y AGENTS.md se incluyen porque las skills enlazan ADRs y políticas: una
+ *   consolidación de ADR (#483) dejó un enlace roto en repo-security que el gate no veía.
+ * - AUD-DOC-GATE-001: los README satélite (infra/, gitops/, apps/...) también enlazan values y
+ *   manifiestos; infra/README.md citaba un values retirado sin que el gate lo detectara.
+ */
+function collectMarkdownUniverse(rootDir: string): string[] {
+  const files = getMarkdownFiles(path.join(rootDir, 'docs'));
+  const rootDocs = ROOT_DOCS.map((doc) => path.join(rootDir, doc)).filter((p) => fs.existsSync(p));
+  const dirs = ['.agents', ...SATELLITE_DIRS].map((dir) => path.join(rootDir, dir)).filter((p) => fs.existsSync(p));
+  return [...files, ...dirs.flatMap(getMarkdownFiles), ...rootDocs];
+}
+
 export function validateDocsGovernance(rootDir: string = process.cwd()): GovernanceViolation[] {
   const violations: GovernanceViolation[] = [];
   const ROOT_DIR = rootDir;
   const DOCS_DIR = path.join(ROOT_DIR, 'docs');
   const PORTAL_PATH = path.join(DOCS_DIR, 'README.md');
-  const AGENTS_DIR = path.join(ROOT_DIR, '.agents');
 
-  // 2. Obtener universo markdown de docs/, .agents/ y los documentos raíz.
-  //    .agents/ y AGENTS.md se incluyen porque las skills enlazan ADRs y políticas:
-  //    una consolidación de ADR (#483) dejó un enlace roto en repo-security que
-  //    este gate no detectaba al limitarse a docs/.
-  const docsFiles = getMarkdownFiles(DOCS_DIR);
-  if (fs.existsSync(AGENTS_DIR)) {
-    docsFiles.push(...getMarkdownFiles(AGENTS_DIR));
-  }
-  for (const rootDoc of ROOT_DOCS) {
-    if (fs.existsSync(path.join(ROOT_DIR, rootDoc))) {
-      docsFiles.push(path.join(ROOT_DIR, rootDoc));
-    }
-  }
+  // 2. Obtener el universo markdown (ver collectMarkdownUniverse).
+  const docsFiles = collectMarkdownUniverse(ROOT_DIR);
 
   // 3. Validar cada archivo
   for (const filePath of docsFiles) {

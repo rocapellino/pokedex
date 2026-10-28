@@ -81,7 +81,8 @@ Si se detectan regresiones de tipos no aceptables con `~7.0.x`:
 El runtime del backend y del stage de build del frontend pasa de Node 22 a Node 24 LTS. La salvaguarda
 de alineación se mantiene: `@types/node` sigue la versión mayor del runtime, por lo que pasa de `^22.x` a
 `^24.x`. El compilador nativo TypeScript 7.x y su política de pinning con `~` no cambian. El plan y la
-evidencia están en `docs/audits/2026-10-07/remediation-plan.md`.
+evidencia estaban en `docs/audits/2026-10-07/remediation-plan.md`, podado al consolidar las auditorías
+(commit `3e154b44`); se conserva en el historial de Git.
 
 ## Referencias
 

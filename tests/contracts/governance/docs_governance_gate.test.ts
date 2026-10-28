@@ -44,6 +44,30 @@ test('📚 Gobernanza Documental: el gate detecta enlaces rotos dentro de .agent
   }
 });
 
+test('📚 Gobernanza Documental: el gate detecta enlaces rotos en los README satélite (infra/, gitops/, apps/)', () => {
+  // Regresión (AUD-DOC-GATE-001): infra/README.md declaraba como SSOT de runtime un values
+  // retirado con ADR-030 y el enlace roto pasaba el gate por limitarse a docs/, .agents/ y la raíz.
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'docs-gate-'));
+  try {
+    fs.mkdirSync(path.join(root, 'docs'));
+    fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ version: '0.0.0' }));
+    for (const dir of ['infra', 'gitops', path.join('apps', 'frontend'), path.join('node_modules', 'pkg')]) {
+      fs.mkdirSync(path.join(root, dir), { recursive: true });
+      fs.writeFileSync(path.join(root, dir, 'README.md'), '[values retirado](../no-existe/values.yaml)\n');
+    }
+
+    const broken = validateDocsGovernance(root)
+      .filter((v) => v.rule === 'DOC-G02-BROKEN-RELATIVE-LINK')
+      .map((v) => v.file)
+      .sort();
+
+    // node_modules queda fuera: no es documentación del repositorio.
+    assert.deepEqual(broken, ['apps/frontend/README.md', 'gitops/README.md', 'infra/README.md']);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('📚 Gobernanza Documental: validateDocsGovernance() no reporta enlaces rotos, esquemas locales ni drift', () => {
   const violations = validateDocsGovernance(ROOT_DIR);
 

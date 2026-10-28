@@ -28,7 +28,7 @@ Esta guía define formalmente todos los endpoints REST, parámetros, estructuras
 - **Límite de Payload:** Máximo de 250 KB (`express.json({ limit: '250kb' })`) para prevenir ataques DoS por saturación de memoria.
 - **Cabeceras de Seguridad:** Inyección automática de `Content-Security-Policy`, `Strict-Transport-Security`, `Permissions-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection: 0` y `Referrer-Policy: strict-origin-when-cross-origin`. Supresión de `X-Powered-By`.
 - **Políticas CORS:** Configuración en modo *fail-closed*. En producción exige definición explícita de `CORS_ORIGINS`; en desarrollo restringe estrictamente a loopback (`localhost:3000`, `localhost:8080`, `127.0.0.1`).
-- **Estrategia de Caché y Validación Condicional:** Catálogo en memoria y Redis 7 con resolución sub-3ms mediante claves `pokedex:list:*` e invalidación automática ante mutaciones. Validación condicional de clientes mediante cabeceras `ETag` y `Cache-Control: public, max-age=60, stale-while-revalidate=300`.
+- **Estrategia de Caché y Validación Condicional:** Catálogo en memoria y Valkey 8 con resolución sub-3ms mediante claves `pokedex:list:*` e invalidación automática ante mutaciones. Validación condicional de clientes mediante cabeceras `ETag` y `Cache-Control: public, max-age=60, stale-while-revalidate=300`.
 
 ---
 
@@ -53,7 +53,7 @@ flowchart TD
 
     H_ADMIN --> VAL_DATA{"Validación & XSS"}
     VAL_DATA -->|Contiene HTML/<script>| ERR_422["❌ 422 Unprocessable Entity"]
-    VAL_DATA -->|Válido| PG_MUT[("PostgreSQL 16\nPersistencia Segura")]
+    VAL_DATA -->|Válido| PG_MUT[("PostgreSQL 17\nPersistencia Segura")]
 
     classDef normal fill:#2563eb,stroke:#1d4ed8,color:#fff;
     classDef error fill:#dc2626,stroke:#b91c1c,color:#fff;
@@ -277,7 +277,7 @@ Servicios de IA generativa integrados nativamente con **Google AI Studio (`@goog
   ```json
   {
     "topic": "Flujo de lectura con caché Redis y fallback en PostgreSQL",
-    "diagram": "graph TD;\n    A[Cliente] --> B[Express Server];\n    B --> C{Caché Redis?};\n    C -- Sí --> D[Retornar sub-3ms];\n    C -- No --> E[Consultar PostgreSQL 16];"
+    "diagram": "graph TD;\n    A[Cliente] --> B[Express Server];\n    B --> C{Caché Redis?};\n    C -- Sí --> D[Retornar sub-3ms];\n    C -- No --> E[Consultar PostgreSQL 17];"
   }
   ```
 

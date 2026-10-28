@@ -54,7 +54,7 @@ infra/
 ```
 
 > [!NOTE]
-> Los manifiestos declarativos de **ArgoCD** para la arquitectura de despliegue y los `values.yaml` específicos de cada ambiente se encuentran centralizados en el directorio raíz [`gitops/`](../gitops/). La SSOT de runtime para producción es exclusivamente [`gitops/environments/proxmox/values.yaml`](../gitops/environments/proxmox/values.yaml).
+> Los manifiestos declarativos de **ArgoCD** para la arquitectura de despliegue y los `values.yaml` específicos de cada ambiente se encuentran centralizados en el directorio raíz [`gitops/`](../gitops/). El único runtime activo es pre-prod en Proxmox, con [`gitops/environments/proxmox-preprod/values.yaml`](../gitops/environments/proxmox-preprod/values.yaml); prod cloud es un blueprint inactivo en [`gitops/environments/cloud/values.yaml`](../gitops/environments/cloud/values.yaml) ([ADR-030](../docs/decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md)).
 
 ---
 

@@ -88,7 +88,7 @@ flowchart TD
 
 - 🔄 [**APPLICATION_LIFECYCLE.md**](./architecture/APPLICATION_LIFECYCLE.md): **Ciclo de vida integral (SDLC & DevOps)** con diagrama de flujo de punta a punta (Linear, CI/CD, SemVer, Cosign Keyless OIDC, SBOM CycloneDX, Kyverno ClusterPolicy, ArgoCD y notificaciones Slack).
 - 🛡️ [**SECURITY_AND_NETWORK_ISOLATION.md**](./architecture/SECURITY_AND_NETWORK_ISOLATION.md): Modelo de **Defensa en Profundidad**, segmentación de red DMZ de 4 capas, control de admisión con Kyverno, políticas *fail-closed* y aislamiento de base de datos con NetworkPolicies.
-- 📊 [**DATABASE_ANALYSIS.md**](./architecture/DATABASE_ANALYSIS.md): Análisis de persistencia híbrida (PostgreSQL 16 con almacenamiento JSONB y secuencia atómica + Redis 7 para aceleración sub-3ms, revocación de sesiones y rate limiting atómico en Lua).
+- 📊 [**DATABASE_ANALYSIS.md**](./architecture/DATABASE_ANALYSIS.md): Análisis de persistencia híbrida (PostgreSQL 17 con almacenamiento JSONB y secuencia atómica + Valkey 8 para aceleración sub-3ms, revocación de sesiones y rate limiting atómico en Lua).
 - ☁️ [**CLOUD_INFRASTRUCTURE_DESIGN.md**](./architecture/CLOUD_INFRASTRUCTURE_DESIGN.md): Arquitectura de infraestructura en la nube, topología Zero-Trust y despliegue GitOps (pre-prod en Proxmox VE + blueprint prod cloud agnóstico) con OpenTofu.
 - ☸️ [**KUBERNETES_SCALING_ANALYSIS.md**](./architecture/KUBERNETES_SCALING_ANALYSIS.md): Autoescalado elástico horizontal (**HPA v2**), garantía de consistencia de réplica única de base de datos y comparativa L4 vs L7.
 - 🎨 [**MOCKUPS_Y_DISENO_UI.md**](./architecture/MOCKUPS_Y_DISENO_UI.md): Maquetación, arquitectura de componentes, esquemas wireframe ASCII y tokens de diseño para catálogo, modales y panel administrativo Backoffice.

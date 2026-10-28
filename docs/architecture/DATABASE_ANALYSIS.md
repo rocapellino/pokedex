@@ -33,7 +33,7 @@ El catálogo de la Pokédex comprende más de **1.025 Pokémon oficiales** (Gene
 | :--- | :--- | :--- | :--- |
 | **Garantías ACID** | Completas con claves foráneas estrictas | Eventuales por colección | **Completas en PostgreSQL con transacciones ACID** |
 | **Flexibilidad de Esquema** | Rígida; requiere migraciones DDL frecuentes | Totalmente libre; riesgo de inconsistencia | **Óptima: columnas relacionales indexadas (`id`, `nombre`, `tipo`) + campo `data JSONB`** |
-| **Rendimiento de Lectura** | Requiere múltiples JOINs para construir la entidad | Alta lectura directa por documento | **Sub-3ms vía caché en Redis 7 con fallback a lectura JSONB** |
+| **Rendimiento de Lectura** | Requiere múltiples JOINs para construir la entidad | Alta lectura directa por documento | **Sub-3ms vía caché en Valkey 8 con fallback a lectura JSONB** |
 | **Gestión de Conexiones** | Saturación si no se gestiona el pool del cliente | Conexiones internas del driver | **`pg.Pool` nativo en Node.js configurado por pod (10 sockets máx)** |
 | **Integridad y Secuencias** | Secuencias atómicas (`nextval`) | Requiere contadores atómicos en colecciones | **Secuencia dinámica `pokedex_id_seq` inicializada sobre el valor máximo existente** |
 | **Coordinación Distribuida** | No aplicable para rate limiting / sesiones | No optimizado para llaves volátiles | **Redis atómico con scripts Lua y TTL exactos para tokens y cuotas** |
@@ -44,7 +44,7 @@ El catálogo de la Pokédex comprende más de **1.025 Pokémon oficiales** (Gene
 
 La arquitectura en producción activa (incluyendo el perfil Proxmox VE) implementa un modelo lean y altamente eficiente:
 
-1. **PostgreSQL 16 (Fuente de la Verdad / Persistencia Duradera):**
+1. **PostgreSQL 17 (Fuente de la Verdad / Persistencia Duradera):**
    - Almacena registros en la tabla `pokedex_entries`.
    - Expone columnas relacionales indexadas para filtros comunes (`id`, `nombre`, `tipo`) y almacena el documento completo estructurado en un campo nativo binario **`data JSONB`**.
    - Garantiza transacciones ACID, integridad referencial y secuencia numérica atómica.
@@ -52,7 +52,7 @@ La arquitectura en producción activa (incluyendo el perfil Proxmox VE) implemen
    - El servicio de base de datos inicializa un pool de conexiones `pg.Pool` ajustado a las necesidades del entorno (máximo 10 conexiones concurrentes por réplica).
    - Gestiona reconexiones automáticas, timeouts y liberación de sockets tras cada consulta.
    - Elimina la sobrecarga de capas intermedias en despliegues con topología de recursos acotados (diseño lean de Proxmox).
-3. **Redis 7 (Capa de Aceleración y Coordinación Distribuida):**
+3. **Valkey 8 (Capa de Aceleración y Coordinación Distribuida):**
    - **Caché de Listados y Detalle:** Almacena respuestas completas serializadas bajo claves `pokedex:list:*` con TTL de 60 segundos y detalle individual bajo `pokedex:item:*` con TTL de 300 segundos.
    - **Revocación Distribuida de Sesiones:** Registra identificadores de sesión revocados `revoked:<jti>` con expiración exacta.
    - **Rate Limiting Atómico:** Ejecuta scripts Lua en memoria para ventanas deslizantes sin condiciones de carrera.
@@ -79,7 +79,7 @@ flowchart TD
         R_REQ["Petición Cliente GET /pokemons?tipo=Fuego&limit=20"] --> R_REDIS{"¿Existe en Caché Redis?\npokedex:list:tipo=Fuego:limit=20"}
         R_REDIS -->|Cache Hit| R_HIT["⚡ Retorno Inmediato desde Redis\nLatencia sub-3ms"]
         R_REDIS -->|Cache Miss| R_POOL["🔌 Conexión via pg.Pool (o PgBouncer opcional)"]
-        R_POOL --> R_PG[("🗄️ Query a PostgreSQL 16\nSELECT data FROM pokedex_entries WHERE...")]
+        R_POOL --> R_PG[("🗄️ Query a PostgreSQL 17\nSELECT data FROM pokedex_entries WHERE...")]
         R_PG --> R_SET_REDIS["Guardar resultado en Redis\nSETEX pokedex:list:* 60s"]
         R_SET_REDIS --> R_RESP["Retornar JSON al Cliente con cabecera ETag"]
         R_HIT --> R_RESP
