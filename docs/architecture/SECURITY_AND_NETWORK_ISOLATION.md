@@ -150,10 +150,13 @@ estos orígenes sobre el chart renderizado en cada perfil.
 
 Cuando `pgbouncer.enabled: true` está activo (por defecto en producción):
 
-1. **API Egress:** La API pierde la regla de salida hacia `component: database` y **solo** se le concede salida a `component: pgbouncer` en el puerto 5432.
+1. **API Egress:** La API pierde la regla de salida hacia `component: database` y **solo** se le concede salida a `component: pgbouncer` en el puerto 6432.
 2. **PostgreSQL Ingress:** La política de entrada de la base de datos restringe el origen exclusivamente a los pods etiquetados con:
    - `app.kubernetes.io/component: pgbouncer`
-   - `app.kubernetes.io/component: db-seeder` (Jobs de inicialización/migración)
+   - `app.kubernetes.io/component: db-seeder` (Job de siembra del catálogo)
+   - `app.kubernetes.io/component: db-migrator` (Job de migración del esquema, única vía de DDL; su política
+     `allow-db-migrator-egress` solo le permite DNS y PostgreSQL, [ADR-011](../decisions/ADR-011-persistence-drizzle-orm-and-pgbouncer.md))
+   - `backup` y `dr-verification` cuando `backup.enabled` está activo
    Cualquier paquete TCP directo desde un pod de la API hacia PostgreSQL es descartado por el CNI.
 
 ### 5.3. Egress Anti-SSRF y Protección de Metadatos Cloud (IMDS)
