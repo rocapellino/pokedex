@@ -2,7 +2,8 @@
 
 ## Estado
 
-Aceptado (Activo — Consolida y absorbe ADR-029; enmendado el 2026-10-07: tamaño del pool, ver la sección de Enmienda)
+Aceptado (Activo — Consolida y absorbe ADR-029; enmendado el 2026-10-07: tamaño del pool; el 2026-10-15:
+segregación de URLs; y el 2026-10-28: Job de migración dedicado, ver las secciones de Enmienda)
 
 ## Contexto
 
@@ -109,6 +110,46 @@ Con la actualización a PostgreSQL 17 (ADR-031) y PgBouncer 1.25.2, se formaliza
    - Toda creación incremental de índices debe realizarse mediante `CREATE INDEX CONCURRENTLY IF NOT EXISTS`.
    - Toda eliminación de índices debe realizarse mediante `DROP INDEX CONCURRENTLY IF EXISTS` o `IF EXISTS`.
    - Verificado de forma automatizada mediante el script `scripts/check-migration-hygiene.ts` (`npm run db:lint-migrations`).
+
+---
+
+## Enmienda 2026-10-28: Job de migración dedicado y verificación de esquema en la API (AUD-ARCH-DB-001)
+
+La auditoría de arquitectura del 2026-10-28 detectó que el código no cumplía la enmienda anterior. La API
+aplicaba las migraciones en cada arranque y el `seed-job` corría como hook `PostSync`, después de la API.
+Además, External Secrets no sincroniza `DIRECT_DATABASE_URL`, de modo que con PgBouncer activo (blueprint
+prod cloud) el DDL habría pasado por el pool en modo transacción y cada réplica del HPA lo habría
+ejecutado en paralelo.
+
+Decisión: **las migraciones las aplica un Job dedicado y la API productiva solo verifica el esquema.**
+Esta enmienda reemplaza la referencia al `seed-job` (Sync Wave 1) de las secciones 5 y de la enmienda del
+2026-10-15.
+
+1. **Job de migración** ([`migrate-job.yaml`](../../infra/helm/pokedex/templates/migrate-job.yaml)): hook
+   `Sync` en la wave 1, entre PostgreSQL (wave 0) y la API (wave 2), con la misma imagen y digest que la API
+   (`node dist/migrate.js`). No es `PreSync` porque correría antes del StatefulSet de PostgreSQL en la
+   primera instalación. Un fallo detiene el sync antes de desplegar la API nueva y las réplicas previas siguen
+   sirviendo.
+2. **Conexión directa garantizada**: el migrador resuelve `DIRECT_DATABASE_URL`, luego `POSTGRES_*` y por
+   último `DATABASE_URL`; el Job fija `POSTGRES_HOST` y `POSTGRES_PORT` al PostgreSQL directo, así que el DDL no
+   depende de que el backend de secretos publique `DIRECT_DATABASE_URL`. Una NetworkPolicy propia
+   (`allow-db-migrator-egress`) le permite solo DNS y PostgreSQL.
+3. **La API verifica, no migra** (`NODE_ENV=production`): al conectar compara la última migración del journal
+   incluido en su imagen con `drizzle.__drizzle_migrations` (`getSchemaStatus`). Si hay migraciones pendientes
+   o no puede verificarlas, aborta el arranque con `MigrationFailedError` (fail-closed, ADR-027). En
+   desarrollo y test sigue migrando al arrancar, de forma tolerante.
+4. **Docker Compose**: el servicio `migrate` de ejecución única cumple el rol del Job y el API declara
+   `depends_on: migrate: service_completed_successfully`.
+5. **Expand-contract obligatorio**: durante el rolling update conviven réplicas de la versión anterior con el
+   esquema nuevo, así que toda migración debe ser compatible hacia atrás; la eliminación de columnas o tablas
+   se difiere a una release posterior.
+
+Pendiente fuera de esta enmienda: separar los roles de base de datos (DDL para el Job, solo DML para la
+API) para que el runtime no conserve privilegios de esquema.
+
+Contratos: `tests/gitops/migrate_job_contract.test.ts`, `tests/unit/postgres_fail_closed.test.ts`,
+`tests/unit/migration_schema_check.test.ts`, `tests/unit/compose_migrate_service.test.ts` y el caso de
+`getSchemaStatus` en `tests/integration/db/postgres_migrations.test.ts`.
 
 ---
 

@@ -350,6 +350,14 @@ externalSecrets:
 # ------------------------------------------------------------------------------
 networkPolicies:
   enabled: true
+  # Orígenes que alcanzan la API en su puerto además del frontend web (ADR-013, AUD-ARCH-NET-001).
+  # Sin ipBlock: un CIDR abierto deja el puerto de la API accesible desde cualquier pod del clúster.
+  ingressController:
+    namespace: ingress-nginx
+    podLabels:
+      app.kubernetes.io/name: ingress-nginx
+  metricsScraper:
+    namespace: monitoring
   egress:
     antiSsrf: true
     externalHttps: false

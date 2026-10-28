@@ -21,6 +21,23 @@ export interface ApiErrorResponse {
   details?: unknown;
 }
 
+/** Respuesta de `GET /api/v1/version`: metadatos de release y estado de los almacenes. */
+export interface ServiceVersionResponse {
+  app: string;
+  version: string;
+  git_sha: string;
+  node_version: string;
+  uptime_seconds: number;
+  environment: string;
+  database: {
+    engine: string;
+    postgres_connected: boolean;
+    postgres_version: string;
+    redis_connected: boolean;
+    mode: 'normal' | 'degraded';
+  };
+}
+
 export interface PokemonFilters {
   tipo?: string;
   generacion?: number;

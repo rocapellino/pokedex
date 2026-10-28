@@ -6,6 +6,7 @@ import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { logger } from '../utils/logger.js';
+import { composePostgresUrl } from './connection-url.js';
 
 export function getMigrationsFolder(): string {
   try {
@@ -88,8 +89,57 @@ export async function baselineLegacySchema(client: Queryable, migrationsFolder: 
   return 'baselined';
 }
 
+export interface SchemaStatus {
+  upToDate: boolean;
+  /** `when` de la última migración del journal incluido en la imagen (null si no hay migraciones). */
+  expected: number | null;
+  /** `created_at` máximo registrado en `drizzle.__drizzle_migrations` (null si no hay registros). */
+  applied: number | null;
+}
+
+/**
+ * Compara el journal incluido en la imagen con el registrado en la base (ADR-011, AUD-ARCH-DB-001).
+ *
+ * `migrate()` de Drizzle aplica toda migración cuyo `when` supere el `created_at` máximo registrado,
+ * así que el esquema está al día si ese máximo alcanza el `when` de la última migración. Solo lee:
+ * la API productiva lo usa en lugar de migrar.
+ */
+export async function getSchemaStatus(
+  client: Queryable,
+  migrationsFolder: string = getMigrationsFolder(),
+): Promise<SchemaStatus> {
+  const journal = JSON.parse(fs.readFileSync(path.join(migrationsFolder, 'meta', '_journal.json'), 'utf-8')) as {
+    entries: Array<{ when: number }>;
+  };
+  if (journal.entries.length === 0) return { upToDate: true, expected: null, applied: null };
+  const expected = Math.max(...journal.entries.map((e) => e.when));
+
+  const {
+    rows: [state],
+  } = await client.query<{ journal: string | null }>(
+    "SELECT to_regclass('drizzle.__drizzle_migrations')::text AS journal",
+  );
+  if (!state?.journal) return { upToDate: false, expected, applied: null };
+
+  const {
+    rows: [row],
+  } = await client.query<{ last: string | null }>(
+    'SELECT max(created_at)::text AS last FROM drizzle.__drizzle_migrations',
+  );
+  const applied = row?.last == null ? null : Number(row.last);
+  return { upToDate: applied !== null && applied >= expected, expected, applied };
+}
+
+/**
+ * URL para aplicar DDL: nunca debe pasar por PgBouncer en modo transacción (ADR-011).
+ * DIRECT_DATABASE_URL > POSTGRES_* (el Job fija POSTGRES_HOST al PostgreSQL directo) > DATABASE_URL.
+ */
+export function resolveMigrationDatabaseUrl(env: NodeJS.ProcessEnv = process.env): string | undefined {
+  return env.DIRECT_DATABASE_URL || composePostgresUrl(env) || env.DATABASE_URL;
+}
+
 export async function runMigrations(connectionString?: string): Promise<void> {
-  const url = connectionString || process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL;
+  const url = connectionString || resolveMigrationDatabaseUrl();
   if (!url) {
     logger.warn('[Migrations] DIRECT_DATABASE_URL ni DATABASE_URL configurado. Omitiendo migración.');
     return;
@@ -122,6 +172,11 @@ const isCli = Boolean(
 );
 
 if (isCli) {
+  // Como Job (K8s o Compose) no hay esquema que verificar después: sin URL debe fallar, no omitirse.
+  if (!resolveMigrationDatabaseUrl()) {
+    logger.error('[Migrations] Sin DIRECT_DATABASE_URL, POSTGRES_* ni DATABASE_URL: no hay base que migrar.');
+    process.exit(1);
+  }
   runMigrations()
     .then(() => process.exit(0))
     .catch((err) => {

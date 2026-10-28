@@ -34,7 +34,7 @@ Este documento describe el modelo de **Defensa en Profundidad (*Defense in Depth
    - La observabilidad y telemetría están centralizadas en **Grafana Cloud** mediante Grafana Alloy / Beyla eBPF, eliminando acoplamientos de red locales como `monitoring-net` en Docker Compose.
 4. **Protección Egress Anti-SSRF:** La salida a Internet de los pods de aplicación está restringida a HTTPS (443) y filtra explícitamente mediante `ipBlock` los rangos de metadatos de Cloud (IMDS `169.254.169.254/32`), redes privadas RFC 1918 y loopback.
 5. **Ejecución No-Root:** Todos los contenedores corren bajo usuarios sin privilegios (UID numérico no privilegiado en el backend y en el frontend, verificado en `apps/*/Dockerfile`).
-6. **Cifrado en Tránsito en el Ingress:** En los entornos Proxmox, Traefik termina TLS en el entrypoint `websecure` con un certificado de la CA interna entregado por ESO desde Vault, y redirige `web` con 308 ([ADR-016](../decisions/ADR-016-ingress-tls-and-http-hardening.md), enmienda 2026-10-03). La cookie de sesión `Secure` y los orígenes CORS `https://` dependen de esa terminación; [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts) exige la coherencia.
+6. **Cifrado en Tránsito en el Ingress:** En los entornos Proxmox, Traefik termina TLS en el entrypoint `websecure` con un certificado de la CA interna entregado por ESO desde Vault, y redirige `web` con una redirección permanente 301 (`permanent: true` en `setup_k3s.yaml`) ([ADR-016](../decisions/ADR-016-ingress-tls-and-http-hardening.md), enmienda 2026-10-03). La cookie de sesión `Secure` y los orígenes CORS `https://` dependen de esa terminación; [`tests/gitops/environment_http_contract.test.ts`](../../tests/gitops/environment_http_contract.test.ts) exige la coherencia.
 7. **Arquitectura Fail-Closed:** Ante fallos de componentes auxiliares de seguridad (Redis o PostgreSQL), las operaciones sensibles se bloquean preventivamente en lugar de continuar en estado vulnerable.
 
 ---
@@ -132,14 +132,31 @@ Implementado en [`infra/helm/pokedex/templates/network-policies.yaml`](../../inf
 
 La política `default-deny-all-ingress` bloquea por defecto cualquier tráfico no explícitamente autorizado en el namespace de la aplicación.
 
+#### Ingreso a la API
+
+La política `allow-api-ingress` admite tráfico en el puerto de la API solo desde tres orígenes, sin `ipBlock`
+(AUD-ARCH-NET-001, [ADR-013](../decisions/ADR-013-zero-trust-network-architecture.md)):
+
+1. El frontend web del mismo namespace.
+2. El controlador de ingress del entorno (`networkPolicies.ingressController`), porque el Ingress enruta `/api/` y
+   `/pokemons` directo a la API. Cada entorno declara su namespace y etiquetas en su values: ingress-nginx por
+   defecto y Traefik de K3s en [`proxmox-preprod/values.yaml`](../../gitops/environments/proxmox-preprod/values.yaml).
+3. El scraper de métricas (`networkPolicies.metricsScraper`), que además presenta `METRICS_BEARER_TOKEN`.
+
+[`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) verifica
+estos orígenes sobre el chart renderizado en cada perfil.
+
 ### 5.2. Aislamiento Estricto de PostgreSQL Mediado por PgBouncer
 
 Cuando `pgbouncer.enabled: true` está activo (por defecto en producción):
 
-1. **API Egress:** La API pierde la regla de salida hacia `component: database` y **solo** se le concede salida a `component: pgbouncer` en el puerto 5432.
+1. **API Egress:** La API pierde la regla de salida hacia `component: database` y **solo** se le concede salida a `component: pgbouncer` en el puerto 6432.
 2. **PostgreSQL Ingress:** La política de entrada de la base de datos restringe el origen exclusivamente a los pods etiquetados con:
    - `app.kubernetes.io/component: pgbouncer`
-   - `app.kubernetes.io/component: db-seeder` (Jobs de inicialización/migración)
+   - `app.kubernetes.io/component: db-seeder` (Job de siembra del catálogo)
+   - `app.kubernetes.io/component: db-migrator` (Job de migración del esquema, única vía de DDL; su política
+     `allow-db-migrator-egress` solo le permite DNS y PostgreSQL, [ADR-011](../decisions/ADR-011-persistence-drizzle-orm-and-pgbouncer.md))
+   - `backup` y `dr-verification` cuando `backup.enabled` está activo
    Cualquier paquete TCP directo desde un pod de la API hacia PostgreSQL es descartado por el CNI.
 
 ### 5.3. Egress Anti-SSRF y Protección de Metadatos Cloud (IMDS)

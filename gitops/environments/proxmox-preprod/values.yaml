@@ -70,7 +70,7 @@ ingress:
   enabled: true
   className: "traefik"
   annotations:
-    # AUD-SEC-TLS-001 (ADR-016): router solo en websecure. La redirección 308 de
+    # AUD-SEC-TLS-001 (ADR-016): router solo en websecure. La redirección permanente (301) de
     # web → websecure es global de Traefik (HelmChartConfig de setup_k3s.yaml).
     traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
     traefik.ingress.kubernetes.io/router.tls: "true"
@@ -178,6 +178,12 @@ externalSecrets:
 # RFC1918 y loopback). La allowlist FQDN se conserva para cuando vuelva Cilium.
 networkPolicies:
   enabled: true
+  # AUD-ARCH-NET-001: el Ingress de K3s es Traefik en kube-system y enruta /api/ y /pokemons
+  # directo a la API; antes solo llegaba gracias a un ipBlock 0.0.0.0/0 en el ingreso de la API.
+  ingressController:
+    namespace: kube-system
+    podLabels:
+      app.kubernetes.io/name: traefik
   egress:
     antiSsrf: true
     externalHttps: true

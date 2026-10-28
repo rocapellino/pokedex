@@ -164,7 +164,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetDomain: 'Persistencia / Migraciones Drizzle',
     targetArtifacts: ['apps/backend/src/db/migrate.ts', 'apps/backend/src/db/migrations/'],
     description:
-      'Aplica las migraciones sobre un PostgreSQL real: base vacía, idempotencia, esquema heredado sin journal registrado como línea base y rechazo del esquema incompleto.',
+      'Aplica las migraciones sobre un PostgreSQL real: base vacía, idempotencia, esquema heredado sin journal registrado como línea base, rechazo del esquema incompleto y verificación con getSchemaStatus.',
   },
   'tests/integration/db/pokemon_repository_postgres.test.ts': {
     type: 'Integration',

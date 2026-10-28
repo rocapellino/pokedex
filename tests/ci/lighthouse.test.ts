@@ -15,6 +15,8 @@ import {
 } from '../../scripts/lighthouse-stack.js';
 import { median, summarize, type Lhr } from '../../scripts/lighthouse-summary.js';
 import { fetchAllPokemons } from '../../apps/frontend/src/shared/api.js';
+import { HEALTH_ENDPOINT } from '../../apps/frontend/src/components/backoffice-health.js';
+import type { ServiceVersionResponse } from '../../apps/frontend/src/types.js';
 import { ROOT_DIR as ROOT } from '../helpers/repo.js';
 import { readYaml } from '../helpers/yaml.js';
 
@@ -57,6 +59,17 @@ test('📈 Lighthouse: la API simulada responde lo que la página consulta al ca
   assert.equal((await originalFetch(`${base}/pokemons/999999`)).status, 404);
   assert.deepEqual(await (await originalFetch(`${base}/api/v1/auth/session`)).json(), { authenticated: false });
   assert.equal((await originalFetch(`${base}/no-existe`)).status, 404);
+});
+
+/**
+ * Regresión (PR #996): el backoffice pasó a consultar HEALTH_ENDPOINT y la API simulada respondía 404,
+ * que Chrome registra en consola y hace fallar `errors-in-console` en Lighthouse.
+ */
+test('📈 Lighthouse: la API simulada responde el monitor de salud del backoffice', async () => {
+  const res = await originalFetch(`${base}${HEALTH_ENDPOINT}`);
+  assert.equal(res.status, 200, `${HEALTH_ENDPOINT} debe responder 200 en la medición`);
+  const body = (await res.json()) as ServiceVersionResponse;
+  assert.equal(body.database.postgres_connected, true, 'la medición debe reflejar un backend sano');
 });
 
 test('📈 Lighthouse: el catálogo completo carga de extremo a extremo (regresión: antes devolvía 404)', async () => {

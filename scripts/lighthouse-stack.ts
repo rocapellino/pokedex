@@ -88,6 +88,25 @@ export function createApiServer(catalog: Json[]): http.Server {
     if (req.method === 'GET' && url.pathname === '/api/v1/auth/session') {
       return send(res, 200, { authenticated: false });
     }
+    // Monitor de salud del backoffice (HEALTH_ENDPOINT): un 404 se registra en consola y hace
+    // fallar `errors-in-console`. Forma de ServiceVersionResponse con un backend sano.
+    if (req.method === 'GET' && url.pathname === '/api/v1/version') {
+      return send(res, 200, {
+        app: 'pokedex',
+        version: 'lighthouse',
+        git_sha: 'lighthouse',
+        node_version: process.version,
+        uptime_seconds: 0,
+        environment: 'lighthouse',
+        database: {
+          engine: 'postgresql',
+          postgres_connected: true,
+          postgres_version: 'stub',
+          redis_connected: true,
+          mode: 'normal',
+        },
+      });
+    }
     return send(res, 404, { error: 'No encontrado' });
   });
 }

@@ -102,6 +102,16 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Comprueba que pre-prod siembre el catálogo completo con la imagen de la API, después de la sincronización, y que los demás entornos no siembren por defecto.',
   },
+  'tests/gitops/migrate_job_contract.test.ts': {
+    type: 'Contract / GitOps',
+    targetDomain: 'Persistencia / Job de Migración de Esquema',
+    targetArtifacts: [
+      'infra/helm/pokedex/templates/migrate-job.yaml',
+      'infra/helm/pokedex/templates/network-policies.yaml',
+    ],
+    description:
+      'Exige en todo perfil desplegable el Job de migración como hook Sync entre PostgreSQL y la API, con la imagen de la API, conexión directa y salida restringida a DNS y PostgreSQL (ADR-011).',
+  },
   'tests/helpers/argocd.ts': {
     type: 'Helper',
     targetDomain: 'ArgoCD / Exclusiones de Directorio',

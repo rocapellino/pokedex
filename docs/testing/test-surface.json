@@ -2352,6 +2352,29 @@
       "description": "Comprueba que pre-prod sincronice METRICS_BEARER_TOKEN desde Vault al Secret de la API (AUD-SEC-OBS-001)."
     },
     {
+      "path": "tests/gitops/migrate_job_contract.test.ts",
+      "suite": "gitops",
+      "type": "Contract / GitOps",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Persistencia / Job de Migración de Esquema",
+      "targetArtifacts": [
+        "infra/helm/pokedex/templates/migrate-job.yaml",
+        "infra/helm/pokedex/templates/network-policies.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:gitops"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Exige en todo perfil desplegable el Job de migración como hook Sync entre PostgreSQL y la API, con la imagen de la API, conexión directa y salida restringida a DNS y PostgreSQL (ADR-011)."
+    },
+    {
       "path": "tests/gitops/platform_bootstrap_contract.test.ts",
       "suite": "gitops",
       "type": "Contract / GitOps",
@@ -2637,7 +2660,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (sonarcloud)"
       ],
-      "description": "Aplica las migraciones sobre un PostgreSQL real: base vacía, idempotencia, esquema heredado sin journal registrado como línea base y rechazo del esquema incompleto."
+      "description": "Aplica las migraciones sobre un PostgreSQL real: base vacía, idempotencia, esquema heredado sin journal registrado como línea base, rechazo del esquema incompleto y verificación con getSchemaStatus."
     },
     {
       "path": "tests/integration/db/redis_cache.test.ts",
@@ -3629,6 +3652,29 @@
       "description": "Verifica el generador y el catálogo: classificationOf (el mítico prevalece), enriquecimiento del catálogo, validación y propagación del campo al backend."
     },
     {
+      "path": "tests/unit/compose_migrate_service.test.ts",
+      "suite": "unit",
+      "type": "Contract / Persistence",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Docker Compose / Migración de Esquema",
+      "targetArtifacts": [
+        "docker-compose.yaml",
+        "apps/backend/src/db/migrate.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Exige el servicio migrate de ejecución única (imagen del API, conexión directa) y que el API espere a que termine con éxito (ADR-011)."
+    },
+    {
       "path": "tests/unit/compose_postgres_tls.test.ts",
       "suite": "unit",
       "type": "Contract / Persistence",
@@ -3921,6 +3967,29 @@
         ".github/workflows/ci.yaml (sonarcloud)"
       ],
       "description": "Verifica la línea base de migraciones: no toca bases vacías o con journal, registra la migración inicial en esquemas heredados y falla sin escribir si el esquema difiere."
+    },
+    {
+      "path": "tests/unit/migration_schema_check.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Persistencia / Verificación de Esquema",
+      "targetArtifacts": [
+        "apps/backend/src/db/migrate.ts",
+        "apps/backend/src/db/connection-url.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Verifica getSchemaStatus (journal de la imagen frente a drizzle.__drizzle_migrations) y la resolución de la URL directa del migrador sin pasar por PgBouncer."
     },
     {
       "path": "tests/unit/monolith_guardrails.test.ts",
