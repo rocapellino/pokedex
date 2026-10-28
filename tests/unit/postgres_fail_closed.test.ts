@@ -7,6 +7,7 @@ import {
   connectPg,
   isPgConnectedStatus,
   setMigrationRunnerForTest,
+  setSchemaVerifierForTest,
   setPgPoolForTest,
   setDrizzleDbForTest,
   closePg,
@@ -19,6 +20,7 @@ describe('🛡️ APPS-002: Fail-Closed en Migraciones de PostgreSQL y Error Han
   afterEach(async () => {
     process.env = { ...originalEnv };
     setMigrationRunnerForTest();
+    setSchemaVerifierForTest();
     setPgPoolForTest(null);
     setDrizzleDbForTest(null);
     await closePg();
@@ -73,11 +75,11 @@ describe('🛡️ APPS-002: Fail-Closed en Migraciones de PostgreSQL y Error Han
     assert.equal(isPgConnectedStatus(), false);
   });
 
-  test('connectPg en producción lanza MigrationFailedError si runMigrations falla (fail-closed)', async () => {
+  // AUD-ARCH-DB-001 (ADR-011): en producción el esquema lo migra el Job dedicado; la API solo lo verifica.
+  test('connectPg en producción NO ejecuta migraciones: solo verifica el esquema', async () => {
     process.env.NODE_ENV = 'production';
     process.env.DATABASE_URL = 'postgresql://fake-user:fake-pass@127.0.0.1:5432/fake_db';
 
-    // Mock del pool para conectar exitosamente
     const mockClient = {
       query: async () => ({ rows: [] }),
       release: () => {},
@@ -89,25 +91,71 @@ describe('🛡️ APPS-002: Fail-Closed en Migraciones de PostgreSQL y Error Han
     };
     setPgPoolForTest(mockPool);
 
-    // Mock del runner de migraciones que falla
-    const migrationError = new Error('Relation already exists or syntax error');
+    let migrationRuns = 0;
     setMigrationRunnerForTest(async () => {
-      throw migrationError;
+      migrationRuns++;
+    });
+    let verifications = 0;
+    setSchemaVerifierForTest(async () => {
+      verifications++;
+      return { upToDate: true, expected: 1, applied: 1 };
+    });
+    setDrizzleDbForTest({ select: () => ({ from: () => Promise.resolve([{ total: 10 }]) }) } as any);
+
+    assert.equal(await connectPg(), true);
+    assert.equal(migrationRuns, 0, 'la API productiva no puede aplicar DDL (lo hace el Job de migración)');
+    assert.equal(verifications, 1, 'la API productiva debe verificar el esquema al conectar');
+  });
+
+  test('connectPg en producción lanza MigrationFailedError si el esquema tiene migraciones pendientes', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.DATABASE_URL = 'postgresql://fake-user:fake-pass@127.0.0.1:5432/fake_db';
+
+    const mockClient = {
+      query: async () => ({ rows: [] }),
+      release: () => {},
+    };
+    const mockPool: any = {
+      connect: async () => mockClient,
+      on: () => {},
+      end: async () => {},
+    };
+    setPgPoolForTest(mockPool);
+    setSchemaVerifierForTest(async () => ({ upToDate: false, expected: 2, applied: 1 }));
+
+    await assert.rejects(connectPg(), (err: any) => {
+      assert.ok(err instanceof MigrationFailedError, 'Debe ser instancia de MigrationFailedError');
+      assert.match(err.message, /migraciones pendientes/);
+      return true;
+    });
+    assert.equal(isPgConnectedStatus(), false, 'isPgConnected debe ser false tras el fallo');
+  });
+
+  test('connectPg en producción lanza MigrationFailedError si no puede verificar el esquema (fail-closed)', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.DATABASE_URL = 'postgresql://fake-user:fake-pass@127.0.0.1:5432/fake_db';
+
+    const mockClient = {
+      query: async () => ({ rows: [] }),
+      release: () => {},
+    };
+    const mockPool: any = {
+      connect: async () => mockClient,
+      on: () => {},
+      end: async () => {},
+    };
+    setPgPoolForTest(mockPool);
+    const verifyError = new Error('permission denied for schema drizzle');
+    setSchemaVerifierForTest(async () => {
+      throw verifyError;
     });
 
-    await assert.rejects(
-      async () => {
-        await connectPg();
-      },
-      (err: any) => {
-        assert.ok(err instanceof MigrationFailedError, 'Debe ser instancia de MigrationFailedError');
-        assert.match(err.message, /Las migraciones Drizzle fallaron/);
-        assert.equal(err.cause, migrationError);
-        return true;
-      },
-    );
-
-    assert.equal(isPgConnectedStatus(), false, 'isPgConnected debe ser false tras el fallo');
+    await assert.rejects(connectPg(), (err: any) => {
+      assert.ok(err instanceof MigrationFailedError);
+      assert.equal(err.cause, verifyError);
+      return true;
+    });
+    assert.equal(isPgConnectedStatus(), false);
   });
 
   test('connectPg en desarrollo tolera fallo de migraciones y no lanza MigrationFailedError', async () => {
@@ -176,7 +224,7 @@ describe('🛡️ APPS-002: Fail-Closed en Migraciones de PostgreSQL y Error Han
       end: async () => {},
     };
     setPgPoolForTest(mockPool);
-    setMigrationRunnerForTest(async () => {});
+    setSchemaVerifierForTest(async () => ({ upToDate: true, expected: 1, applied: 1 }));
 
     let insertCallCount = 0;
     const mockDb: any = {
@@ -215,7 +263,7 @@ describe('🛡️ APPS-002: Fail-Closed en Migraciones de PostgreSQL y Error Han
       end: async () => {},
     };
     setPgPoolForTest(mockPool);
-    setMigrationRunnerForTest(async () => {});
+    setSchemaVerifierForTest(async () => ({ upToDate: true, expected: 1, applied: 1 }));
 
     let insertCallCount = 0;
     const mockDb: any = {

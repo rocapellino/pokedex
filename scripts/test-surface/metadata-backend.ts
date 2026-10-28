@@ -44,6 +44,20 @@ export const BACKEND_FILE_METADATA: Record<string, FileMetadata> = {
     targetArtifacts: ['docker-compose.yaml', `${BE}/services/postgres.ts`],
     description: 'Regresión: el API en Compose no debe exigir TLS a un PostgreSQL local que no lo ofrece.',
   },
+  'tests/unit/compose_migrate_service.test.ts': {
+    type: 'Contract / Persistence',
+    targetDomain: 'Docker Compose / Migración de Esquema',
+    targetArtifacts: ['docker-compose.yaml', `${BE}/db/migrate.ts`],
+    description:
+      'Exige el servicio migrate de ejecución única (imagen del API, conexión directa) y que el API espere a que termine con éxito (ADR-011).',
+  },
+  'tests/unit/migration_schema_check.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Persistencia / Verificación de Esquema',
+    targetArtifacts: [`${BE}/db/migrate.ts`, `${BE}/db/connection-url.ts`],
+    description:
+      'Verifica getSchemaStatus (journal de la imagen frente a drizzle.__drizzle_migrations) y la resolución de la URL directa del migrador sin pasar por PgBouncer.',
+  },
   'tests/unit/error_helpers.test.ts': {
     type: 'Unit',
     targetDomain: 'Utilidades / Mensajes y Estados de Error',

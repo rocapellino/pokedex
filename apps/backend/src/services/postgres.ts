@@ -7,16 +7,13 @@ import { initialPokemons } from '../data/initialPokemons.js';
 import { logger } from '../utils/logger.js';
 import { errorMessage } from '../utils/errors.js';
 import { pokedexEntries, createDrizzleClient, type AppDatabase, runMigrations } from '../db/index.js';
+import { composePostgresUrl } from '../db/connection-url.js';
+import { getSchemaStatus, type SchemaStatus } from '../db/migrate.js';
 
 const { Pool } = pg;
 
 export function getDatabaseUrl(): string | undefined {
-  return (
-    process.env.DATABASE_URL ||
-    (process.env.POSTGRES_HOST && process.env.POSTGRES_USER && process.env.POSTGRES_PASSWORD && process.env.POSTGRES_DB
-      ? `postgresql://${encodeURIComponent(process.env.POSTGRES_USER)}:${encodeURIComponent(process.env.POSTGRES_PASSWORD)}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT || 5432}/${process.env.POSTGRES_DB}`
-      : undefined)
-  );
+  return process.env.DATABASE_URL || composePostgresUrl(process.env);
 }
 
 export function getDirectDatabaseUrl(): string | undefined {
@@ -34,6 +31,14 @@ let migrationRunner: (url: string) => Promise<void> = runMigrations;
 
 export function setMigrationRunnerForTest(runner?: (url: string) => Promise<void>): void {
   migrationRunner = runner || runMigrations;
+}
+
+type SchemaVerifier = (client: pg.PoolClient) => Promise<SchemaStatus>;
+const defaultSchemaVerifier: SchemaVerifier = (client) => getSchemaStatus(client);
+let schemaVerifier: SchemaVerifier = defaultSchemaVerifier;
+
+export function setSchemaVerifierForTest(verifier?: SchemaVerifier): void {
+  schemaVerifier = verifier || defaultSchemaVerifier;
 }
 
 export function setPgPoolForTest(pool: pg.Pool | null): void {
@@ -119,26 +124,39 @@ export async function connectPg(): Promise<boolean> {
         drizzleDb = createDrizzleClient(pgPool);
       }
 
-      // Aplicar migraciones declarativas versionadas (Drizzle ORM como única fuente de verdad)
-      try {
-        const migrationDbUrl = getDirectDatabaseUrl() || dbUrl;
-        await migrationRunner(migrationDbUrl);
-      } catch (migErr) {
-        // [APPS-002] Contrato por ambiente:
-        //   - produccion: fail-closed. Un esquema no migrado NO es un almacén
-        //     degradado, es un almacén con otra forma de datos. Continuar en
-        //     memoria enmascararia el fallo y perderia las escrituras previas.
-        //   - desarrollo/test: tolerante, para no bloquear la iteracion local.
-        if (isProductionEnv()) {
+      // [APPS-002] Contrato por ambiente:
+      //   - produccion: fail-closed. Un esquema no migrado NO es un almacén
+      //     degradado, es un almacén con otra forma de datos. Continuar en
+      //     memoria enmascararia el fallo y perderia las escrituras previas.
+      //     ADR-011 (AUD-ARCH-DB-001): las migraciones las aplica el Job dedicado
+      //     (templates/migrate-job.yaml, servicio `migrate` en Compose) antes de la
+      //     API; aquí solo se verifican, sin permisos de DDL ni carreras entre réplicas.
+      //   - desarrollo/test: se migra al arrancar, de forma tolerante, para no
+      //     bloquear la iteracion local.
+      if (isProductionEnv()) {
+        let status: SchemaStatus;
+        try {
+          status = await schemaVerifier(client);
+        } catch (verifyErr) {
           throw new MigrationFailedError(
-            '[Storage: PostgreSQL] Las migraciones Drizzle fallaron. ' +
-              'Arranque abortado (fail-closed) para no operar con un esquema distinto al declarado.',
-            { cause: migErr },
+            '[Storage: PostgreSQL] No se pudo verificar el esquema Drizzle. Arranque abortado (fail-closed).',
+            { cause: verifyErr },
           );
         }
-        logger.warn('[Storage: PostgreSQL] Aviso al verificar/aplicar migraciones Drizzle:', {
-          error: errorMessage(migErr),
-        });
+        if (!status.upToDate) {
+          throw new MigrationFailedError(
+            `[Storage: PostgreSQL] El esquema tiene migraciones pendientes (aplicada: ${status.applied ?? 'ninguna'}, ` +
+              `esperada: ${status.expected}). Ejecutar el Job de migración antes de la API (fail-closed).`,
+          );
+        }
+      } else {
+        try {
+          await migrationRunner(getDirectDatabaseUrl() || dbUrl);
+        } catch (migErr) {
+          logger.warn('[Storage: PostgreSQL] Aviso al verificar/aplicar migraciones Drizzle:', {
+            error: errorMessage(migErr),
+          });
+        }
       }
 
       const [countRow] = await drizzleDb.select({ total: count() }).from(pokedexEntries);

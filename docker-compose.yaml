@@ -50,6 +50,9 @@ services:
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
       CORS_ORIGINS: "${CORS_ORIGINS:-http://localhost:3000,http://localhost:8080,http://127.0.0.1:8080}"
     depends_on:
+      # ADR-011: con NODE_ENV=production el API verifica el esquema y no lo migra.
+      migrate:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       redis:
@@ -63,6 +66,27 @@ services:
       timeout: 3s
       retries: 3
       start_period: 5s
+
+  # ============================================================================
+  # 2b. Migración de Esquema (Drizzle) - Ejecución Única antes del API
+  # ============================================================================
+  # Equivalente al Job de Kubernetes (infra/helm/pokedex/templates/migrate-job.yaml,
+  # ADR-011): misma imagen que el API y conexión directa a PostgreSQL.
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: pokemon-migrate
+    restart: "no"
+    command: ["node", "dist/migrate.js"]
+    environment:
+      NODE_ENV: "production"
+      DIRECT_DATABASE_URL: "${DIRECT_DATABASE_URL:-postgresql://${POSTGRES_USER:-pokedex_app}:${POSTGRES_PASSWORD:?Error: Variable POSTGRES_PASSWORD requerida en .env}@postgres:5432/${POSTGRES_DB:-pokedex_db}}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend-net
 
   # ============================================================================
   # 3. Base de Datos Relacional (PostgreSQL 17) - Capa de Datos Aislada
