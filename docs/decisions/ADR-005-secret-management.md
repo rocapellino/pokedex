@@ -83,7 +83,7 @@ El blueprint cloud para producción (actualmente inactivo) establece las pautas 
 ### Compensaciones y Mitigaciones
 
 - **Custodia de Llaves Shamir**: Requiere la custodia segura de las 5 llaves Shamir (umbral de 3 requerido para unseal tras reinicio del host Proxmox). Mitigado con el playbook automatizado [`setup_vault.yaml`](../../infra/ansible/playbooks/setup_vault.yaml) y la guarda de idempotencia en disco.
-- **Reinicio Operacional en Pre-producción**: La ausencia de Stakater Reloader en Proxmox exige ejecutar `task k8s:restart` tras una rotación de emergencia en Vault para forzar la actualización inmediata en memoria.
+- **Reinicio Operacional en Pre-producción**: La ausencia de Stakater Reloader en Proxmox exige ejecutar `task k8s:rollout-restart` tras una rotación de emergencia en Vault para forzar la actualización inmediata en memoria.
 - **Revocación de Sesiones Administrativas**: La rotación de `ADMIN_SESSION_SECRET` revoca sesiones administrativas activas; se mitiga documentando la ventana de mantenimiento y avisos a operadores en [`docs/operations/secret-rotation.md`](../operations/secret-rotation.md).
 
 ---

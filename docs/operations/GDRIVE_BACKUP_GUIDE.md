@@ -9,7 +9,7 @@ Esta guía documenta la implementación de la **Fase 2 de Disaster Recovery** pa
 ```mermaid
 flowchart TD
     subgraph LOCAL["Entorno de Ejecución"]
-        PG[(PostgreSQL 16)] -->|pg_dump| GZ[Compresión gzip -9]
+        PG[(PostgreSQL 17)] -->|pg_dump| GZ[Compresión gzip -9]
         GZ -->|openssl enc| AES[Cifrado AES-256-CBC + PBKDF2]
         AES -->|sha256sum| SHA[Firma SHA-256]
         AES --> DUMP[(Volcado Cifrado\npokedex_*.sql.gz.enc)]
@@ -221,7 +221,7 @@ journalctl -u pokedex-gdrive-sync -f
 
 ---
 
-## 5. Protocolo de Restauración ante Desastre (Disaster Recovery Drill)
+## 6. Protocolo de Restauración ante Desastre (Disaster Recovery Drill)
 
 Si el host físico Proxmox sufre una pérdida total:
 
@@ -254,7 +254,7 @@ Si el host físico Proxmox sufre una pérdida total:
 
 ---
 
-## 6. Política Operacional Fail-Closed en Kubernetes
+## 7. Política Operacional Fail-Closed en Kubernetes
 
 Para prevenir falsos positivos en el estado de respaldo off-site:
 

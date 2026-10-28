@@ -83,8 +83,8 @@ flowchart TD
     end
 
     subgraph StatefulLayer["Capa de Persistencia Centralizada (SSOT)"]
-        PG[("PostgreSQL 16\n(PersistentVolumeClaim)")]
-        RD[("Redis 7 (Caché y Coordinación)")]
+        PG[("PostgreSQL 17\n(PersistentVolumeClaim)")]
+        RD[("Valkey 8 (Caché y Coordinación)")]
         CDN["CDN Externa / GitHub Raw (Sprites WebP)"]
     end
 
@@ -138,7 +138,7 @@ Internet / Clientes
        └────────┬───────┘
                 ▼
 ┌─────────────────────────────┐
-│ PostgreSQL 16 (StatefulSet) │
+│ PostgreSQL 17 (StatefulSet) │
 └─────────────────────────────┘
 ```
 
@@ -174,5 +174,5 @@ infra/helm/pokedex/
 ## 6. Conclusiones Arquitectónicas
 
 1. **Flexibilidad Operativa:** La arquitectura soporta escalado elástico Cloud cuando la demanda lo requiere y modo de capacidad fija lean en hosts on-premise Proxmox para evitar saturación de memoria.
-2. **Consistencia Transaccional:** La capa de datos en PostgreSQL 16 con `pg.Pool` nativo asegura transacciones ACID sin riesgo de estados huérfanos entre réplicas.
+2. **Consistencia Transaccional:** La capa de datos en PostgreSQL 17 con `pg.Pool` nativo asegura transacciones ACID sin riesgo de estados huérfanos entre réplicas.
 3. **Desacoplamiento Multimedia:** El consumo de assets vía CDN previene la saturación del almacenamiento persistente del clúster.

@@ -28,7 +28,7 @@ Este documento define la política oficial, las métricas de servicio (RPO/RTO),
 
 ```mermaid
 flowchart LR
-    PG[(PostgreSQL 16\npokedex_db)] -->|pg_dump| GZ[Compresión\ngzip -9]
+    PG[(PostgreSQL 17\npokedex_db)] -->|pg_dump| GZ[Compresión\ngzip -9]
     GZ -->|openssl enc| AES[Cifrado Simétrico\nAES-256-CBC + PBKDF2]
     AES -->|sha256sum| HASH[Suma de Integridad\nSHA-256]
     AES --> PVC[Copia Local: PVC\n/backups (RTO Inmediato)]

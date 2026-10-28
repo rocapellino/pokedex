@@ -43,7 +43,7 @@ La plataforma está construida bajo un ecosistema unificado y tipado de extremo 
 1. **Separación de Contenedores en Producción y Servidor Unificado en Dev:** En producción y Docker Compose, el frontend estático compilado por Vite se sirve desde `nginx:1.31-alpine` (`pokemon-web`) y la API REST corre en `node:24-alpine` (`pokemon-api`); en desarrollo local sin contenedores (`npm run dev`), Express también puede servir los activos estáticos directamente.
 2. **Modelos Compartidos y Type Safety:** Los contratos de datos (`Pokemon`, `PokemonStats`, `PokemonEvolution`) residen como interfaces canónicas en TypeScript (`apps/backend/src/types.ts`), compartidas entre controladores, servicios y validadores.
 3. **Persistencia Híbrida Relacional + JSONB:**
-   - PostgreSQL 16 actúa como la única fuente de verdad transaccional (ACID).
+   - PostgreSQL 17 actúa como la única fuente de verdad transaccional (ACID).
    - Columnas relacionales indexadas (`id`, `nombre`, `tipo`) para filtros de alta cardinalidad.
    - Columna binaria `data JSONB` para flexibilidad total de atributos sin migraciones DDL disruptivas.
 4. **Contenedores Multi-Stage Endurecidos:** Compilación limpia en etapa de build (`esbuild` para backend, `Vite` para frontend) y empaquetado final mínimo sobre imágenes Alpine fijadas por digest SHA-256 bajo usuarios sin privilegios.

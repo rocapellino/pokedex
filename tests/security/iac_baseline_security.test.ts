@@ -151,14 +151,21 @@ test('🛡️ Taskfile CLI: ADR-020 formaliza ciclo de vida en 4 fases para alia
   );
   assert.ok(adrContent.includes('ADR-026'), 'ADR-020 debe referenciar la consolidación de ADR-026');
 
-  // 2. TASKFILE_CLI_REFERENCE.md existe físicamente y documenta catálogo canónico y fases
+  // 2. TASKFILE_CLI_REFERENCE.md existe físicamente, documenta el catálogo canónico y remite a ADR-020
+  //    para el retiro de aliases. Las 4 fases viven solo en ADR-020 (punto 1): la referencia operativa
+  //    no lista aliases inexistentes como comandos (AUD-DOC-CLI-001).
   assert.ok(fs.existsSync(cliRefPath), 'TASKFILE_CLI_REFERENCE.md debe existir en docs/operations/');
   const cliRefContent = fs.readFileSync(cliRefPath, 'utf-8');
   assert.ok(cliRefContent.includes('task --list'), 'TASKFILE_CLI_REFERENCE.md debe consagrar task --list');
-  assert.ok(cliRefContent.includes('Fase 1: Documentar'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 1');
-  assert.ok(cliRefContent.includes('Fase 2: Medir Uso'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 2');
-  assert.ok(cliRefContent.includes('Fase 3: Deprecate'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 3');
-  assert.ok(cliRefContent.includes('Fase 4: Eliminar'), 'TASKFILE_CLI_REFERENCE.md debe detallar Fase 4');
+  assert.ok(
+    cliRefContent.includes('ADR-020-unified-deployment-governance-and-script-retirement.md'),
+    'TASKFILE_CLI_REFERENCE.md debe remitir a ADR-020 para el retiro de aliases',
+  );
+  assert.doesNotMatch(
+    cliRefContent,
+    /`task (?:ts|tofu|docker):[a-z:]+`|`task deploy:proxmox`|`task gitops:sync:proxmox`/,
+    'TASKFILE_CLI_REFERENCE.md no debe listar aliases retirados como comandos',
+  );
 
   // 3. Taskfile.yaml define default con task --list y start como tarea canónica
   assert.ok(

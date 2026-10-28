@@ -88,66 +88,11 @@ Al invocar `task` sin argumentos, se ejecuta de forma predeterminada `task --lis
 
 ---
 
-## 3. Estrategia de Deprecación de Aliases en 4 Fases
+## 3. Aliases Retirados
 
-Para reducir la deuda técnica y eliminar la superficie de mantenimiento sin provocar disrupciones operativas ni romper flujos de trabajo preexistentes, se adopta la siguiente estrategia escalonada:
-
-```mermaid
-flowchart LR
-    F1["Fase 1: Documentar<br/>Inventario y mapeo hacia canónicos"] --> F2["Fase 2: Medir Uso<br/>Advertencias activas en consola"]
-    F2 --> F3["Fase 3: Deprecate<br/>Marcado formal en Taskfile [DEPRECADO]"]
-    F3 --> F4["Fase 4: Eliminar<br/>Retiro definitivo en release v2.0"]
-```
-
-### Fase 1: Documentar Aliases (Inventario y Mapeo)
-
-- Se registran de forma exhaustiva todos los aliases históricos en esta guía de referencia y en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md).
-- Toda la documentación oficial de despliegue, guías de Proxmox y READMEs se actualizan para emplear exclusivamente la sintaxis canónica (`task infra:plan:proxmox`, `task ansible:prepare`, `task lint`).
-
-### Fase 2: Medir Uso y Telemetría Informativa
-
-- Cada alias en `Taskfile.yaml` incorpora una directiva informativa visible en consola:
-
-  ```bash
-  ⚠️  [DEPRECADO] 'task <alias>' es un alias de compatibilidad. Use 'task <canónico>'.
-  ```
-
-- Las ejecuciones en CI/CD y terminales locales muestran inmediatamente la advertencia, orientando a desarrolladores y operadores sobre la alternativa soportada.
-
-### Fase 3: Deprecación Formal
-
-- Las descripciones de las tareas en `Taskfile.yaml` llevan el prefijo `[DEPRECADO]`, visible en la salida de `task --list`.
-- Se mantiene 100% la funcionalidad subyacente para no bloquear pipelines existentes durante todo el ciclo de versiones `v1.x`.
-
-### Fase 4: Eliminación Definitiva (Ejecutada en v1.76.0 y consolidada en v1.94.1)
-
-- Conforme al ciclo de vida formalizado en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md), los aliases legados fueron retirados definitivamente de `Taskfile.yaml` (los 18 iniciales en `v1.76.0` y el alias residual `gitops:sync:proxmox` en `v1.94.1`). La interfaz soportada es exclusivamente la canónica.
-
----
-
-## 4. Matriz de Aliases en Deprecación y Sustitutos Canónicos
-
-> [!NOTE]
-> Todos los aliases históricos listados a continuación fueron retirados de forma definitiva en la **Fase 4**. Esta tabla se preserva como referencia rápida de migración; el contexto histórico completo reside en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md) y en el registro histórico de [ADR-026](../decisions/README.md).
-
-| Alias Histórico Deprecado | Tarea Canónica Sustituta | Fase Actual | Fecha / Versión de Retiro |
-| :--- | :--- | :---: | :---: |
-| `task gitops:sync:proxmox` | `task gitops:sync:preprod` | Fase 4 (Retirado) | Ejecutado (v1.94.1) |
-| `task tofu:init:proxmox` | `task infra:validate` *(o tofu init en directorio)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:plan:proxmox` | `task infra:plan:proxmox` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:apply:proxmox` | `task infra:apply:proxmox` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:init:aws` | `task infra:validate` *(o tofu init en directorio)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:plan:aws` | `task infra:plan:aws` *(retirado con ADR-030)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:apply:aws` | `task infra:apply:aws` *(retirado con ADR-030)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:init:cloud` | `task infra:validate` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:plan:cloud` | `task infra:plan:aws` *(retirado con ADR-030)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:apply:cloud` | `task infra:apply:aws` *(retirado con ADR-030)* | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task tofu:validate` | `task infra:validate` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task ts:install` | `task install` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task ts:dev` | `task dev` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task ts:build` | `task build` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task ts:start` | `task start` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task ts:lint` | `task lint` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task docker:up` | `task dev:compose` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task docker:down` | `task dev:compose:down` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
-| `task deploy:proxmox` | `task ansible:prepare` | Fase 4 (Retirado) | Ejecutado (v1.76.0) |
+Los aliases legados de compatibilidad (`ts:*`, `tofu:*`, `docker:*`, `deploy:proxmox` y `gitops:sync:proxmox`)
+se retiraron de forma definitiva de `Taskfile.yaml` en `v1.76.0` y `v1.94.1`. El ciclo de retiro en cuatro fases
+está registrado en [ADR-020](../decisions/ADR-020-unified-deployment-governance-and-script-retirement.md) y
+[`tests/security/iac_baseline_security.test.ts`](../../tests/security/iac_baseline_security.test.ts) impide que
+vuelvan a declararse. La tabla de equivalencias de la migración se conserva en el historial de Git de este
+documento; la interfaz soportada es exclusivamente el catálogo de la sección 2.

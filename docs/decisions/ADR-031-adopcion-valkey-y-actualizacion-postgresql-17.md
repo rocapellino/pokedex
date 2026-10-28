@@ -30,7 +30,7 @@ Para mantener la plataforma completamente alineada con los estándares abiertos,
 
 1. Se reemplaza la imagen `redis:7-alpine` por la imagen oficial gobernada por la Linux Foundation:
    - **Imagen OCI:** `valkey/valkey:8-alpine@sha256:081c2f5cb575efc901aa80ff9cdbd1ec6a301682fd35e1ebb4b0990a4a4a8507`
-   - **Compatibilidad de Red y DNS:** Se preserva el identificador de servicio y hostname interno `redis` tanto en `docker-compose.yaml` como en los Services de Kubernetes (`infra/helm/pokedex/values.yaml`), garantizando interoperabilidad transparente sin requerir cambios de variables de entorno ni bifurcación en el código cliente `apps/backend/src/services/redis.ts`.
+   - **Compatibilidad de Red y DNS:** Se preservan los nombres de servicio existentes, sin renombrarlos a Valkey: `redis` en `docker-compose.yaml` y `pokemon-redis-svc` en Kubernetes (`infra/helm/pokedex/templates/redis-deployment.yaml`), garantizando interoperabilidad transparente sin requerir cambios de variables de entorno ni bifurcación en el código cliente `apps/backend/src/services/cache.ts`.
    - **Comando de Arranque y Healthcheck:** Se configuran comandos nativos `valkey-server` y `valkey-cli` con fallback defensivo a `redis-cli`.
 2. Se ratifican los contratos de resiliencia ([ADR-027](./ADR-027-resilience-fail-open-vs-fail-closed-contracts.md)):
    - **Fail-Open (Disponibilidad):** Ante indisponibilidad temporal de Valkey, la lectura del catálogo de Pokémon degrada grácilmente a PostgreSQL sin interrumpir el servicio.
