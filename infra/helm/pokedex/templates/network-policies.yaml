@@ -68,26 +68,25 @@ spec:
             matchLabels:
               app.kubernetes.io/component: web
         {{- if .Values.ingress.enabled }}
+        {{- with .Values.networkPolicies.ingressController }}
+        # AUD-ARCH-NET-001: el Ingress enruta /api/ y /pokemons directo a la API, sin pasar por web.
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: ingress-nginx
-        - namespaceSelector: {}
+              kubernetes.io/metadata.name: {{ .namespace | quote }}
           podSelector:
             matchLabels:
-              app.kubernetes.io/name: ingress-nginx
+              {{- toYaml .podLabels | nindent 14 }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.networkPolicies.metricsScraper }}
+        # Scraper de /metrics (ADR-013, capa 2); la API exige además METRICS_BEARER_TOKEN.
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .namespace | quote }}
         {{- end }}
       ports:
         - protocol: TCP
           port: {{ .Values.api.port }}
-    {{- if .Values.ingress.enabled }}
-    # Si Ingress está habilitado y el tráfico de ingress controller proviene de hostPort/SNAT
-    - from:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-      ports:
-        - protocol: TCP
-          port: {{ .Values.api.port }}
-    {{- end }}
   egress:
     # Permitir resolución DNS interna únicamente
     - to:

@@ -76,6 +76,65 @@ test('🛡️ Helm Security: la API resuelve DNS y ninguna política depende de 
   }
 });
 
+/**
+ * AUD-ARCH-NET-001 (ADR-013) — la API solo acepta tráfico en su puerto desde el frontend web, el
+ * controlador de ingress del entorno y el scraper de métricas. Un `ipBlock` en el ingreso de la API
+ * (antes `0.0.0.0/0` cuando el ingress estaba activo) abre el puerto a cualquier pod del clúster.
+ */
+test('🛡️ Helm Security: el ingreso a la API se limita a web, controlador de ingress y scraper (sin ipBlock)', () => {
+  const profiles = {
+    ...PROFILES,
+    cloud: [...PROFILES.prod, 'gitops/environments/cloud/values.yaml'],
+  };
+  const expectedController: Record<string, { namespace: string; name: string }> = {
+    default: { namespace: 'ingress-nginx', name: 'ingress-nginx' },
+    prod: { namespace: 'ingress-nginx', name: 'ingress-nginx' },
+    cloud: { namespace: 'ingress-nginx', name: 'ingress-nginx' },
+    // K3s despliega Traefik en kube-system; el Ingress de pre-prod enruta /api/ y /pokemons directo a la API.
+    preprod: { namespace: 'kube-system', name: 'traefik' },
+  };
+
+  for (const [profile, files] of Object.entries(profiles)) {
+    const api = policyNamed(renderChart(files), '-allow-api-ingress');
+    assert.ok(api, `[${profile}] debe renderizarse la política de la API`);
+    const peers = api.spec.ingress.flatMap((rule: any) => rule.from ?? []);
+
+    assert.ok(
+      api.spec.ingress.every((rule: any) => Array.isArray(rule.from) && rule.from.length > 0),
+      `[${profile}] toda regla de ingreso de la API debe declarar orígenes (una regla sin from admite cualquiera)`,
+    );
+    assert.deepEqual(
+      peers.filter((p: any) => p.ipBlock),
+      [],
+      `[${profile}] el ingreso de la API no puede usar ipBlock (ADR-013)`,
+    );
+    assert.ok(
+      peers.some(
+        (p: any) => !p.namespaceSelector && p.podSelector?.matchLabels?.['app.kubernetes.io/component'] === 'web',
+      ),
+      `[${profile}] el frontend web del mismo namespace debe alcanzar la API`,
+    );
+
+    const { namespace, name } = expectedController[profile];
+    assert.ok(
+      peers.some(
+        (p: any) =>
+          p.namespaceSelector?.matchLabels?.['kubernetes.io/metadata.name'] === namespace &&
+          p.podSelector?.matchLabels?.['app.kubernetes.io/name'] === name,
+      ),
+      `[${profile}] el controlador de ingress (${namespace}/${name}) debe alcanzar la API`,
+    );
+    assert.ok(
+      peers.some((p: any) => p.namespaceSelector?.matchLabels?.['kubernetes.io/metadata.name'] === 'monitoring'),
+      `[${profile}] el scraper de métricas (namespace monitoring) debe alcanzar /metrics de la API`,
+    );
+    assert.ok(
+      peers.every((p: any) => !p.namespaceSelector || Object.keys(p.namespaceSelector.matchLabels ?? {}).length > 0),
+      `[${profile}] ningún origen puede usar namespaceSelector vacío (cualquier namespace)`,
+    );
+  }
+});
+
 test('🛡️ Helm Security: todo egress abierto a 0.0.0.0/0 excluye IMDS, RFC1918 y loopback (Anti-SSRF)', () => {
   // Pre-prod no tiene Cilium y habilita externalHttps: es el perfil que sí renderiza el ipBlock abierto.
   const preprodApi = policyNamed(renderChart(PROFILES.preprod), '-allow-api-ingress');

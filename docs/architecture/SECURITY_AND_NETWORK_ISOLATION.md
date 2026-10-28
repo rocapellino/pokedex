@@ -132,6 +132,20 @@ Implementado en [`infra/helm/pokedex/templates/network-policies.yaml`](../../inf
 
 La política `default-deny-all-ingress` bloquea por defecto cualquier tráfico no explícitamente autorizado en el namespace de la aplicación.
 
+#### Ingreso a la API
+
+La política `allow-api-ingress` admite tráfico en el puerto de la API solo desde tres orígenes, sin `ipBlock`
+(AUD-ARCH-NET-001, [ADR-013](../decisions/ADR-013-zero-trust-network-architecture.md)):
+
+1. El frontend web del mismo namespace.
+2. El controlador de ingress del entorno (`networkPolicies.ingressController`), porque el Ingress enruta `/api/` y
+   `/pokemons` directo a la API. Cada entorno declara su namespace y etiquetas en su values: ingress-nginx por
+   defecto y Traefik de K3s en [`proxmox-preprod/values.yaml`](../../gitops/environments/proxmox-preprod/values.yaml).
+3. El scraper de métricas (`networkPolicies.metricsScraper`), que además presenta `METRICS_BEARER_TOKEN`.
+
+[`tests/security/network_policies_security.test.ts`](../../tests/security/network_policies_security.test.ts) verifica
+estos orígenes sobre el chart renderizado en cada perfil.
+
 ### 5.2. Aislamiento Estricto de PostgreSQL Mediado por PgBouncer
 
 Cuando `pgbouncer.enabled: true` está activo (por defecto en producción):
