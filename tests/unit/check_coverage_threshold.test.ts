@@ -50,8 +50,21 @@ test('📏 Gate de cobertura: un prefijo sin archivos en el informe falla en lug
   assert.equal(result.ok, false);
 });
 
-test('📏 Gate de cobertura: el gate vigente protege las rutas HTTP del backend con un mínimo del 80 %', () => {
-  assert.deepEqual(COVERAGE_GATES, [GATE]);
+test('📏 Gate de cobertura: los gates vigentes protegen rutas HTTP (80 %) y servicios (65 %) del backend', () => {
+  const SERVICES_GATE = { prefix: 'apps/backend/src/services/', minLines: 65 };
+  assert.deepEqual(COVERAGE_GATES, [GATE, SERVICES_GATE]);
+
+  const healthyRoutes = record('apps/backend/src/routes/a.ts', 10, 9);
+  const services = (hit: number) => evaluateGates(healthyRoutes + record('apps/backend/src/services/a.ts', 100, hit));
+  assert.equal(
+    services(65).every((result) => result.ok),
+    true,
+  );
+  assert.equal(
+    services(64).every((result) => result.ok),
+    false,
+    'una regresión de servicios por debajo del 65 % debe fallar aunque las rutas cumplan',
+  );
   assert.equal(
     evaluateGates(record('apps/backend/src/routes/a.ts', 10, 5)).every((result) => result.ok),
     false,

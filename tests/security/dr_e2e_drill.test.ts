@@ -118,7 +118,7 @@ test('🛡️ DR End-to-End Drill: Detección estricta de corrupción de checksu
   );
 });
 
-test('🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en contenedor PostgreSQL 16 si Docker está activo', async () => {
+test('🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en contenedor PostgreSQL 17 si Docker está activo', async (t) => {
   let dockerActive = false;
   try {
     const { execSync } = await import('node:child_process');
@@ -128,8 +128,11 @@ test('🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en c
     dockerActive = false;
   }
 
+  // Se omite de forma visible: un `return` a secas cuenta como aprobado sin haber restaurado nada
+  // (AUD-TST-SKIP-001).
   if (!dockerActive) {
-    return; // Omitir si Docker no está disponible en el entorno
+    t.skip('requiere Docker (restauración real en contenedor PostgreSQL)');
+    return;
   }
 
   try {
@@ -150,17 +153,16 @@ test('🛡️ DR End-to-End Drill [Live Engine]: Ejecuta restauración real en c
   } catch (err: any) {
     // En entornos de CI (como GitHub Actions), el daemon de Docker puede estar activo pero
     // fallar al descargar postgres:17-alpine por rate limit de Docker Hub (toomanyrequests),
-    // restricciones de red o timeout de inicio del contenedor. En tal caso se degrada con advertencia.
+    // restricciones de red o timeout de inicio del contenedor. Solo esos fallos de arranque se omiten.
+    // `docker exec` no entra en la lista: la espera de readiness ya captura los suyos dentro de
+    // runDrDrill, así que uno que llegue aquí es la importación o la validación del backup fallando.
+    const message: string = err?.message ?? '';
     if (
-      err?.message?.includes('docker run') ||
-      err?.message?.includes('docker exec') ||
-      err?.message?.includes('Timeout esperando inicio') ||
-      err?.message?.includes('toomanyrequests')
+      message.includes('docker run') ||
+      message.includes('Timeout esperando inicio') ||
+      message.includes('toomanyrequests')
     ) {
-      console.warn(
-        '⚠️ Omitiendo live engine DR drill: docker run/exec no pudo inicializar el contenedor PostgreSQL en este runner (posible rate limit o restricción de red). Detalle:',
-        err.message,
-      );
+      t.skip(`el contenedor PostgreSQL no pudo arrancar en este runner: ${message.split('\n')[0]}`);
       return;
     }
     throw err;

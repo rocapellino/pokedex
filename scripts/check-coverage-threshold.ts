@@ -19,7 +19,15 @@ export interface CoverageGate {
   readonly minLines: number;
 }
 
-export const COVERAGE_GATES: readonly CoverageGate[] = [{ prefix: 'apps/backend/src/routes/', minLines: 80 }];
+/**
+ * `services/` parte de un suelo bajo la cobertura medida (69 % en local, donde se omiten las suites con
+ * PostgreSQL y Redis reales; CI las ejecuta y mide más): frena regresiones y se sube cuando se cierre
+ * AUD-TST-GAP-001 (rama con cliente de `services/ai.ts`).
+ */
+export const COVERAGE_GATES: readonly CoverageGate[] = [
+  { prefix: 'apps/backend/src/routes/', minLines: 80 },
+  { prefix: 'apps/backend/src/services/', minLines: 65 },
+];
 
 export interface FileCoverage {
   file: string;

@@ -91,9 +91,13 @@ test('🧪 MCP Doctor Unit: Principio Zero-Trust preservado en reportes y recome
     SONAR_TOKEN: '',
   };
 
+  // Sondas inyectadas: ejecutar los binarios reales (`code`, `trivy`...) haría el test lento y
+  // dependiente del host, y `code` hereda NODE_V8_COVERAGE y corrompe el LCOV (AUD-TST-HERM-001).
   const report = runMcpDoctor({
     rootDir: ROOT_DIR,
     env: customEnv,
+    cliProbeFn: () => ({ available: true, version: '1.0.0' }),
+    trivyPluginProbeFn: () => ({ installed: true }),
   });
 
   const serialized = JSON.stringify(report);
