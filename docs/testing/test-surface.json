@@ -3625,7 +3625,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (sonarcloud)"
       ],
-      "description": "Verifica el análisis del LCOV (rutas de Windows, LF/LH), la cobertura agregada por prefijo, el umbral exacto del 80 % y que un prefijo sin archivos falle."
+      "description": "Verifica el análisis del LCOV (rutas de Windows, LF/LH), la cobertura agregada por prefijo, los umbrales exactos de los gates vigentes (rutas y servicios del backend) y que un prefijo sin archivos falle."
     },
     {
       "path": "tests/unit/classification_legendary.test.ts",

@@ -11,8 +11,29 @@ import { ROOT_DIR } from '../../helpers/repo.js';
  * ==============================================================================
  */
 
+/**
+ * Sondas deterministas: el contrato no debe ejecutar los binarios del host (`code`, `trivy`...).
+ * Hacerlo lo vuelve lento y dependiente de la máquina, y el Electron de `code` hereda
+ * NODE_V8_COVERAGE y corrompe el LCOV de `npm run test:coverage` (AUD-TST-HERM-001).
+ * `missing` simula herramientas ausentes para recorrer también las ramas de dependencia faltante.
+ */
+function hermeticProbes(missing: readonly string[] = []) {
+  return {
+    cliProbeFn: (binary: string) =>
+      missing.includes(binary) ? { available: false } : { available: true, version: `${binary}-1.0.0` },
+    trivyPluginProbeFn: () =>
+      missing.includes('trivy-mcp') ? { installed: false, error: 'plugin not found' } : { installed: true },
+  };
+}
+
+const TOKENS_ENV = {
+  GITHUB_PERSONAL_ACCESS_TOKEN: 'token',
+  SONAR_TOKEN: 'token',
+  GRAFANA_SERVICE_ACCOUNT_TOKEN: 'token',
+};
+
 test('🛡️ MCP Contrato: El reporte de diagnóstico cumple con el esquema estructural completo', () => {
-  const report = runMcpDoctor({ rootDir: ROOT_DIR });
+  const report = runMcpDoctor({ rootDir: ROOT_DIR, env: TOKENS_ENV, ...hermeticProbes(['docker', 'trivy-mcp']) });
 
   // 1. Estructura de primer nivel
   assert.strictEqual(typeof report.overallValid, 'boolean');
@@ -71,18 +92,41 @@ test('🛡️ MCP Contrato: El reporte de diagnóstico cumple con el esquema est
 });
 
 test('🛡️ MCP Contrato: overallValid es estrictamente determinista respecto a sus componentes', () => {
-  const report = runMcpDoctor({ rootDir: ROOT_DIR });
-  const expectedValid =
-    report.summary.clientsInSync &&
-    report.summary.dependenciesMet &&
-    report.summary.configurationsMet &&
-    report.summary.connectivityMet;
+  // Cada escenario rompe un pilar distinto; `clientsInSync` depende de los adaptadores generados
+  // (ignorados por Git), así que no se fija: solo se exige que la conjunción se respete.
+  const scenarios = [
+    { broken: undefined, options: { env: TOKENS_ENV, ...hermeticProbes() } },
+    {
+      broken: 'dependenciesMet',
+      options: { env: TOKENS_ENV, ...hermeticProbes(['docker', 'npx', 'trivy', 'trivy-mcp']) },
+    },
+    { broken: 'configurationsMet', options: { env: {}, ...hermeticProbes() } },
+    {
+      broken: 'connectivityMet',
+      options: { env: { ...TOKENS_ENV, GRAFANA_MCP_ENDPOINT: 'http://insecure.example.com/mcp' }, ...hermeticProbes() },
+    },
+  ] as const;
+  const pillars = ['dependenciesMet', 'configurationsMet', 'connectivityMet'] as const;
 
-  assert.strictEqual(
-    report.overallValid,
-    expectedValid,
-    'overallValid debe coincidir exactamente con la conjunción de los 4 pilares de salud',
-  );
+  for (const { broken, options } of scenarios) {
+    const report = runMcpDoctor({ rootDir: ROOT_DIR, ...options });
+    for (const pillar of pillars) {
+      assert.strictEqual(report.summary[pillar], pillar !== broken, `Escenario ${broken ?? 'sano'}: ${pillar}`);
+    }
+    if (broken) assert.strictEqual(report.overallValid, false, `Un fallo en ${broken} debe invalidar el diagnóstico`);
+
+    const expectedValid =
+      report.summary.clientsInSync &&
+      report.summary.dependenciesMet &&
+      report.summary.configurationsMet &&
+      report.summary.connectivityMet;
+
+    assert.strictEqual(
+      report.overallValid,
+      expectedValid,
+      `Escenario ${broken ?? 'sano'}: overallValid debe coincidir exactamente con la conjunción de los 4 pilares de salud`,
+    );
+  }
 });
 
 test('🛡️ MCP Contrato: Servidores deshabilitados no bloquean dependenciesMet ni configurationsMet', () => {

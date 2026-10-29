@@ -625,7 +625,7 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     targetDomain: 'Gate de Cobertura por Directorio',
     targetArtifacts: ['scripts/check-coverage-threshold.ts'],
     description:
-      'Verifica el análisis del LCOV (rutas de Windows, LF/LH), la cobertura agregada por prefijo, el umbral exacto del 80 % y que un prefijo sin archivos falle.',
+      'Verifica el análisis del LCOV (rutas de Windows, LF/LH), la cobertura agregada por prefijo, los umbrales exactos de los gates vigentes (rutas y servicios del backend) y que un prefijo sin archivos falle.',
   },
   'tests/unit/session_cookie.test.ts': {
     type: 'Unit',
