@@ -4154,12 +4154,15 @@
     {
       "path": "tests/unit/re2js_resolution.test.ts",
       "suite": "unit",
-      "type": "Automated Test",
+      "type": "Contract / Dependencies",
       "role": "TEST_FILE",
       "runner": "node:test (tsx)",
       "status": "ACTIVE",
-      "targetDomain": "Suite unit",
-      "targetArtifacts": [],
+      "targetDomain": "Resolución y Parche de Seguridad de re2js",
+      "targetArtifacts": [
+        "package.json",
+        "package-lock.json"
+      ],
       "npmCommands": [
         "npm test",
         "npm run test:all",
@@ -4169,7 +4172,7 @@
       "ciWorkflows": [
         ".github/workflows/ci.yaml (sonarcloud)"
       ],
-      "description": "Suite de pruebas unit: re2js_resolution.test.ts."
+      "description": "Valida que package.json defina el override a re2js >=2.8.7 y que package-lock.json resuelva una versión segura mitigando GHSA-gg6h-894w-4m9c (AUD-DEP-RE2-001)."
     },
     {
       "path": "tests/unit/repo_tool_exec.test.ts",
