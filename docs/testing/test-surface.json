@@ -4152,6 +4152,29 @@
       "description": "Verifica la generación y validación de borradores de Pull Request body en UTF-8 con la matriz de impacto resuelta."
     },
     {
+      "path": "tests/unit/re2js_resolution.test.ts",
+      "suite": "unit",
+      "type": "Contract / Dependencies",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Resolución y Parche de Seguridad de re2js",
+      "targetArtifacts": [
+        "package.json",
+        "package-lock.json"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Valida que package.json defina el override a re2js >=2.8.7 y que package-lock.json resuelva una versión segura mitigando GHSA-gg6h-894w-4m9c (AUD-DEP-RE2-001)."
+    },
+    {
       "path": "tests/unit/repo_tool_exec.test.ts",
       "suite": "unit",
       "type": "Unit",

@@ -165,6 +165,13 @@ export const BACKEND_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Comprueba que el backend resuelva zod 4 y que solo él lo importe, porque la raíz hoistea una copia de zod 3 (AUD-DEP-ZOD-001).',
   },
+  'tests/unit/re2js_resolution.test.ts': {
+    type: 'Contract / Dependencies',
+    targetDomain: 'Resolución y Parche de Seguridad de re2js',
+    targetArtifacts: ['package.json', 'package-lock.json'],
+    description:
+      'Valida que package.json defina el override a re2js >=2.8.7 y que package-lock.json resuelva una versión segura mitigando GHSA-gg6h-894w-4m9c (AUD-DEP-RE2-001).',
+  },
   'tests/security/app/backup_hmac.test.ts': {
     type: 'Security / Application',
     targetDomain: 'Copias de Seguridad / Integridad HMAC',
