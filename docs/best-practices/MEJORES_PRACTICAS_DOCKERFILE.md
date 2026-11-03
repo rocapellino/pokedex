@@ -158,7 +158,7 @@ COPY apps/frontend ./apps/frontend
 RUN npm run build --workspace=@pokedex/frontend
 
 # Etapa 2: Runner (Nginx 1.31-alpine — versión actual de producción)
-FROM nginx:1.31-alpine@sha256:a3554c0d0b48177b1413c26e01f695334428020d9df01243fbae3e11cfd17417 AS runner
+FROM nginx:1.31-alpine@sha256:785835ea65db4bba6f021acc0f3be91b0fef76a53fe41f8588c6698d2aed0606 AS runner
 ARG APP_VERSION=unknown
 ARG GIT_SHA=unknown
 RUN apk upgrade --no-cache && \
