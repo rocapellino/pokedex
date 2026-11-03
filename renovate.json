@@ -248,13 +248,15 @@
     {
       "description": "RENOVATE-007: Deshabilitar actualizaciones rutinarias sobre bloques de overrides npm para prevenir fallos EOVERRIDE y desincronización de package-lock.json",
       "matchDepTypes": ["overrides"],
-      "enabled": false
+      "enabled": false,
+      "minimumReleaseAge": "7 days"
     },
     {
       "description": "RENOVATE-007: Permitir actualizaciones sobre overrides únicamente ante alertas de seguridad formales (CVEs)",
       "matchDepTypes": ["overrides"],
       "isVulnerabilityAlert": true,
-      "enabled": true
+      "enabled": true,
+      "minimumReleaseAge": "7 days"
     }
   ]
 }
