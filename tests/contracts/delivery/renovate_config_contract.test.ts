@@ -426,21 +426,26 @@ test('🛡️ RENOVATE-007: los overrides de npm tienen deshabilitadas las actua
     packageRules: Array<PackageRule & { matchDepTypes?: string[]; isVulnerabilityAlert?: boolean }>;
   };
 
-  const overrideBlocker = config.packageRules.find(
+  const blockerIndex = config.packageRules.findIndex(
     (rule) => rule.enabled === false && rule.matchDepTypes?.includes('overrides') && rule.isVulnerabilityAlert !== true,
   );
   assert.ok(
-    overrideBlocker,
+    blockerIndex !== -1,
     'RENOVATE-007: falta una regla que deshabilite las actualizaciones sobre matchDepTypes: ["overrides"] ' +
       'para prevenir EOVERRIDE y desincronizaciones de lockfile en PRs automáticos.',
   );
 
-  const securityOverrideExemption = config.packageRules.find(
+  const securityOverrideExemptionIndex = config.packageRules.findIndex(
     (rule) => rule.enabled === true && rule.matchDepTypes?.includes('overrides') && rule.isVulnerabilityAlert === true,
   );
   assert.ok(
-    securityOverrideExemption,
+    securityOverrideExemptionIndex !== -1,
     'RENOVATE-007: falta una regla que permita actualizaciones sobre matchDepTypes: ["overrides"] ' +
       'cuando isVulnerabilityAlert: true (alertas formales de seguridad/CVEs).',
+  );
+
+  assert.ok(
+    securityOverrideExemptionIndex > blockerIndex,
+    'RENOVATE-007: la excepción de seguridad debe declararse después del bloqueo para prevalecer en Renovate.',
   );
 });
