@@ -414,3 +414,33 @@ test('🛡️ RENOVATE-006: sin PRs duplicados entre github-actions y custom.reg
     }
   }
 });
+
+/**
+ * RENOVATE-007 — los bloques de overrides npm no deben recibir actualizaciones rutinarias de parches
+ * automáticos, ya que npm falla con EOVERRIDE ("Override for ... conflicts with direct dependency") y
+ * produce desincronización con package-lock.json. Únicamente deben permitirse si provienen de alertas
+ * de seguridad formales (isVulnerabilityAlert: true).
+ */
+test('🛡️ RENOVATE-007: los overrides de npm tienen deshabilitadas las actualizaciones rutinarias y solo se permiten ante alertas de seguridad', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'renovate.json'), 'utf-8')) as {
+    packageRules: Array<PackageRule & { matchDepTypes?: string[]; isVulnerabilityAlert?: boolean }>;
+  };
+
+  const overrideBlocker = config.packageRules.find(
+    (rule) => rule.enabled === false && rule.matchDepTypes?.includes('overrides') && rule.isVulnerabilityAlert !== true,
+  );
+  assert.ok(
+    overrideBlocker,
+    'RENOVATE-007: falta una regla que deshabilite las actualizaciones sobre matchDepTypes: ["overrides"] ' +
+      'para prevenir EOVERRIDE y desincronizaciones de lockfile en PRs automáticos.',
+  );
+
+  const securityOverrideExemption = config.packageRules.find(
+    (rule) => rule.enabled === true && rule.matchDepTypes?.includes('overrides') && rule.isVulnerabilityAlert === true,
+  );
+  assert.ok(
+    securityOverrideExemption,
+    'RENOVATE-007: falta una regla que permita actualizaciones sobre matchDepTypes: ["overrides"] ' +
+      'cuando isVulnerabilityAlert: true (alertas formales de seguridad/CVEs).',
+  );
+});

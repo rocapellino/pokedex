@@ -244,6 +244,17 @@
       "enabled": false,
       "minimumReleaseAge": "7 days",
       "labels": ["typescript-major-manual-review"]
+    },
+    {
+      "description": "RENOVATE-007: Deshabilitar actualizaciones rutinarias sobre bloques de overrides npm para prevenir fallos EOVERRIDE y desincronización de package-lock.json",
+      "matchDepTypes": ["overrides"],
+      "enabled": false
+    },
+    {
+      "description": "RENOVATE-007: Permitir actualizaciones sobre overrides únicamente ante alertas de seguridad formales (CVEs)",
+      "matchDepTypes": ["overrides"],
+      "isVulnerabilityAlert": true,
+      "enabled": true
     }
   ]
 }
