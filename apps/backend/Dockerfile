@@ -8,7 +8,7 @@
 # ------------------------------------------------------------------------------
 # Etapa 1: Builder (Compilación con esbuild)
 # ------------------------------------------------------------------------------
-FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS builder
+FROM node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS builder
 
 WORKDIR /app
 
@@ -34,7 +34,7 @@ RUN npm run lint --workspace=@pokedex/backend && npm run build --workspace=@poke
 # ------------------------------------------------------------------------------
 # Etapa 2: Runner (Entorno de Producción Seguro y Minimalista)
 # ------------------------------------------------------------------------------
-FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runner
+FROM node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85 AS runner
 
 # VER-002/OCI-001: los metadatos OCI de version y revision se inyectan desde CI
 # como build-args. El `version="2.0.0"` generico anterior era ficticio y no
