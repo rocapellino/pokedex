@@ -47,7 +47,7 @@ tools:
       version_args: ["--version"]
       version_regex: 'zizmor\s+(\d+\.\d+\.\d+)'
     container:
-      image: "ghcr.io/zizmorcore/zizmor:1.31.1@sha256:42d409dbb851d4c5d35a058cf042b828bea1e3f2884378c526eb0974780e18d9"
+      image: "ghcr.io/zizmorcore/zizmor:1.32.0@sha256:3014cc8f68f663935f69b3c3e0e41f5ce102b268d97db13db0f62208747f860d"
       mount_mode: "ro"
       workdir: "/repo"
       default_args: []
@@ -171,7 +171,7 @@ tools:
       version_args: ["--version"]
       version_regex: '(\d+\.\d+\.\d+)'
     container:
-      image: "renovate/renovate:44.198.0@sha256:9ace7c60234605b242fa7edf44f77a70a17f3b0e963e8e969bd59341a5b4295d"
+      image: "renovate/renovate:44.209.0@sha256:3609f05e0513fddd410666053c1a849397b57df40d68ec37fd747c7703222407"
       entrypoint: "renovate-config-validator"
       mount_mode: "ro"
       workdir: "/repo"
