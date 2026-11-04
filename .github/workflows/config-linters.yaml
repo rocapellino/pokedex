@@ -80,7 +80,7 @@ jobs:
           docker run --rm \
             -v "${GITHUB_WORKSPACE}:/repo:ro" -w /repo \
             --entrypoint renovate-config-validator \
-            renovate/renovate:44.213.0@sha256:700a0c525b8b5d0fb961a186e722da96bf160a59bbb219039ada75e39d3befd1 \
+            renovate/renovate:44.215.0@sha256:10b921ce64cac11667849e7c1c4f0c4996d641f88b949652e69a324622538f7a \
             --strict
 
       - name: 5. ShellCheck (scripts *.sh)
