@@ -30,7 +30,7 @@ Se adopta una arquitectura de autenticación y sesiones estructurada en cinco di
    - Todas las comparaciones de claves administrativas y firmas HMAC se ejecutan mediante `crypto.timingSafeEqual` sobre hashes SHA-256 precomputados de longitud fija (32 bytes), neutralizando cualquier discrepancia de tiempo en la comparación de bytes.
 
 4. **Revocación Distribuida en Redis con Principio Fail-Closed**:
-   - Al invocar el cierre de sesión (`POST /api/v1/auth/logout`), se verifica la firma del token y se registra su identificador único criptográfico (`jti`) en Redis bajo `pokedex:revoked:<jti>` con un TTL exactamente igual al tiempo restante de vida del token.
+   - Al invocar el cierre de sesión (`POST /api/v1/auth/logout`), se verifica la firma del token y se registra su identificador único criptográfico (`jti`) en Redis bajo `revoked:<jti>` *(históricamente referenciado como `pokedex:revoked:<jti>`)* con un TTL exactamente igual al tiempo restante de vida del token.
    - En peticiones protegidas subsiguientes, el middleware `verifyAdmin` consulta Redis. Si el `jti` está revocado, se rechaza con `401 Unauthorized`.
    - Si Redis está desconectado, el sistema rechaza el acceso con `503 Service Unavailable` bajo la política *fail-closed*, impidiendo que tokens previamente revocados se acepten durante una interrupción de la infraestructura.
 

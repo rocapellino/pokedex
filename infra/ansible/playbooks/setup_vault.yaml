@@ -529,9 +529,9 @@
         src: "{{ vault_tls_dir }}/vault-ca.crt"
       register: vault_ca_public_cert
 
-    - name: Guardar copia del certificado público de CA en el repositorio infra/k8s/eso/vault-ca.crt
+    - name: Guardar copia del certificado público de CA en tmp/vault-ca.crt
       ansible.builtin.copy:
-        dest: "{{ playbook_dir }}/../../k8s/eso/vault-ca.crt"
+        dest: "{{ playbook_dir }}/../../../tmp/vault-ca.crt"
         content: "{{ vault_ca_public_cert.content | b64decode }}"
         mode: '0640'
       delegate_to: localhost
@@ -555,7 +555,7 @@
           - "                     2. Resguardar el root token en gestor de secretos offline seguro."
           - "                     3. ELIMINAR INMEDIATAMENTE este archivo con sobreescritura segura:"
           - "                        shred -u {{ vault_init_export_path }}"
-          - "Certificado CA     : Exportado a infra/k8s/eso/vault-ca.crt"
+          - "Certificado CA     : Exportado a tmp/vault-ca.crt"
           - "========================================================================"
 
       when: vault_init_raw is defined and vault_init_raw.changed

@@ -39,9 +39,15 @@ jobs:
       - name: 3. Publicar Métricas de Recuperación en Step Summary
         if: always()
         run: |
-          echo "### 🛡️ Resumen de Simulacro de Disaster Recovery" >> $GITHUB_STEP_SUMMARY
-          echo "- **Resultado:** ✅ Éxito (100% de aserciones validadas)" >> $GITHUB_STEP_SUMMARY
-          echo "- **RTO Objetivo:** < 2 horas" >> $GITHUB_STEP_SUMMARY
-          echo "- **RTO Medido:** < 5 segundos en contenedor efímero" >> $GITHUB_STEP_SUMMARY
-          echo "- **RPO Garantizado:** 24 horas (ciclo diario de snapshot)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Aserciones Validadas:** Integridad SHA-256, descifrado AES-256-CBC PBKDF2, DDL/DML, conteo de registros e integridad de índices." >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.dr-test.outcome }}" = "success" ]; then
+            echo "### 🛡️ Resumen de Simulacro de Disaster Recovery" >> $GITHUB_STEP_SUMMARY
+            echo "- **Resultado:** ✅ Éxito (100% de aserciones validadas)" >> $GITHUB_STEP_SUMMARY
+            echo "- **RTO Objetivo:** < 2 horas" >> $GITHUB_STEP_SUMMARY
+            echo "- **RTO Medido:** < 5 segundos en contenedor efímero" >> $GITHUB_STEP_SUMMARY
+            echo "- **RPO Garantizado:** 24 horas (ciclo diario de snapshot)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Aserciones Validadas:** Integridad SHA-256, descifrado AES-256-CBC PBKDF2, DDL/DML, conteo de registros e integridad de índices." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 🚨 Simulacro de Disaster Recovery Fallido" >> $GITHUB_STEP_SUMMARY
+            echo "- **Resultado:** ❌ FALLO en restauración o validación de aserciones de DR." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi

@@ -71,6 +71,7 @@ rules:
       - ".agents/**/*.ts"
       - ".agents/evals/**"
       - ".agents/hooks.json"
+      - ".agents/skills/repo-tool-exec/references/tool-catalog.yaml"
       - "scripts/aas-governance.ts"
       - "tests/contracts/governance/aas_governance.test.ts"
     triggers:
@@ -78,6 +79,19 @@ rules:
       tests: true
       linting: true
       documentation: true
+      security:
+        secrets: true
+        sast: true
+
+  contracts:
+    description: "Contratos de dominio compartidos y tipos de interfaz (@pokedex/contracts)"
+    paths:
+      - "packages/contracts/**"
+    triggers:
+      backend: true
+      frontend: true
+      tests: true
+      linting: true
       security:
         secrets: true
         sast: true
@@ -107,9 +121,11 @@ rules:
       - "AGENTS.md"
       - "docs/**"
       - ".agents/**/*.md"
+      - ".agents/skills/repo-docs/references/**"
       - ".markdownlint.json"
       - ".markdownlintignore"
       - "LICENSE"
+      - ".github/CODEOWNERS"
       - "scripts/lint-markdown.ts"
       - "scripts/validate-docs-governance.ts"
       # CLI canónico del monorepo referenciado en contratos documentales
@@ -137,6 +153,7 @@ rules:
     description: "Cliente web MPA (catálogo público y consola backoffice), componentes UI y assets estáticos"
     paths:
       - "apps/frontend/**"
+      - "scripts/build-css.ts"
       - "scripts/generate-nginx-conf.mjs"
       - "scripts/lighthouse-stack.ts"
       - "scripts/lighthouse-summary.ts"
@@ -156,6 +173,8 @@ rules:
     description: "Manifiestos K8s, GitOps ArgoCD y scripts de plataforma/clúster"
     paths:
       - "infra/k8s/**"
+      - "infra/vault/**"
+      - "infra/monitoring/**"
       - "gitops/**"
       - "scripts/k8s-rollout-restart.ts"
       - "scripts/verify-secret-rotation.ts"
@@ -183,6 +202,7 @@ rules:
     description: "Templates, values y empaquetado del Helm Chart oficial"
     paths:
       - "infra/helm/**"
+      - "scripts/lib/helm.ts"
       # Tareas de empaquetado, render y validación de Helm
       - "Taskfile.yaml"
       - "taskfiles/**.yaml"
@@ -259,6 +279,30 @@ rules:
       - 'scripts/check-ruleset-parity.ts'
       - 'scripts/generate-nginx-conf.mjs'
       - '.github/rulesets/**'
+      - '.editorconfig'
+      - '.git-blame-ignore-revs'
+      - '.gitattributes'
+      - '.gitignore'
+      - '.nvmrc'
+      - '.tool-versions'
+      - '.env.example'
+      - '.github/zizmor.yaml'
+      - '.checkov.yaml'
+      - '.kube-linter.yaml'
+      - '.semgrepignore'
+      - '.gitleaks.toml'
+      - 'commitlint.config.js'
+      - 'sonar-project.properties'
+      - 'scripts/check-coverage-threshold.ts'
+      - 'scripts/check-migration-hygiene.ts'
+      - 'scripts/cleanup-linear-tickets.ts'
+      - 'scripts/list-linear-issues.ts'
+      - 'scripts/prepare-pr-body.ts'
+      - 'scripts/run-pre-commit.ts'
+      - 'scripts/lib/repo-root.ts'
+      - 'scripts/tag-retention.ts'
+      - 'scripts/tag-retention/**'
+      - 'scripts/worktree/**'
     triggers:
       linting: true
       tests: true

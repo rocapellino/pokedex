@@ -33,7 +33,7 @@ Este documento establece la **única fuente de verdad (SSOT)** para la nomenclat
 
 | Namespace | Tipo | Responsabilidad / Carga de Trabajo | Políticas Asociadas |
 | :--- | :--- | :--- | :--- |
-| **`pokemon-app`** | **Aplicación (Workload)** | Microservicio Backend (`pokemon-api`), Frontend Web (`pokedex-web`), Base de Datos (`postgres`), Caché (`redis`), Connection Pooler (`pgbouncer`), Jobs de seed y probes de egreso anti-SSRF. | Pod Security Standard: `restricted` • Cilium / K8s NetworkPolicies L3/L4/L7 • ResourceQuota & LimitRange dedicados |
+| **`pokemon-app`** | **Aplicación (Workload)** | Microservicio Backend (`pokemon-api`), Frontend Web (`pokemon-web`), Base de Datos (`postgres`), Caché (`redis`), Connection Pooler (`pgbouncer`), Jobs de seed y probes de egreso anti-SSRF. | Pod Security Standard: `restricted` • Cilium / K8s NetworkPolicies L3/L4/L7 • ResourceQuota & LimitRange dedicados |
 | **`kube-system`** | Plataforma / Core | Plano de control K3s, CNI (Cilium / Flannel), CoreDNS, Kube-Proxy, Local-Path Provisioner. | Pod Security Standard: `privileged` |
 | **`external-secrets`** | Plataforma / Seguridad | External Secrets Operator (ESO) controller, webhook y ServiceAccount (`external-secrets-sa`) para sincronización con Vault. | Pod Security Standard: `baseline` |
 | **`monitoring`** | Plataforma / Observabilidad | Grafana Alloy (agente de telemetría OTLP), Prometheus, Alertmanager, Node Exporter. | Pod Security Standard: `baseline` |
@@ -108,7 +108,7 @@ kubectl top pods -n pokemon-app
 kubectl logs -n pokemon-app -l app=pokemon-api --tail=100 -f
 
 # Logs del Frontend Web (Nginx)
-kubectl logs -n pokemon-app -l app=pokedex-web --tail=100 -f
+kubectl logs -n pokemon-app -l app=pokemon-web --tail=100 -f
 
 # Logs de Redis
 kubectl logs -n pokemon-app deployment/redis --tail=100
@@ -136,11 +136,11 @@ kubectl rollout restart statefulset/postgres -n pokemon-app
 | Tipo de Recurso | Nombre Canónico | Selector de Etiquetas | Puerto Interno |
 | :--- | :--- | :--- | :--- |
 | **Deployment** | `pokemon-api` | `app=pokemon-api` | `3000` |
-| **Deployment** | `pokedex-web` | `app=pokedex-web` | `8080` |
+| **Deployment** | `pokemon-web` | `app=pokemon-web` | `8080` |
 | **Deployment** | `redis` | `app=redis` | `6379` |
 | **StatefulSet** | `postgres` | `app=postgres` | `5432` |
 | **Service** | `pokemon-api-svc` | `app: pokemon-api` | `3000` |
-| **Service** | `pokemon-web-svc` | `app: pokedex-web` | `8080` |
+| **Service** | `pokemon-web-svc` | `app: pokemon-web` | `8080` |
 | **Service** | `pokemon-redis-svc` | `app: redis` | `6379` |
 | **Service** | `postgres-service` | `app: postgres` | `5432` |
 | **Secret** | `pokemon-secrets` | `app.kubernetes.io/part-of=pokemon-platform` | N/A |

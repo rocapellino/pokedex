@@ -56,11 +56,15 @@ El repositorio establece políticas normativas obligatorias para todos los agent
 | | [`repo-testing`](skills/repo-testing/SKILL.md) | Pirámide de pruebas, cobertura y valor |
 | | [`repo-dependencies`](skills/repo-dependencies/SKILL.md) | Árbol npm, lockfile, CVEs y librerías huérfanas |
 | | [`repo-tool-exec`](skills/repo-tool-exec/SKILL.md) | Resolución y ejecución reproducible de herramientas externas (local o contenedor efímero) |
+| | [`db-drizzle-ops`](skills/db-drizzle-ops/SKILL.md) | Migraciones deterministas con Drizzle ORM, índices concurrentes y conexión PgBouncer |
 | **Delivery & Security** | [`repo-security`](skills/repo-security/SKILL.md) | DevSecOps, secretos, Cilium L7 y supply chain |
 | | [`repo-ci`](skills/repo-ci/SKILL.md) | Topología integral de CI/CD (PR ➔ Job ➔ Tool) |
 | | [`repo-pr`](skills/repo-pr/SKILL.md) | Preparación, validación y revisión de Pull Requests |
 | | [`repo-release`](skills/repo-release/SKILL.md) | Corte de versión y readiness de release |
+| | [`k8s-gitops-validator`](skills/k8s-gitops-validator/SKILL.md) | Validación y hardening de manifiestos K8s, Helm y ArgoCD |
+| | [`devsecops-preflight`](skills/devsecops-preflight/SKILL.md) | Batería de comprobación obligatoria previa a Pull Requests |
 | **Governance & Maintenance** | [`repo-docs`](skills/repo-docs/SKILL.md) | Integridad documental, contratos y claims verification |
+| | [`adr-manager`](skills/adr-manager/SKILL.md) | Gobernanza inmutable, redacción y sincronización canónica de ADRs |
 | | [`repo-maintenance`](skills/repo-maintenance/SKILL.md) | Salud periódica, higiene y limpieza segura |
 | | [`repo-fix`](skills/repo-fix/SKILL.md) | Ejecución de correcciones con test de regresión previo |
 | | [`repo-refactor`](skills/repo-refactor/SKILL.md) | Diseño de cambios incrementales |

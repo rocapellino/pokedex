@@ -170,7 +170,8 @@ flowchart TD
 - 📐 [**ADR-025**](./decisions/ADR-025-management-plane-runtime-plane-and-cloud-ready-separation.md): Segregación del Plano de Gestión, Plano de Runtime y Separación Cloud-Ready.
 - 📐 [**ADR-027**](./decisions/ADR-027-resilience-fail-open-vs-fail-closed-contracts.md): Formalización de Contratos de Resiliencia: Fail-Open vs. Fail-Closed en Backend y Frontend.
 - 📐 [**ADR-030**](./decisions/ADR-030-environment-model-local-dev-proxmox-preprod-cloud-prod.md): Modelo de Entornos: Dev Local, Pre-Prod en Proxmox LXC y Prod Cloud Agnóstico (Consolida ADR-024).
-- 📋 [**Índice Canónico y Registro Histórico de ADRs**](./decisions/README.md): Catálogo completo de las 23 decisiones activas y registro histórico de decisiones consolidadas y retiradas (ADR-019, ADR-021, ADR-022, ADR-024, ADR-026, ADR-028, ADR-029).
+- 📐 [**ADR-031**](./decisions/ADR-031-adopcion-valkey-y-actualizacion-postgresql-17.md): Adopción de Valkey 8 y Actualización a PostgreSQL 17.
+- 📋 [**Índice Canónico y Registro Histórico de ADRs**](./decisions/README.md): Catálogo completo de las 24 decisiones activas y registro histórico de decisiones consolidadas y retiradas (ADR-019, ADR-021, ADR-022, ADR-024, ADR-026, ADR-028, ADR-029).
 
 ---
 

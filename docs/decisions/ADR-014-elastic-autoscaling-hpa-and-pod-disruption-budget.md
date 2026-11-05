@@ -21,8 +21,8 @@ Se adopta una arquitectura de escalabilidad elástica y alta disponibilidad para
 
 1. **Adopción de Horizontal Pod Autoscaler v2 (`autoscaling/v2`)**:
    - Se implementan los recursos declarativos `api-hpa.yaml` y `web-hpa.yaml` gestionados mediante Helm.
-   - Para `pokemon-api`, se configura un rango dinámico de 2 a 10 réplicas en producción (`values.prod.yaml`) con un umbral de utilización objetivo de CPU del 75% (`averageUtilization: 75%`), calculado contra los `resources.requests.cpu`.
-   - Para `pokemon-web`, se configura un rango dinámico de 2 a 5 réplicas con objetivo del 75% de CPU.
+   - Para `pokemon-api`, se configura un rango dinámico de 2 a 10 réplicas en producción (`values.prod.yaml`) con un umbral de utilización objetivo de CPU del 75% *(ajustado al 70% de CPU y 80% de memoria en el baseline del Chart)*, calculado contra los `resources.requests.cpu`.
+   - Para `pokemon-web`, se configura un rango dinámico de 2 a 5 réplicas con objetivo del 75% de CPU *(baseline: 70%)*.
 
 2. **Ventanas de Estabilización Asimétricas Anti-Oscilación**:
    - **Escalado Hacia Arriba (*Scale Up*)**: Inmediato (sin ventana de retraso o 15 segundos) para absorber picos súbitos de tráfico sin encolar peticiones HTTP.

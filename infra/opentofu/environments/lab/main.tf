@@ -57,12 +57,12 @@ resource "proxmox_virtual_environment_vm" "lab_k8s_nodes" {
   initialization {
     ip_config {
       ipv4 {
-        address = "${var.network_base_ip}${10 + count.index + 1}${var.network_cidr_mask}"
+        address = "${var.network_base_ip}${10 + count.index}${var.network_cidr_mask}"
         gateway = var.network_gateway
       }
     }
     user_account {
-      username = "devops"
+      username = "root"
       keys     = [var.ssh_public_key]
     }
   }

@@ -34,7 +34,7 @@ resource "proxmox_virtual_environment_container" "k8s_nodes" {
 
   memory {
     dedicated = var.vm_memory
-    swap      = 1024
+    swap      = 0
   }
 
   disk {
@@ -48,8 +48,9 @@ resource "proxmox_virtual_environment_container" "k8s_nodes" {
   }
 
   network_interface {
-    name   = "eth0"
-    bridge = var.network_bridge
+    name     = "eth0"
+    bridge   = var.network_bridge
+    firewall = true
   }
 
   initialization {
@@ -108,7 +109,7 @@ resource "proxmox_virtual_environment_container" "vault" {
 
   memory {
     dedicated = var.vault_memory
-    swap      = 512
+    swap      = 0
   }
 
   disk {

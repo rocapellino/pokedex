@@ -28,7 +28,7 @@ Se cumple estrictamente la regla 3-2-1: tres copias de datos, dos medios físico
 - **Copia 3 (Off-Site)**: Réplica en la nube de Google Drive mediante CronJob nativo de Kubernetes (`backup-gdrive-cronjob.yaml`) ejecutado a las 03:00 UTC (1 hora posterior a la generación local).
 - **Montaje de Solo Lectura**: El pod montador de Rclone monta el PVC local con **`readOnly: true`**, garantizando la inmutabilidad física del almacenamiento local y previniendo alteraciones accidentales o destructivas.
 - **Hardening de Pod Rclone**: Opera bajo `runAsNonRoot: true`, `readOnlyRootFilesystem: true`, `automountServiceAccountToken: false` y revocación total de capacidades Linux (`drop: [ALL]`).
-- **Aislamiento de Red Zero-Trust en Capa 7 (Cilium eBPF)**: Política de red `CiliumNetworkPolicy` (`pokedex-gdrive-sync-cilium-l7-policy`) con filtrado estricto L7 a nivel de kernel mediante allowlist de FQDNs (`*.googleapis.com`, `accounts.google.com`), bloqueando terminantemente tráfico HTTPS arbitrario, redes privadas RFC1918 y servicios de metadata de nube (`169.254.169.254/32`).
+- **Aislamiento de Red Zero-Trust en Capa 7 (Cilium eBPF)**: Política de red `CiliumNetworkPolicy` (`pokedex-gdrive-sync-cilium-l7-policy`) con filtrado estricto L7 a nivel de kernel mediante allowlist de FQDNs (`*.googleapis.com`, `accounts.google.com`), bloqueando terminantemente tráfico HTTPS arbitrario, redes privadas RFC1918 y servicios de metadata de nube (`169.254.169.254/32`). *(Nota de Enmienda ADR-030: en el entorno Proxmox pre-prod operando sobre Flannel, el aislamiento se garantiza mediante NetworkPolicy estándar de Kubernetes con bloqueo de rangos privados e IMDS, reservando Cilium L7 para clusters con soporte eBPF).*
 - **Fijación Criptográfica de Imagen**: Rclone se fija por digest inmutable SHA-256 (`rclone/rclone@sha256:...` en [`infra/helm/pokedex/values.yaml`](../../infra/helm/pokedex/values.yaml) y [`docker-compose.dev.yaml`](../../docker-compose.dev.yaml)).
 - **Contrato Fail-Closed**: Si `RCLONE_CONFIG_GDRIVE_TOKEN` no está inyectado o está vacío, el contenedor finaliza con error explícito (`exit 1`) en la fase de pre-vuelo.
 
@@ -58,7 +58,7 @@ Los esqueletos técnicos agnósticos documentados en [`docs/operations/OFFSITE_B
 ### Compensaciones
 
 - Requiere CPU y almacenamiento para ejecutar simulacros periódicos en CI y hosts de laboratorio.
-- Exige la gestión y custodia del token OAuth2 de Google Drive en HashiCorp Vault bajo `pokedex/prod`.
+- Exige la gestión y custodia del token OAuth2 de Google Drive en HashiCorp Vault bajo `pokedex/preprod` (o `pokedex/prod` en el blueprint cloud; ADR-030).
 - Sujeto a la cuota gratuita de 15 GB y disponibilidad de la API de Google, mitigado por la retención rotativa de 7 días.
 
 ---

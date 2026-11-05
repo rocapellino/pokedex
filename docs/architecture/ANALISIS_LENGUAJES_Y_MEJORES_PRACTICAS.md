@@ -30,8 +30,8 @@ La plataforma está construida bajo un ecosistema unificado y tipado de extremo 
 | **Framework HTTP** | Express | 5.x | Ruteo declarativo, middlewares de seguridad y telemetría |
 | **Frontend Web** | HTML5 Semántico + Vanilla TypeScript / CSS | Modern Web APIs (MPA) | Catálogo interactivo (Bento Grid) y Backoffice administrativo |
 | **Bundler / Tooling** | esbuild / tsx / Vite | Modern ESM | Compilación ultrarrápida y recarga instantánea en desarrollo |
-| **Persistencia Principal** | PostgreSQL | 16 | Almacenamiento relacional duradero con soporte JSONB |
-| **Caché y Coordinación** | Redis | 7 (Alpine) | Caché de segundo nivel, rate limiting distribuido y revocación de sesiones |
+| **Persistencia Principal** | PostgreSQL | 17 | Almacenamiento relacional duradero con soporte JSONB |
+| **Caché y Coordinación** | Valkey / Redis | 8.x / 7.x (Alpine) | Caché de segundo nivel, rate limiting distribuido y revocación de sesiones |
 | **Integración IA** | Google GenAI SDK | `@google/genai` (Gemini 2.5 Flash) | Generación dinámica de diagramas y asistencia contextual |
 | **Contenerización** | Docker Multi-Stage | `node:24-alpine` / `nginx:1.31-alpine` | Contenedores ultraligeros con usuario no root (`1000:1000` API / `101:101` Web) |
 | **Orquestación** | Kubernetes & Helm | Helm 3.22 | Despliegue declarativo y gestión de configuración por entornos |
@@ -41,7 +41,7 @@ La plataforma está construida bajo un ecosistema unificado y tipado de extremo 
 ## 2. Decisiones Arquitectónicas Activas
 
 1. **Separación de Contenedores en Producción y Servidor Unificado en Dev:** En producción y Docker Compose, el frontend estático compilado por Vite se sirve desde `nginx:1.31-alpine` (`pokemon-web`) y la API REST corre en `node:24-alpine` (`pokemon-api`); en desarrollo local sin contenedores (`npm run dev`), Express también puede servir los activos estáticos directamente.
-2. **Modelos Compartidos y Type Safety:** Los contratos de datos (`Pokemon`, `PokemonStats`, `PokemonEvolution`) residen como interfaces canónicas en TypeScript (`apps/backend/src/types.ts`), compartidas entre controladores, servicios y validadores.
+2. **Modelos Compartidos y Type Safety:** Los contratos de datos (`Pokemon`, `PokemonStats`, `PokemonEvolution`) residen como interfaces canónicas en TypeScript (`@pokedex/contracts` en `packages/contracts`), compartidas entre controladores, servicios y validadores.
 3. **Persistencia Híbrida Relacional + JSONB:**
    - PostgreSQL 17 actúa como la única fuente de verdad transaccional (ACID).
    - Columnas relacionales indexadas (`id`, `nombre`, `tipo`) para filtros de alta cardinalidad.

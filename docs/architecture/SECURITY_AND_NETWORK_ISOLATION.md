@@ -52,7 +52,7 @@ flowchart TD
     end
 
     subgraph DATA_ZONE["🗄️ CAPA 3: ZONA DE DATOS AISLADA (internal: true)"]
-        API -->|TCP :5432| PGB["🛡️ PgBouncer (Pooler)\n• Mediador obligatorio en prod\n• Rate limit de sockets"]
+        API -->|TCP :6432| PGB["🛡️ PgBouncer (Pooler)\n• Mediador obligatorio en prod\n• Rate limit de sockets"]
         PGB -->|TCP :5432| DB[("🗄️ pokemon-postgres (PostgreSQL 17)\n• Tabla pokedex_entries JSONB\n• Secuencia atómica pokedex_id_seq\n• Ingress exclusivo de PgBouncer/Seeder")]
         API -->|TCP :6379\nRESP Protocol| REDIS[("⚡ pokemon-redis-svc (Valkey 8)\n• Caché pokedex:list:*\n• Revocación distribuida revoked:jti\n• Rate limiter scripts Lua")]
     end
@@ -98,7 +98,7 @@ flowchart TD
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
 | **Frontend (`pokemon-web`)** | `pokedex` | `pokedex-frontend-net` | `8080` (HTTP) | `8080` | Internet / Clientes | `pokedex-backend-net` |
 | **Backend API (`pokemon-api`)** | `pokedex` | `pokedex-frontend-net` / `pokedex-backend-net` | `3000` | `3000` *(dev)* | `pokemon-web` | Acceso directo sin proxy en producción |
-| **PgBouncer (`pgbouncer`)** | `pokedex` | `pokedex-backend-net` | `5432` | — | `pokemon-api` | `pokemon-web`, Internet |
+| **PgBouncer (`pgbouncer`)** | `pokedex` | `pokedex-backend-net` | `6432` | — | `pokemon-api` | `pokemon-web`, Internet |
 | **PostgreSQL 17** | `pokedex` | `pokedex-backend-net` | `5432` | `5432` *(dev)* | `pgbouncer`, `db-seeder` | `pokemon-web`, `pokemon-api` *(en prod)*, Internet |
 | **Valkey 8 (`pokemon-redis-svc`)** | `pokedex` | `pokedex-backend-net` | `6379` | `6379` *(dev)* | `pokemon-api` | `pokemon-web`, Internet |
 | **Grafana Cloud / Alloy** | N/A (SaaS) | Egress HTTPS (443) | — | — | Agentes de telemetría K8s / host | Tráfico Ingress no solicitado |
@@ -201,7 +201,7 @@ La resolución de nombres de dominio (puerto 53 TCP/UDP) no queda abierta a cual
 
 ```mermaid
 flowchart LR
-    GH_ACTIONS["🤖 GitHub Actions (ci.yaml)\nRama main"] -->|1. Genera SBOM CycloneDX| SYFT["📋 Syft"]
+    GH_ACTIONS["🤖 GitHub Actions (ci.yaml)\nRama main"] -->|1. Genera SBOM CycloneDX| TRIVY["📋 Trivy"]
     GH_ACTIONS -->|2. Firma OIDC Keyless| COSIGN["✍️ Cosign"]
     COSIGN -->|3. Registra transparencia| REKOR["📜 Rekor Public Ledger"]
     COSIGN -->|4. Push Imagen + Firma + SBOM| GHCR["📦 GitHub Container Registry"]

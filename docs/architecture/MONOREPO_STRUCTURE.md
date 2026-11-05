@@ -85,6 +85,11 @@ pokedex/
 │       └── public/               # Assets estáticos servidos al navegador (CSS, favicon)
 │           ├── css/              # Estilos visuales con variables CSS y glassmorphism
 │           └── favicon.*         # Iconografía y branding
+├── packages/                     # Workspaces de Paquetes Compartidos
+│   └── contracts/                # Contratos y tipos compartidos (@pokedex/contracts)
+│       ├── package.json          # Manifiesto del paquete de contratos TypeScript puro
+│       ├── tsconfig.json         # Configuración del compilador TypeScript
+│       └── src/                  # Interfaces y tipos de dominio compartidos
 ├── docker-compose.yaml            # Orquestación multicontenedor local (API, Web, Postgres, Redis)
 ├── package.json                  # Manifiesto, dependencias y scripts de ejecución
 ├── package-lock.json             # Lockfile determinista de npm
