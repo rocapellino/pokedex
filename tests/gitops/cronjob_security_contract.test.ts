@@ -43,21 +43,26 @@ test('🛡️ AUD-INF-CRONSEC-001: backup-restore-verify-cronjob usa el helper c
   );
 });
 
-for (const environment of ['dev', 'proxmox-preprod']) {
-  test(`🛡️ AUD-INF-CRONSEC-001: CronJobs renderizados en ${environment} configuran seccompProfile RuntimeDefault`, (t) => {
+const TARGET_ENVIRONMENTS = [
+  { name: 'default', values: [] as string[] },
+  { name: 'proxmox-preprod', values: ['gitops/environments/proxmox-preprod/values.yaml'] },
+];
+
+for (const env of TARGET_ENVIRONMENTS) {
+  test(`🛡️ AUD-INF-CRONSEC-001: CronJobs renderizados en ${env.name} configuran seccompProfile RuntimeDefault`, (t) => {
     if (!isHelmAvailable()) {
       t.skip('helm no disponible en el host local; verificación estática de templates aprobada');
       return;
     }
 
-    const docs = renderChart([`gitops/environments/${environment}/values.yaml`]) as unknown as Array<{
+    const docs = renderChart(env.values) as unknown as Array<{
       kind: string;
       metadata: { name: string };
       spec?: any;
     }>;
     const cronjobs = docs.filter((d) => d.kind === 'CronJob');
 
-    assert.ok(cronjobs.length > 0, `Debe haber CronJobs renderizados en ${environment}`);
+    assert.ok(cronjobs.length > 0, `Debe haber CronJobs renderizados en ${env.name}`);
 
     for (const cj of cronjobs) {
       const podSec = cj.spec.jobTemplate.spec.template.spec.securityContext;
