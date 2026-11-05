@@ -27,6 +27,8 @@ export interface CoverageGate {
 export const COVERAGE_GATES: readonly CoverageGate[] = [
   { prefix: 'apps/backend/src/routes/', minLines: 80 },
   { prefix: 'apps/backend/src/services/', minLines: 65 },
+  { prefix: 'apps/backend/src/middleware/', minLines: 70 },
+  { prefix: 'apps/backend/src/validation/', minLines: 80 },
 ];
 
 export interface FileCoverage {

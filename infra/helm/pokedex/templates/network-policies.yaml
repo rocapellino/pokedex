@@ -310,4 +310,148 @@ spec:
       ports:
         - protocol: TCP
           port: {{ .Values.postgresql.port }}
+---
+# Job de Seeding (ADR-011, AUD-INF-EGRESS-001): resuelve DNS y habla con PostgreSQL directo y Redis.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "pokedex.fullname" . }}-allow-db-seeder-egress
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: db-seeder
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: database
+      ports:
+        - protocol: TCP
+          port: {{ .Values.postgresql.port }}
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+{{- if and .Values.backup .Values.backup.enabled }}
+---
+# CronJob de Backup (AUD-INF-EGRESS-001): resuelve DNS y extrae dumps de PostgreSQL.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "pokedex.fullname" . }}-allow-backup-egress
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: backup
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: database
+      ports:
+        - protocol: TCP
+          port: {{ .Values.postgresql.port }}
+---
+# Verificación de Disaster Recovery (AUD-INF-EGRESS-001): valida restauración en PostgreSQL.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "pokedex.fullname" . }}-allow-dr-verification-egress
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: dr-verification
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: database
+      ports:
+        - protocol: TCP
+          port: {{ .Values.postgresql.port }}
+{{- if and .Values.backup .Values.backup.enabled (not (and .Values.ciliumNetworkPolicy .Values.ciliumNetworkPolicy.enabled)) }}
+---
+# Réplica Off-site Google Drive (AUD-INF-EGRESS-001): egress HTTPS acotado bloqueando IMDS en entornos sin Cilium.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "pokedex.fullname" . }}-allow-backup-gdrive-egress
+  labels:
+    {{- include "pokedex.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: backup-gdrive
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 169.254.169.254/32
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 127.0.0.0/8
+      ports:
+        - protocol: TCP
+          port: 443
+{{- end }}
+{{- end }}
 {{- end }}

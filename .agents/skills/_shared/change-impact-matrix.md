@@ -109,18 +109,18 @@ La siguiente tabla establece qué Quality Gates y qué skills son **bloqueantes 
 
 | Tipo de Cambio | Archivos / Rutas Típicas | Skills Obligatorias | Quality Gates Requeridos | Gates Exentos / Omitidos |
 | :--- | :--- | :--- | :--- | :--- |
-| **Backend Core** | `apps/backend/src/` | `repo-quality`, `repo-testing`, `repo-security` (App) | `npm run lint`, `npm run build:backend`, `npm test` (unit/integración), `test:fuzz` | Playwright E2E UI, Helm render, Terraform/Ansible |
+| **Backend Core & Persistencia** | `apps/backend/src/` | `repo-quality`, `repo-testing`, `db-drizzle-ops`, `repo-security` (App) | `npm run lint`, `npm run build:backend`, `npm test` (unit/integración), `test:fuzz` | Playwright E2E UI, Helm render, Terraform/Ansible |
 | **Frontend MPA** | `apps/frontend/src/` | `repo-quality`, `repo-testing` | `npm run build:frontend`, `npm run typecheck`, tests unitarios de componentes, Playwright E2E (`tests/e2e/`) | Helm render, Vault rotation, Egress anti-SSRF, Fuzzing |
-| **Infraestructura Helm** | `infra/helm/` | `repo-architecture`, `repo-release`, `repo-security` | `helm lint`, `gitops:verify-parity:strict`, validación de templates AST | Backend unit tests, Playwright UI tests |
-| **GitOps Declarativo** | `gitops/` | `repo-architecture`, `repo-release` | `gitops:pin:check`, `gitops:verify-parity:strict` | Pruebas de fuzzing, frontend build |
+| **Infraestructura Helm & K8s** | `infra/helm/`, `infra/k8s/` | `repo-architecture`, `k8s-gitops-validator`, `repo-release`, `repo-security` | `helm lint`, `gitops:verify-parity:strict`, validación de templates AST | Backend unit tests, Playwright UI tests |
+| **GitOps Declarativo** | `gitops/` | `repo-architecture`, `k8s-gitops-validator`, `repo-release` | `gitops:pin:check`, `gitops:verify-parity:strict` | Pruebas de fuzzing, frontend build |
 | **Plataforma / Ansible / OpenTofu** | `infra/ansible/`, `infra/opentofu/` | `repo-architecture`, `repo-security` (K8s/Vault) | `secrets:audit-rotation`, linter de Ansible/Tofu | Frontend builds, backend unit tests |
 | **Workflows de CI/CD** | `.github/workflows/` | `repo-ci`, `repo-security` (CI) | Validación sintáctica YAML, auditoría de permisos de tokens (`permissions:`) | Pruebas E2E de navegador, migraciones DB |
 | **Dependencias Monorepo** | `package.json`, `package-lock.json` | `repo-dependencies`, `repo-security` (SCA), `repo-testing` | `npm audit`, `npm test`, paridad de lockfile | Helm render, Playwright E2E (salvo si toca deps de browser) |
 | **Proxy Web / Ingress** | `apps/frontend/nginx.conf.template`, `ingress.*` en values | `repo-architecture` (`route-trace`), `repo-security` | `npm run nginx:conf:check`, `helm template` por entorno, trazado de rutas | Fuzzing, migraciones DB |
-| **Documentación Pura** | `docs/`, `*.md` | `repo-docs` | `npm run lint:md -- <archivos>` (**0 errores `MDxxx`**), `npm run docs:validate` | Builds de código, tests unitarios, Docker builds, scans |
+| **Documentación y ADRs** | `docs/`, `*.md` | `repo-docs`, `adr-manager` | `npm run lint:md -- <archivos>` (**0 errores `MDxxx`**), `npm run docs:validate` | Builds de código, tests unitarios, Docker builds, scans |
 | **Skills y Reglas de Agente** | `.agents/**`, `AGENTS.md` | `repo-docs`, `repo-lifecycle` (catálogo de skills) | `npm run lint:md -- <archivos>`, `npm run docs:validate`, tests de gobernanza de skills | Builds de código, Docker builds, scans |
 | **Archivos de Exclusión (`*.ignore`)** | `.*ignore`, `**/*ignore*` | `repo-lifecycle`, `repo-security`, `repo-quality` | `npm run validate`, verificación de consistencia cruzada | Ninguno |
-| **Corte de Release** | `package.json` (bump), `Chart.yaml`, GitOps pins | `repo-release`, `repo-security` (Supply Chain), `repo-docs` | Suite completa (`npm run validate`), firma Cosign, SBOM, paridad 1:1 de ArgoCD | Ninguno (Full Gate Obligatorio) |
+| **Pre-vuelo PR y Corte de Release** | Pre-PR, `package.json` (bump), `Chart.yaml`, GitOps | `devsecops-preflight`, `repo-pr`, `repo-release`, `repo-security` | Suite completa (`npm run validate`), firma Cosign, SBOM, paridad 1:1 de ArgoCD | Ninguno (Full Gate Obligatorio) |
 
 > [!IMPORTANT]
 > La tabla anterior enumera los **gates y skills a ejecutar**, no el disparador del

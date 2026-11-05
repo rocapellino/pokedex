@@ -18,7 +18,8 @@
   vars:
     k3s_version: "v1.31.2+k3s1"
     cilium_version: "1.16.1"
-    k3s_install_exec: "--flannel-backend=none --disable-network-policy --disable servicelb --disable local-storage --write-kubeconfig-mode 644"
+    cni_provider: "{{ cni_provider | default('cilium') }}"
+    k3s_install_exec: "{{ '--flannel-backend=none --disable-network-policy --disable servicelb --disable local-storage --write-kubeconfig-mode 644' if (cni_provider | default('cilium')) == 'cilium' else '--write-kubeconfig-mode 644' }}"
     cilium_namespace: "kube-system"
     cilium_operator_replicas: 1
     cilium_hubble_enabled: false
@@ -117,11 +118,12 @@
       register: helm_check
       failed_when: false
       changed_when: false
+      when: (cni_provider | default('cilium')) == 'cilium'
 
     - name: Instalar Helm si no está presente en el nodo
       ansible.builtin.shell: |
         curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-      when: helm_check.rc != 0
+      when: (cni_provider | default('cilium')) == 'cilium' and (helm_check.rc | default(1)) != 0
       register: helm_install
       changed_when: helm_install.rc == 0
 
@@ -132,6 +134,7 @@
         KUBECONFIG: /etc/rancher/k3s/k3s.yaml
       register: cilium_repo_add
       changed_when: "'already exists' not in cilium_repo_add.stdout"
+      when: (cni_provider | default('cilium')) == 'cilium'
 
     - name: Actualizar repositorios de Helm
       ansible.builtin.command:
@@ -139,6 +142,7 @@
       environment:
         KUBECONFIG: /etc/rancher/k3s/k3s.yaml
       changed_when: false
+      when: (cni_provider | default('cilium')) == 'cilium'
 
     - name: Desplegar / Actualizar Cilium CNI (Modo Lean eBPF con FQDN Egress Allowlist)
       ansible.builtin.command:
@@ -152,11 +156,12 @@
         KUBECONFIG: /etc/rancher/k3s/k3s.yaml
       register: cilium_deploy
       changed_when: "'Release \"cilium\" has been upgraded' in cilium_deploy.stdout or 'Release \"cilium\" does not exist' in cilium_deploy.stdout"
+      when: (cni_provider | default('cilium')) == 'cilium'
 
     # --------------------------------------------------------------------------
     # 5. Validación de Estado del Nodo
     # --------------------------------------------------------------------------
-    - name: Esperar a que el nodo reporte estado Ready tras inicialización de Cilium
+    - name: Esperar a que el nodo reporte estado Ready tras inicialización de red
       ansible.builtin.command:
         cmd: k3s kubectl wait --for=condition=Ready node --all --timeout=120s
       changed_when: false
@@ -166,7 +171,9 @@
         cmd: k3s kubectl get pods -n {{ cilium_namespace }} -l k8s-app=cilium
       register: cilium_pods
       changed_when: false
+      when: (cni_provider | default('cilium')) == 'cilium'
 
     - name: Mostrar estado de pods de Cilium
       ansible.builtin.debug:
         var: cilium_pods.stdout_lines
+      when: (cni_provider | default('cilium')) == 'cilium' and cilium_pods is defined

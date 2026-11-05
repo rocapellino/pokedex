@@ -122,8 +122,8 @@ Una vez iniciados los servicios, accede a:
 
 - **Catálogo Web:** `http://localhost:8080`
 - **Backoffice Administrativo:** `http://localhost:8080/backoffice.html`
-- **Healthcheck de la API:** `http://localhost:3000/healthz`
-- **Métricas Prometheus:** `http://localhost:3000/metrics`
+- **Healthcheck de la API:** `http://localhost:8080/healthz` (o `:3001` con `docker-compose.dev.yaml`)
+- **Métricas Prometheus:** `http://localhost:8080/metrics` (o `:3001` con `docker-compose.dev.yaml`)
 
 ---
 

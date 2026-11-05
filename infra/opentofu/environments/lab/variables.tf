@@ -42,7 +42,7 @@ variable "network_bridge" {
 
 variable "network_base_ip" {
   type        = string
-  default     = "10.0.10."
+  default     = "10.10.14."
   description = "Prefijo base de direccionamiento IPv4 para el segmento lab"
 }
 
@@ -54,12 +54,12 @@ variable "network_cidr_mask" {
 
 variable "network_gateway" {
   type        = string
-  default     = "10.0.10.1"
+  default     = "10.10.14.1"
   description = "Dirección IPv4 del Gateway de la subred lab"
 }
 
 variable "proxmox_insecure" {
   type        = bool
-  default     = true
+  default     = false
   description = "Permitir certificados TLS autofirmados en el entorno de pruebas lab"
 }

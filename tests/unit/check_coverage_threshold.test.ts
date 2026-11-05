@@ -50,12 +50,17 @@ test('📏 Gate de cobertura: un prefijo sin archivos en el informe falla en lug
   assert.equal(result.ok, false);
 });
 
-test('📏 Gate de cobertura: los gates vigentes protegen rutas HTTP (80 %) y servicios (65 %) del backend', () => {
+test('📏 Gate de cobertura: los gates vigentes protegen rutas HTTP (80 %), servicios (65 %), middleware (70 %) y validación (80 %) del backend', () => {
   const SERVICES_GATE = { prefix: 'apps/backend/src/services/', minLines: 65 };
-  assert.deepEqual(COVERAGE_GATES, [GATE, SERVICES_GATE]);
+  const MIDDLEWARE_GATE = { prefix: 'apps/backend/src/middleware/', minLines: 70 };
+  const VALIDATION_GATE = { prefix: 'apps/backend/src/validation/', minLines: 80 };
+  assert.deepEqual(COVERAGE_GATES, [GATE, SERVICES_GATE, MIDDLEWARE_GATE, VALIDATION_GATE]);
 
-  const healthyRoutes = record('apps/backend/src/routes/a.ts', 10, 9);
-  const services = (hit: number) => evaluateGates(healthyRoutes + record('apps/backend/src/services/a.ts', 100, hit));
+  const healthy =
+    record('apps/backend/src/routes/a.ts', 10, 9) +
+    record('apps/backend/src/middleware/a.ts', 10, 8) +
+    record('apps/backend/src/validation/a.ts', 10, 9);
+  const services = (hit: number) => evaluateGates(healthy + record('apps/backend/src/services/a.ts', 100, hit));
   assert.equal(
     services(65).every((result) => result.ok),
     true,
