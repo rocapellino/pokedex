@@ -27,7 +27,7 @@ import {
   getAbilityIndex,
 } from './components/catalog-state.js';
 import {
-  clearAllFilters,
+  cancelDebounceTimers,
   registerApplyFilters,
   renderAbilityOptions,
   renderActiveFilters,
@@ -241,7 +241,7 @@ window.addEventListener(
 
 function handleHistoryNavigation(): void {
   if (getAllPokemons().length === 0 || urlMatchesFilters(currentFilterState())) return;
-  clearAllFilters();
+  cancelDebounceTimers();
   applyFilters('replace', restoreFiltersFromUrl());
 }
 

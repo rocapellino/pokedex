@@ -38,6 +38,11 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined;
 let statTimer: ReturnType<typeof setTimeout> | undefined;
 let applyFiltersCallback: ((history?: HistoryMode, page?: number) => void) | undefined;
 
+export function cancelDebounceTimers(): void {
+  clearTimeout(searchTimer);
+  clearTimeout(statTimer);
+}
+
 export function registerApplyFilters(fn: (history?: HistoryMode, page?: number) => void): void {
   applyFiltersCallback = fn;
 }
