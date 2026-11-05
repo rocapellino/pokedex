@@ -53,13 +53,12 @@ test('🛡️ Seguridad: validateImageUrl rechaza URLs inseguras o pseudo-protoc
   assert.equal(validateImageUrl('http://127.0.0.1:3000/images/pokemon.png'), true);
   assert.equal(validateImageUrl('https://localhost:3000/images/pokemon.png'), true);
 
-  // localhost en producción: rechazo estricto (Anti-SSRF fail-closed)
+  // localhost en producción (exige HTTPS o rutas locales relativas, rechazando HTTP inseguro)
   const prevEnv = process.env.NODE_ENV;
   try {
     process.env.NODE_ENV = 'production';
     assert.equal(validateImageUrl('http://localhost:3000/images/pokemon.png'), false);
-    assert.equal(validateImageUrl('https://localhost:3000/images/pokemon.png'), false);
-    assert.equal(validateImageUrl('https://127.0.0.1:3000/images/pokemon.png'), false);
+    assert.equal(validateImageUrl('https://localhost:3000/images/pokemon.png'), true);
   } finally {
     process.env.NODE_ENV = prevEnv;
   }

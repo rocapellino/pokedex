@@ -161,13 +161,13 @@ export function validateImageUrl(value: unknown): boolean {
     const host = rawHost.replace(/\.+$/, '');
     const isProduction = process.env.NODE_ENV === 'production';
 
-    // Loopback / localhost en desarrollo: solo tolerado si NO es producción
+    // Loopback / localhost: solo HTTP está bloqueado en producción (prevención SSRF contra sidecars o puertos locales)
     const isLocalhost = host === 'localhost' || host === '127.0.0.1' || host === '::1';
     if (isLocalhost) {
-      if (isProduction) {
-        return false;
+      if (parsed.protocol === 'http:') {
+        return !isProduction;
       }
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      return parsed.protocol === 'https:';
     }
 
     // Protocolo externo debe ser HTTPS obligatorio

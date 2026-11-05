@@ -33,14 +33,13 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 const candidatePublicDirs = [
-  path.join(process.cwd(), 'apps', 'frontend', 'dist'),
-  path.join(process.cwd(), 'apps', 'frontend', 'public'),
-  path.join(process.cwd(), '..', 'frontend', 'dist'),
-  path.join(process.cwd(), '..', 'frontend', 'public'),
+  path.join(process.cwd(), 'apps/frontend/dist'),
+  path.join(process.cwd(), 'apps/frontend/public'),
+  path.join(process.cwd(), '../frontend/dist'),
+  path.join(process.cwd(), '../frontend/public'),
   path.join(process.cwd(), 'public'),
 ];
-const PUBLIC_DIR =
-  candidatePublicDirs.find((p) => fs.existsSync(p)) || path.join(process.cwd(), 'apps', 'frontend', 'dist');
+const PUBLIC_DIR = candidatePublicDirs.find((p) => fs.existsSync(p)) || path.join(process.cwd(), 'apps/frontend/dist');
 
 // ---------------------------------------------------------------------------
 // Security: Server Hardening & Security Headers
@@ -200,39 +199,38 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const traceId = req.traceId || (req.headers['x-request-id'] as string) || undefined;
   if (err instanceof DatabaseUnavailableError) {
     logger.error('Base de datos no disponible (Fail-Closed)', { path: req.path, traceId });
-    if (res.headersSent) {
-      return;
+    if (!res.headersSent) {
+      res.status(503).json({
+        error: 'Servicio temporalmente no disponible: la base de datos relacional no responde (Fail-Closed).',
+        code: 'DATABASE_UNAVAILABLE',
+        requestId: traceId,
+      });
     }
-    return res.status(503).json({
-      error: 'Servicio temporalmente no disponible: la base de datos relacional no responde (Fail-Closed).',
-      code: 'DATABASE_UNAVAILABLE',
-      requestId: traceId,
-    });
+    return;
   }
   if (err instanceof CorsOriginRejectedError) {
     logger.warn('Petición rechazada por la política CORS', { origin: req.headers.origin, path: req.path, traceId });
-    if (res.headersSent) {
-      return;
+    if (!res.headersSent) {
+      res.status(403).json({
+        error: 'Origen no permitido por la política CORS.',
+        code: 'CORS_ORIGIN_REJECTED',
+        requestId: traceId,
+      });
     }
-    return res.status(403).json({
-      error: 'Origen no permitido por la política CORS.',
-      code: 'CORS_ORIGIN_REJECTED',
-      requestId: traceId,
-    });
+    return;
   }
   logger.error('Error no controlado en el servidor Express', {
     error: errorMessage(err),
     stack: err instanceof Error ? err.stack : undefined,
     traceId,
   });
-  if (res.headersSent) {
-    return;
+  if (!res.headersSent) {
+    res.status(500).json({
+      error: 'Error interno del servidor. La solicitud no pudo ser procesada de forma segura.',
+      code: 'INTERNAL_SERVER_ERROR',
+      requestId: traceId,
+    });
   }
-  res.status(500).json({
-    error: 'Error interno del servidor. La solicitud no pudo ser procesada de forma segura.',
-    code: 'INTERNAL_SERVER_ERROR',
-    requestId: traceId,
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -255,14 +253,11 @@ export function setupGracefulShutdown(
     // 1. Temporizador de salvaguarda en caso de sockets o pools bloqueados
     const forceExitTimer = setTimeout(() => {
       logger.error('[Lifecycle: Graceful Shutdown] Tiempo límite de apagado excedido. Forzando terminación.');
-      if (process.env.NODE_ENV !== 'test') {
-        process.exit(1);
-      }
+      if (process.env.NODE_ENV !== 'test') process.exit(1);
     }, shutdownTimeoutMs);
     forceExitTimer.unref();
 
-    // 2. Breve pausa de amortiguación para permitir que el EndpointSlice Controller de Kubernetes
-    // retire el Pod de los endpoints del Service y evitar peticiones en vuelo
+    // 2. Pausa para que el EndpointSlice Controller de K8s retire el Pod
     await new Promise((resolve) => setTimeout(resolve, drainTimeoutMs));
 
     // 3. Dejar de aceptar nuevas conexiones HTTP y drenar las existentes
@@ -303,10 +298,7 @@ export function setupGracefulShutdown(
 }
 
 function handleStartupError(err: unknown, exitFn: (code: number) => void = (code) => process.exit(code)): void {
-  // [APPS-002] Fallo de arranque: en produccion se aborta el proceso con
-  // codigo distinto de cero para que el orquestador NO marque el pod como
-  // listo. No se escucha ningún puerto: es preferible no servir tráfico que
-  // servirlo contra un esquema de datos inconsistente.
+  // [APPS-002] Fallo de arranque: en producción se aborta con código != 0 (fail-closed)
   logger.error('[Startup] La inicialización del almacenamiento falló. Abortando arranque.', {
     error: err instanceof Error ? err.message : String(err),
   });
