@@ -6,7 +6,7 @@ import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { logger } from '../utils/logger.js';
-import { composePostgresUrl } from './connection-url.js';
+import { composePostgresUrl, getPgSslConfig } from './connection-url.js';
 
 export function getMigrationsFolder(): string {
   try {
@@ -149,6 +149,7 @@ export async function runMigrations(connectionString?: string): Promise<void> {
     connectionString: url,
     max: 1,
     connectionTimeoutMillis: 5000,
+    ssl: getPgSslConfig(url),
   });
 
   const db = drizzle(pool);

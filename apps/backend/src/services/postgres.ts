@@ -7,8 +7,10 @@ import { initialPokemons } from '../data/initialPokemons.js';
 import { logger } from '../utils/logger.js';
 import { errorMessage } from '../utils/errors.js';
 import { pokedexEntries, createDrizzleClient, type AppDatabase, runMigrations } from '../db/index.js';
-import { composePostgresUrl } from '../db/connection-url.js';
+import { composePostgresUrl, shouldUsePgSsl, getPgSslConfig } from '../db/connection-url.js';
 import { getSchemaStatus, type SchemaStatus } from '../db/migrate.js';
+
+export { shouldUsePgSsl, getPgSslConfig };
 
 const { Pool } = pg;
 
@@ -80,27 +82,12 @@ export function isProductionEnv(): boolean {
   return process.env.NODE_ENV === 'production';
 }
 
-/**
- * Decide si el pool usa TLS: obligatorio si DB_SSL=true o sslmode=require, y por
- * defecto en producción salvo DB_SSL=false o destino loopback.
- */
-export function shouldUsePgSsl(dbUrl: string, env: NodeJS.ProcessEnv = process.env): boolean {
-  const isProduction = env.NODE_ENV === 'production';
-  const isLoopback = dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1');
-  const isSslExplicitlyRequired = env.DB_SSL === 'true' || dbUrl.includes('sslmode=require');
-  return isSslExplicitlyRequired || (isProduction && env.DB_SSL !== 'false' && !isLoopback);
-}
-
-export async function connectPg(): Promise<boolean> {
-  const dbUrl = getDatabaseUrl();
+export async function connectPg(options?: { direct?: boolean }): Promise<boolean> {
+  const dbUrl = options?.direct ? getDirectDatabaseUrl() : getDatabaseUrl();
   if (!dbUrl) return false;
   try {
     if (!pgPool) {
-      const shouldUseSsl = shouldUsePgSsl(dbUrl);
-
-      const sslConfig = shouldUseSsl
-        ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true' }
-        : undefined;
+      const sslConfig = getPgSslConfig(dbUrl);
 
       pgPool = new Pool({
         connectionString: dbUrl,
@@ -224,7 +211,7 @@ export function isPgConnectedStatus(): boolean {
 }
 
 export function isPgConfigured(): boolean {
-  return Boolean(process.env.DATABASE_URL);
+  return Boolean(getDatabaseUrl());
 }
 
 export function getDrizzleDb(): AppDatabase | null {

@@ -27,14 +27,19 @@ export function sanitizeAIHtml(rawHtml: string): string {
     return '';
   }
 
-  // 3. Rechazo explícito de pseudo-protocolos en atributos
-  if (/(?:href|src|action)\s*=\s*(?:["']\s*)?(?:javascript|vbscript|data\s*:\s*text\/html)/i.test(trimmed)) {
+  // 3. Rechazo explícito de pseudo-protocolos en atributos (AUD-SEC-INPUT-001)
+  if (
+    /(?:href|src|action|formaction|xlink:href)\s*=\s*(?:["']\s*)?(?:javascript|vbscript|data\s*:\s*(?:text\/html|image\/svg\+xml))/i.test(
+      trimmed,
+    )
+  ) {
     console.warn('[AI Security] Salida de IA rechazada: contiene pseudo-protocolos peligrosos.');
     return '';
   }
 
   // 4. Rechazo explícito de manejadores de eventos en línea (onload, onerror, onclick, etc.)
-  if (/\son[a-z]+\s*=/i.test(trimmed)) {
+  // Detecta eventos precedidos por espacios, tabulaciones, barras inclinadas (ej. <img/onload=) o comillas (AUD-SEC-INPUT-001)
+  if (/(?:[\s/'"`]|[\t\n\r])on[a-z0-9_-]+\s*=/i.test(trimmed)) {
     console.warn('[AI Security] Salida de IA rechazada: contiene manejadores de eventos inline.');
     return '';
   }

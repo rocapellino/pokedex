@@ -17,6 +17,13 @@ for (const p of initialPokemons) {
 }
 let inMemorySequence = initialPokemons.reduce((max, p) => Math.max(max, p.id), 1008);
 
+export class DatabaseUnavailableError extends Error {
+  constructor(message = 'Base de datos PostgreSQL temporalmente no disponible (Fail-Closed).') {
+    super(message);
+    this.name = 'DatabaseUnavailableError';
+  }
+}
+
 export function getMemoryMapSize(): number {
   return memoryMap.size;
 }
@@ -52,6 +59,7 @@ export async function getAllPokemons(
 
   let resultData: { total: number; pokemons: Pokemon[] } | null = null;
   const drizzleDb = getDrizzleDb();
+  let fromDb = false;
 
   // 2. Intentar consultar PostgreSQL vía Drizzle ORM
   if (isPgConnectedStatus() && drizzleDb) {
@@ -79,12 +87,19 @@ export async function getAllPokemons(
 
       const pokemons = rows.map((r) => r.data);
       resultData = { total, pokemons };
+      fromDb = true;
     } catch (err) {
-      logger.error('[Storage: PostgreSQL Error] Fallback a memoria', { error: err });
+      logger.error('[Storage: PostgreSQL Error] Fallo al consultar base de datos', { error: err });
     }
   }
 
-  // 3. Fallback a Memoria si PostgreSQL no respondió
+  // Fail-Closed (ADR-027): en producción, si la base de datos está configurada pero inaccesible,
+  // denegar la petición para prevenir servir datos inconsistentes o desactualizados.
+  if (!fromDb && isPgConfigured() && process.env.NODE_ENV === 'production') {
+    throw new DatabaseUnavailableError();
+  }
+
+  // 3. Fallback a Memoria si PostgreSQL no está configurado (modo desarrollo local sin base de datos)
   if (!resultData) {
     let list = Array.from(memoryMap.values());
     if (type) {
@@ -102,8 +117,8 @@ export async function getAllPokemons(
     resultData = { total, pokemons };
   }
 
-  // 4. Poblar caché de Redis con TTL de 60 segundos
-  if (hasRedis && resultData && listCacheKey) {
+  // 4. Poblar caché de Redis con TTL de 60 segundos ÚNICAMENTE si provino de la base de datos real (AUD-DB-FAILOPEN-001)
+  if (fromDb && hasRedis && resultData && listCacheKey) {
     redis.setex(listCacheKey, 60, JSON.stringify(resultData)).catch(() => {});
   }
 
@@ -128,10 +143,12 @@ export async function getPokemonById(id: number): Promise<Pokemon | null> {
   }
 
   const drizzleDb = getDrizzleDb();
+  let dbQueried = false;
 
   // Consultar PostgreSQL vía Drizzle ORM
   if (isPgConnectedStatus() && drizzleDb) {
     try {
+      dbQueried = true;
       const [entry] = await drizzleDb
         .select({ data: pokedexEntries.data })
         .from(pokedexEntries)
@@ -148,15 +165,20 @@ export async function getPokemonById(id: number): Promise<Pokemon | null> {
       }
       return null;
     } catch (err) {
-      logger.error('[Storage: PostgreSQL Error] Fallback a memoria para getById', { error: err });
+      logger.error('[Storage: PostgreSQL Error] Fallo al consultar Pokémon por ID', { error: err });
+      dbQueried = false;
     }
   }
 
-  // Fallback a Memoria
-  const found = memoryMap.get(id) || null;
-  if (found && hasRedis) {
-    redis.setex(cacheKey, 300, JSON.stringify(found)).catch(() => {});
+  // Fail-Closed (ADR-027): en producción, si la base de datos está configurada pero inaccesible,
+  // denegar con error fail-closed para prevenir falsos 404 o fallback desactualizado.
+  if (!dbQueried && isPgConfigured() && process.env.NODE_ENV === 'production') {
+    throw new DatabaseUnavailableError();
   }
+
+  // Fallback a Memoria únicamente en desarrollo local sin DB.
+  // IMPORTANTE: NUNCA se cachea en Redis un fallback de memoria para evitar envenenamiento de caché (AUD-DB-FAILOPEN-001).
+  const found = memoryMap.get(id) || null;
   return found;
 }
 

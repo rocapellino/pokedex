@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import rateLimit from 'express-rate-limit';
 import { consumeDistributedRateLimit } from '../services/db.js';
+import { isRedisConfigured } from '../services/cache.js';
 
 // ---------------------------------------------------------------------------
 // Rate Limiter Híbrido (Redis Distribuido con Fallback a Memoria Local)
@@ -59,9 +60,9 @@ export function createRateLimiter(
       }
 
       // Fail-Closed: para endpoints de alto costo o consumo de cuotas externas (ej. IA Gemini),
-      // si Redis está configurado pero temporalmente fuera de línea, denegar con 503
-      // para prevenir agotamiento de cuota o evasión del límite distribuido entre pods.
-      if (options.failClosedOnRedisOutage && process.env.REDIS_URL) {
+      // autenticación y mutaciones CRUD: si Redis está configurado pero temporalmente fuera de línea,
+      // denegar con 503 para prevenir evasión del límite distribuido entre pods (ADR-027).
+      if (options.failClosedOnRedisOutage && isRedisConfigured()) {
         return res.status(503).json({
           detail: `Servicio temporalmente no disponible: el limitador de tasa distribuido para ${serviceName} requiere conectividad con Redis.`,
         });
@@ -95,8 +96,12 @@ export const aiRateLimiter = createRateLimiter(10, 60 * 1000, 'Endpoints IA', { 
 export const aiDailyQuotaLimiter = createRateLimiter(200, 24 * 60 * 60 * 1000, 'Cuota Diaria IA', {
   failClosedOnRedisOutage: true,
 });
-export const mutationRateLimiter = createRateLimiter(30, 60 * 1000, 'Modificaciones CRUD');
-export const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación');
+export const mutationRateLimiter = createRateLimiter(30, 60 * 1000, 'Modificaciones CRUD', {
+  failClosedOnRedisOutage: true,
+});
+export const authRateLimiter = createRateLimiter(5, 60 * 1000, 'Autenticación', {
+  failClosedOnRedisOutage: true,
+});
 export const globalRateLimiter = createRateLimiter(300, 60 * 1000, 'API Global');
 
 // ---------------------------------------------------------------------------

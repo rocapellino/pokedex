@@ -214,4 +214,16 @@ export const BACKEND_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Comprueba la seguridad de nginx: cabeceras efectivas (nivel server, herencia de add_header por location, ocultamiento del upstream), valores de COOP y CORP, CSP sin unsafe-inline en style-src y sin allowlists RFC 1918 masivas.',
   },
+  'tests/unit/failclosed_storage_contract.test.ts': {
+    type: 'Unit / Security',
+    targetDomain: 'Storage / Persistencia Fail-Closed & Redis',
+    targetArtifacts: [
+      `${BE}/services/postgres.ts`,
+      `${BE}/services/cache.ts`,
+      `${BE}/services/pokemon.repository.ts`,
+      `${BE}/db/connection-url.ts`,
+    ],
+    description:
+      'Valida la arquitectura fail-closed de almacenamiento y rate limiting: reconocimiento de POSTGRES_* y REDIS_HOST, denegación 503 ante caída de BD en producción, prevención de envenenamiento de caché y validación TLS estricta por defecto.',
+  },
 };

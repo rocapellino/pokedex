@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { setRevokedJti, isJtiRevokedInRedis } from './db.js';
+import { isRedisConfigured } from './cache.js';
 
 const SESSION_TOKEN_TTL_MS = 4 * 60 * 60 * 1000; // 4 horas de validez
 
@@ -148,8 +149,8 @@ export async function revokeSessionTokenDetailed(token: string): Promise<RevokeS
 
   const remainingSeconds = Math.max(1, Math.ceil((exp - Date.now()) / 1000));
 
-  // 1. Si REDIS_URL está configurado, Redis es la fuente única de verdad distribuida (Multi-Pod)
-  if (process.env.REDIS_URL) {
+  // 1. Si Redis está configurado (REDIS_URL o REDIS_HOST), Redis es la fuente única de verdad distribuida (Multi-Pod)
+  if (isRedisConfigured()) {
     const redisOk = await setRevokedJti(jti, remainingSeconds);
     if (!redisOk) {
       console.warn(
@@ -231,8 +232,8 @@ export async function verifySessionTokenDetailed(token: string): Promise<VerifyS
     if (isLocallyRevoked(payload.jti)) return { valid: false, reason: 'revoked' };
     const redisRevoked = await isJtiRevokedInRedis(payload.jti);
     if (redisRevoked === true) return { valid: false, reason: 'revoked' };
-    // Fail-Closed: si REDIS_URL está configurado pero Redis está caído, denegar por seguridad
-    if (redisRevoked === null && process.env.REDIS_URL) {
+    // Fail-Closed: si Redis está configurado pero caído, denegar por seguridad
+    if (redisRevoked === null && isRedisConfigured()) {
       return { valid: false, reason: 'service_unavailable' };
     }
   }

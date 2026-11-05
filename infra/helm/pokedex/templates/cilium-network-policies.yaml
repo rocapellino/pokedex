@@ -11,7 +11,7 @@ spec:
     matchLabels:
       app.kubernetes.io/component: api
   ingress:
-    # Permitir únicamente peticiones entrantes desde el frontend web
+    # 1. Tráfico entrante desde el frontend web
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/component: web
@@ -19,6 +19,28 @@ spec:
         - ports:
             - port: "{{ .Values.api.port }}"
               protocol: TCP
+    {{- if .Values.ingress.enabled }}
+    {{- with .Values.networkPolicies.ingressController }}
+    # 2. Ingress Controller directo a la API (/api/ y /pokemons, AUD-ARCH-NET-001 / AUD-INF-CILIUM-001)
+    - fromEndpoints:
+        - matchLabels:
+            {{- toYaml .podLabels | nindent 12 }}
+      toPorts:
+        - ports:
+            - port: "{{ $.Values.api.port }}"
+              protocol: TCP
+    {{- end }}
+    {{- end }}
+    {{- with .Values.networkPolicies.metricsScraper }}
+    # 3. Scraper de métricas Prometheus (/metrics, ADR-013 / AUD-INF-CILIUM-001)
+    - fromEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": {{ .namespace | quote }}
+      toPorts:
+        - ports:
+            - port: "{{ $.Values.api.port }}"
+              protocol: TCP
+    {{- end }}
   egress:
     # 1. Resolución DNS interna en CoreDNS con inspección de nombres
     - toEndpoints:

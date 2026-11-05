@@ -70,7 +70,12 @@ export function applyPokemonUpdates(existing: Pokemon, body: Record<string, any>
         ? body.tipos.map((t: unknown) => String(t).slice(0, 30))
         : [String(body.tipos)]
       : existing.tipos,
-    habitat: body.habitat ? String(body.habitat).slice(0, 50) : existing.habitat,
+    habitat:
+      body.habitat !== undefined
+        ? String(body.habitat).slice(0, 50)
+        : body.caracteristicas?.habitat !== undefined
+          ? String(body.caracteristicas.habitat).slice(0, 50)
+          : existing.habitat,
     fuerza: body.fuerza !== undefined ? Number.parseInt(String(body.fuerza), 10) : existing.fuerza,
     habilidades: body.habilidades
       ? Array.isArray(body.habilidades)

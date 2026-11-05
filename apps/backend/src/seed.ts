@@ -33,13 +33,22 @@ async function main() {
     const catalog = loadSeedCatalog(dataset);
     console.log(`📦 [Seed Job] Dataset '${dataset}': ${catalog.length} Pokémon.`);
 
-    // 1. Inicializar conexiones a PostgreSQL y Redis
-    await initStorage();
+    // 1. Inicializar conexiones directas a PostgreSQL (DIRECT_DATABASE_URL / puerto 5432) y Redis
+    await initStorage({ directPg: true });
     const health = getStorageHealth();
 
     console.log(
       `📡 [Seed Job] Modo de almacenamiento activo: ${health.database.toUpperCase()} (PG conectado: ${health.postgres_connected})`,
     );
+
+    // Fail-Closed (ADR-027 / AUD-DB-SEEDPOOL-001): el seed job requiere persistencia real.
+    // Prohibido sembrar en la memoria volátil del proceso de Node.js.
+    if (!health.postgres_connected) {
+      console.error(
+        '❌ [Seed Job: Error Fatal] Se requiere conectividad con PostgreSQL para la siembra masiva; no se admite fallback a memoria (fail-closed).',
+      );
+      process.exit(1);
+    }
 
     // 2. Comparar el catálogo con los IDs ya persistidos
     const existingIds = await listPersistedPokemonIds();
