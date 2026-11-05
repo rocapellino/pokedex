@@ -41,3 +41,8 @@ npm run docs:validate
 # 3. Validar contratos de ADRs
 npm run test:contracts
 ```
+
+---
+
+> [!NOTE]
+> Esta skill cumple estrictamente el contrato transversal [`_shared/skill-contract.md`](../_shared/skill-contract.md).

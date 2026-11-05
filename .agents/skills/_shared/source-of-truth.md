@@ -11,7 +11,7 @@ Este documento define la autoridad formal de información en `rocapellino/pokede
 | **Versión de Software** | Metadatos de Release & Package | `package.json` (`version`), Git Tags (`vX.Y.Z`), `infra/helm/pokedex/Chart.yaml` (`appVersion`) | Changelog, Release notes |
 | **Despliegue & Promoción** | Manifiestos ArgoCD (GitOps) | `gitops/apps/*.yaml` (`targetRevision`), `gitops/environments/*/values.yaml` | `docs/architecture/APPLICATION_LIFECYCLE.md` |
 | **Configuración Kubernetes** | Helm Charts & GitOps Values | `infra/helm/pokedex/` (`templates/`, `values.yaml`), `gitops/environments/` | Runbooks de Kubernetes |
-| **Infraestructura Base** | Código OpenTofu y Ansible | `infra/opentofu/`, `infra/ansible/` (`inventory/`, `playbooks/`) | Diagramas de topología |
+| **Infraestructura Base** | Código OpenTofu y Ansible | `infra/opentofu/`, `infra/ansible/` (`inventories/`, `playbooks/`) | Diagramas de topología |
 | **Secretos & Cifrado** | Configuración Vault & ESO | `infra/ansible/playbooks/setup_vault.yaml`, `gitops/environments/*/values.yaml` (`externalSecrets`) | Runbook de rotación |
 | **Decisiones de Arquitectura** | Architectural Decision Records | `docs/decisions/ADR-*.md` (estrictamente ADRs con estado *Aceptado*) | `docs/architecture/` |
 | **Procedimientos Operativos** | Runbooks Oficiales | `docs/runbooks/*.md`, `docs/operations/*.md` | Scripts en `scripts/` |

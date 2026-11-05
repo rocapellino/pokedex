@@ -29,8 +29,8 @@ Garantizar la seguridad, conformidad de esquemas y postura DevSecOps de todos lo
 ## Comandos de Verificación
 
 ```bash
-# 1. Renderizar y validar contratos Helm
-docker run --rm -v "${PWD}:/apps" alpine/helm:3.22.1 lint /apps/infra/helm/pokedex
+# 1. Renderizar y validar contratos Helm mediante runner reproducible
+npx tsx scripts/lib/helm.ts lint infra/helm/pokedex
 
 # 2. Ejecutar validación de manifiestos y buenas prácticas
 npm run test:gitops
@@ -38,3 +38,8 @@ npm run test:gitops
 # 3. Validar contratos de admisión y seguridad K8s
 npm run test:security
 ```
+
+---
+
+> [!NOTE]
+> Esta skill cumple estrictamente el contrato transversal [`_shared/skill-contract.md`](../_shared/skill-contract.md).

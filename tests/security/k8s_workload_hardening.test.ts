@@ -190,8 +190,8 @@ test('🛡️ Dockerfile SSOT: apps/backend/Dockerfile es la definición canóni
   );
   assert.match(
     backendContent,
-    /USER (?:1000:1000|node)/,
-    'apps/backend/Dockerfile debe ejecutar como usuario no privilegiado (UID 1000 o node)',
+    /USER (?:10001:10001|1000:1000|node)/,
+    'apps/backend/Dockerfile debe ejecutar como usuario no privilegiado (UID 10001, 1000 o node)',
   );
 
   const ciWorkflow = fs.readFileSync(path.join(ROOT_DIR, '.github/workflows/ci.yaml'), 'utf-8');

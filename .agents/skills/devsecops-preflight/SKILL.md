@@ -70,3 +70,8 @@ El agente o desarrollador debe ejecutar secuencialmente y validar en verde los s
 ## Criterio de Aceptación
 
 Todos los comandos deben finalizar con código de salida `0`. Si algún paso falla, el agente debe corregir el hallazgo y reejecutar el preflight antes de declarar la tarea lista para Pull Request (`READY_FOR_PR`).
+
+---
+
+> [!NOTE]
+> Esta skill cumple estrictamente el contrato transversal [`_shared/skill-contract.md`](../_shared/skill-contract.md).

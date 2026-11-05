@@ -12,8 +12,8 @@
 
 import * as fs from 'node:fs';
 import process from 'node:process';
+import { fetchLinear } from './lib/linear.ts';
 
-const LINEAR_API_URL = 'https://api.linear.app/graphql';
 const LINEAR_API_KEY = process.env.LINEAR_API_KEY || '';
 const TARGET_TEAM_KEY = process.env.LINEAR_TEAM_KEY || 'PEX';
 
@@ -56,30 +56,6 @@ interface LinearIssueNode {
 
 function sanitizeMarkdownCell(text: string): string {
   return text.replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
-}
-
-async function fetchLinear<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    Authorization: LINEAR_API_KEY,
-  };
-
-  const response = await fetch(LINEAR_API_URL, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ query, variables }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Linear API HTTP Error ${response.status}: ${await response.text()}`);
-  }
-
-  const result = await response.json();
-  if (result.errors && result.errors.length > 0) {
-    throw new Error(`Linear GraphQL Error: ${JSON.stringify(result.errors)}`);
-  }
-
-  return result.data as T;
 }
 
 async function main(): Promise<void> {

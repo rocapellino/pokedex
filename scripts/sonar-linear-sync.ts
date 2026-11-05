@@ -61,13 +61,14 @@ interface LinearIssueNode {
   };
 }
 
+import { fetchLinear } from './lib/linear.ts';
+
 function sanitize(input: unknown): string {
   return String(input ?? '')
     .replace(/[\r\n\t]/g, ' ')
     .slice(0, 120);
 }
 
-const LINEAR_API_URL = 'https://api.linear.app/graphql';
 const SONAR_API_BASE = 'https://sonarcloud.io/api';
 
 const LINEAR_API_KEY = process.env.LINEAR_API_KEY || '';
@@ -75,30 +76,6 @@ const SONAR_TOKEN = process.env.SONAR_TOKEN || '';
 const SONAR_PROJECT_KEY = process.env.SONAR_PROJECT_KEY || 'rocapellino_pokedex';
 const TARGET_TEAM_KEY = process.env.LINEAR_TEAM_KEY || 'PEX';
 const IS_DRY_RUN = process.env.DRY_RUN === 'true';
-
-async function fetchLinear<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    Authorization: LINEAR_API_KEY,
-  };
-
-  const response = await fetch(LINEAR_API_URL, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ query, variables }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Linear API HTTP Error ${response.status}: ${await response.text()}`);
-  }
-
-  const result = await response.json();
-  if (result.errors && result.errors.length > 0) {
-    throw new Error(`Linear GraphQL Error: ${JSON.stringify(result.errors)}`);
-  }
-
-  return result.data as T;
-}
 
 async function fetchSonar<T>(endpoint: string): Promise<T> {
   const url = `${SONAR_API_BASE}${endpoint}`;

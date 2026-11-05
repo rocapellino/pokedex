@@ -325,7 +325,7 @@ jobs:
 
           if [ -n "${FAILED}" ]; then
             echo "❌ Quality Gate: uno o mas pipelines no cumplieron el contrato esperado:"
-            printf "${FAILED}"
+            printf '%s\n' "${FAILED}"
             exit 1
           fi
 

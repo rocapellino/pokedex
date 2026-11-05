@@ -23,19 +23,19 @@ tasks:
       - docker compose down
 
   dev:catalog:generate:
-    desc: "Regenera el catálogo nacional completo de Pokémon desde PokeAPI (data/pokemon-catalog.full.json)"
+    desc: "Regenera el catálogo nacional completo de Pokémon desde PokeAPI (apps/backend/src/data/pokemon-catalog.full.json)"
     sources:
       - scripts/generate-pokemon-catalog.ts
     generates:
-      - data/pokemon-catalog.full.json
+      - apps/backend/src/data/pokemon-catalog.full.json
     cmds:
       - npm run catalog:generate
 
   dev:verify:
     desc: "Valida la disponibilidad de los servicios locales (healthz, readyz y frontend Web)"
     cmds:
-      - curl --fail -s http://localhost:3000/healthz || echo "Backend liveness no responde"
-      - curl --fail -s http://localhost:3000/readyz || echo "Backend readiness no responde"
+      - curl --fail -s http://localhost:8080/api/healthz || echo "Backend liveness no responde"
+      - curl --fail -s http://localhost:8080/api/readyz || echo "Backend readiness no responde"
       - curl --fail -s http://localhost:8080 || echo "Frontend Web Nginx no responde"
 
   dev:k8s:up:

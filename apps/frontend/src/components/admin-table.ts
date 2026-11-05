@@ -143,7 +143,8 @@ export function renderAdminTable(
   tbody.querySelectorAll('.force-bar[data-width]').forEach((el) => {
     const bar = el as HTMLElement;
     setTimeout(() => {
-      bar.style.width = bar.getAttribute('data-width') || '0%';
+      const widthAttr = bar.getAttribute('data-width');
+      bar.style.width = widthAttr ? (widthAttr.endsWith('%') ? widthAttr : `${widthAttr}%`) : '0%';
     }, 50);
   });
 

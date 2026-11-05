@@ -81,8 +81,8 @@ RUN npm ci --workspace=@pokedex/backend --omit=dev --ignore-scripts \
 # Copiar artefactos compilados
 COPY --from=builder /app/apps/backend/dist ./dist
 
-# Usar usuario sin privilegios por UID:GID numérico (Hadolint DL3066)
-USER 1000:1000
+# Usar usuario sin privilegios por UID:GID numérico (Hadolint DL3066, alineado con runAsUser 10001 en Helm)
+USER 10001:10001
 
 # Healthcheck nativo consultando el endpoint /healthz (Hadolint DL3025)
 HEALTHCHECK --interval=20s --timeout=3s --start-period=5s --retries=3 \
