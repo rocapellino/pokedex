@@ -351,38 +351,6 @@ spec:
           port: 6379
 {{- if and .Values.backup .Values.backup.enabled }}
 ---
-# CronJob de Backup (AUD-INF-EGRESS-001): resuelve DNS y extrae dumps de PostgreSQL.
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: {{ include "pokedex.fullname" . }}-allow-backup-egress
-  labels:
-    {{- include "pokedex.labels" . | nindent 4 }}
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/component: backup
-  policyTypes:
-    - Egress
-  egress:
-    - to:
-        - namespaceSelector: {}
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-      ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/component: database
-      ports:
-        - protocol: TCP
-          port: {{ .Values.postgresql.port }}
----
 # Verificación de Disaster Recovery (AUD-INF-EGRESS-001): valida restauración en PostgreSQL.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
