@@ -22,10 +22,11 @@ const CRONJOB_TEMPLATES = ['backup-cronjob.yaml', 'backup-gdrive-cronjob.yaml', 
 test('🛡️ AUD-INF-CRONSEC-001: Templates de CronJobs configuran seccompProfile RuntimeDefault en Pod y contenedor', () => {
   for (const file of CRONJOB_TEMPLATES) {
     const content = fs.readFileSync(path.join(TEMPLATES_DIR, file), 'utf-8');
-    assert.match(
-      content,
-      /seccompProfile:\s*\r?\n\s*type:\s*RuntimeDefault/,
-      `${file} debe declarar seccompProfile RuntimeDefault`,
+    const matches = [...content.matchAll(/seccompProfile:\s*\r?\n\s*type:\s*RuntimeDefault/g)];
+    assert.equal(
+      matches.length,
+      2,
+      `${file} debe declarar exactamente 2 seccompProfile RuntimeDefault (uno en el Pod spec y otro en el contenedor spec); encontradas: ${matches.length}`,
     );
   }
 });
