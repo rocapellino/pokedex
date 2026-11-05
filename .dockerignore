@@ -31,6 +31,14 @@ pnpm-debug.log*
 *.crt
 secrets/
 *.secrets
+*.enc
+
+# ==============================================================================
+# Backups y volcados de base de datos
+# ==============================================================================
+backups/
+*.sql*
+*_data/
 
 # ==============================================================================
 # Documentación y archivos de diseño (No requeridos en runtime)
@@ -46,6 +54,9 @@ infra/
 gitops/
 tests/
 scripts/
+.agents/
+.mcp/
+.tools/
 Taskfile.yaml
 .task/
 .pre-commit-config.yaml

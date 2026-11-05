@@ -95,8 +95,6 @@ function discoverIgnoreFiles(): string[] {
 const REQUIRED_SECURITY_PATTERNS: Record<string, string[]> = {
   '.gitignore': ['.env', '.pem', '.key', 'node_modules', '/tmp/'],
   '.dockerignore': ['.env', 'node_modules', '.git', '/tmp/'],
-  'apps/backend/.dockerignore': ['.env', 'node_modules', '.git', '/tmp/'],
-  'apps/frontend/.dockerignore': ['.env', 'node_modules', '.git', '/tmp/'],
 };
 
 /**

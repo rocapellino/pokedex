@@ -498,13 +498,13 @@ jobs:
           echo "✅ SBOM CycloneDX validado como artefacto obligatorio y conforme."
 
   # =======================================================
-  # 4. PUBLISH (Solo en rama main tras pasar Trivy)
+  # 4. PUBLISH (Solo en rama main tras pasar Trivy, SonarCloud y Quality Gates)
   # =======================================================
   publish:
     name: "📦 Publicar Imagen y Helm Chart a GHCR"
-    # code-quality y semgrep se declaran aquí porque build-docker ya no los espera: en push a
-    # main ambos corren siempre, y si alguno falla no se publica ni firma nada.
-    needs: [code-quality, semgrep, build-docker, trivy-scan]
+    # AUD-CI-PUBDAG-001: sonarcloud ejecuta la suite de pruebas unitarias/integración con PostgreSQL
+    # y Redis. code-quality, sonarcloud y semgrep deben culminar con éxito antes de publicar o firmar.
+    needs: [code-quality, sonarcloud, semgrep, build-docker, trivy-scan]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 20

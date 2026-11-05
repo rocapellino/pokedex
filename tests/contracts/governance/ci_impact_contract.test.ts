@@ -134,3 +134,31 @@ test('🎯 Tabla de impacto: cada `ci.yaml (<job>)` citado en la columna Pipelin
     }
   }
 });
+
+test('🎯 AUD-CI-IMPACT-001: .agents/**/*.ts, .agents/evals/** e IaC activan tests: true', () => {
+  const probeAgents = analyzeChangeImpact({
+    files: ['.agents/skills/repo-tool-exec/scripts/tool-exec.ts', '.agents/evals/mcp.test.ts'],
+    configPath: CONFIG_PATH,
+  });
+  assert.equal(probeAgents.triggers.tests, true, '.agents/**/*.ts debe activar tests: true');
+  assert.equal(probeAgents.triggers.linting, true, '.agents/**/*.ts debe activar linting: true');
+  assert.equal(probeAgents.triggers.security_sast, true, '.agents/**/*.ts debe activar security_sast: true');
+
+  const probeHelm = analyzeChangeImpact({
+    files: ['infra/helm/pokedex/templates/_helpers.tpl'],
+    configPath: CONFIG_PATH,
+  });
+  assert.equal(probeHelm.triggers.tests, true, 'infra/helm debe activar tests: true');
+
+  const probeTofu = analyzeChangeImpact({
+    files: ['infra/opentofu/main.tf'],
+    configPath: CONFIG_PATH,
+  });
+  assert.equal(probeTofu.triggers.tests, true, 'infra/opentofu debe activar tests: true');
+
+  const probeAnsible = analyzeChangeImpact({
+    files: ['infra/ansible/playbooks/site.yaml'],
+    configPath: CONFIG_PATH,
+  });
+  assert.equal(probeAnsible.triggers.tests, true, 'infra/ansible debe activar tests: true');
+});

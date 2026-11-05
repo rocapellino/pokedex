@@ -28,13 +28,7 @@ test('🧹 Configuration Hygiene: descubrimiento dinámico y auditoría estricta
   // Un umbral numérico fallaba al retirar exclusiones huérfanas (las .trivyignore de
   // AWS, ADR-030); se exige el núcleo que debe descubrirse siempre.
   const discovered = new Set(report.files.map((f: { file: string }) => f.file.replace(/\\/g, '/')));
-  for (const required of [
-    '.gitignore',
-    '.dockerignore',
-    'apps/backend/.dockerignore',
-    'apps/frontend/.dockerignore',
-    'infra/helm/pokedex/.helmignore',
-  ]) {
+  for (const required of ['.gitignore', '.dockerignore', 'infra/helm/pokedex/.helmignore']) {
     assert.ok(discovered.has(required), `El descubrimiento dinámico debe incluir ${required}`);
   }
 

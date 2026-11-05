@@ -2236,6 +2236,26 @@
       "description": "Valida el pin de targetRevision de ArgoCD a un tag SemVer y el pipeline de promoción sobre release-tag.yaml parseado: fases promote y tag, PR atómico desde rama bot, tag anclado al commit de promoción, concurrencia y tareas de Taskfile."
     },
     {
+      "path": "tests/gitops/cronjob_security_contract.test.ts",
+      "suite": "gitops",
+      "type": "Automated Test",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Suite gitops",
+      "targetArtifacts": [],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:gitops"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Suite de pruebas gitops: cronjob_security_contract.test.ts."
+    },
+    {
       "path": "tests/gitops/environment_http_contract.test.ts",
       "suite": "gitops",
       "type": "Contract / GitOps",

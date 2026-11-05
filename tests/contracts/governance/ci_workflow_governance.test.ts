@@ -680,3 +680,19 @@ test('🐛 AUD-CI-PIPE-001: ningún script run: encadena un productor con `grep 
       offenders.join('\n'),
   );
 });
+
+// ==============================================================================
+// AUD-CI-PUBDAG-001: El job publish debe esperar a la suite de tests (sonarcloud)
+// ==============================================================================
+
+test('🔒 AUD-CI-PUBDAG-001: publish espera a sonarcloud (tests con BD/Redis), semgrep y calidad', () => {
+  const ci = workflow('ci.yaml');
+  const publishJob = ci.jobs.publish;
+  assert.ok(publishJob, 'ci.yaml debe definir el job publish');
+
+  const needs: string[] = Array.isArray(publishJob.needs) ? publishJob.needs : [publishJob.needs];
+  assert.ok(needs.includes('sonarcloud'), 'publish debe depender de sonarcloud para no publicar artefactos sin tests');
+  assert.ok(needs.includes('code-quality'), 'publish debe depender de code-quality');
+  assert.ok(needs.includes('semgrep'), 'publish debe depender de semgrep');
+  assert.ok(needs.includes('trivy-scan'), 'publish debe depender de trivy-scan');
+});

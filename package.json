@@ -113,7 +113,6 @@
     "zod": "^4.6.7",
     "qs": "^6.17.1",
     "uuid": "^14.0.0",
-    "tmp": "^0.2.7",
     "cookie": "^2.0.1",
     "esbuild": "^0.28.2",
     "@puppeteer/browsers": "^3.0.0",
@@ -123,9 +122,17 @@
     "markdownlint-cli": {
       "js-yaml": "^5.4.3",
       "katex": "^0.19.1",
-      "smol-toml": "^1.9.0"
+      "smol-toml": "^1.9.0",
+      "minimatch": "^11.0.1"
+    },
+    "@sentry/bundler-plugins": {
+      "minimatch": "^11.0.1",
+      "glob": "^14.0.2"
     },
     "@lhci/utils": {
+      "js-yaml": "^5.4.3"
+    },
+    "cosmiconfig": {
       "js-yaml": "^5.4.3"
     }
   },
