@@ -2,7 +2,7 @@ import express, { type Request, type Response, type NextFunction } from 'express
 import cors from 'cors';
 import path from 'node:path';
 import fs from 'node:fs';
-import { initStorage, getStorageHealth, closeStorage } from './src/services/db.js';
+import { initStorage, getStorageHealth, closeStorage, DatabaseUnavailableError } from './src/services/db.js';
 import { checkRequiredEnvVars } from './src/config/startup-env-check.js';
 import { logger } from './src/utils/logger.js';
 import { errorMessage } from './src/utils/errors.js';
@@ -46,8 +46,8 @@ const PUBLIC_DIR =
 // Security: Server Hardening & Security Headers
 // ---------------------------------------------------------------------------
 app.disable('x-powered-by');
-// Confianza explícita únicamente en proxies de infraestructura local (loopback / linklocal / RFC1918)
-app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
+// Confianza explícita únicamente en proxies de infraestructura local (loopback / linklocal / RFC1918 / subredes K3s y Compose)
+app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal', '172.28.0.0/16', '10.42.0.0/16']);
 
 app.use(requestTracer);
 
@@ -198,6 +198,17 @@ app.get('/{*splat}', (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   const traceId = req.traceId || (req.headers['x-request-id'] as string) || undefined;
+  if (err instanceof DatabaseUnavailableError) {
+    logger.error('Base de datos no disponible (Fail-Closed)', { path: req.path, traceId });
+    if (res.headersSent) {
+      return;
+    }
+    return res.status(503).json({
+      error: 'Servicio temporalmente no disponible: la base de datos relacional no responde (Fail-Closed).',
+      code: 'DATABASE_UNAVAILABLE',
+      requestId: traceId,
+    });
+  }
   if (err instanceof CorsOriginRejectedError) {
     logger.warn('Petición rechazada por la política CORS', { origin: req.headers.origin, path: req.path, traceId });
     if (res.headersSent) {

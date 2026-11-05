@@ -48,16 +48,18 @@ test('🛡️ Seguridad: validateImageUrl rechaza URLs inseguras o pseudo-protoc
   );
   assert.equal(validateImageUrl('/static/pokemon.png'), true);
 
-  // localhost en desarrollo/test (HTTP permitido para tooling local)
+  // localhost en desarrollo/test (HTTP y HTTPS permitidos para tooling local)
   assert.equal(validateImageUrl('http://localhost:3000/images/pokemon.png'), true);
   assert.equal(validateImageUrl('http://127.0.0.1:3000/images/pokemon.png'), true);
+  assert.equal(validateImageUrl('https://localhost:3000/images/pokemon.png'), true);
 
-  // localhost en producción (exige HTTPS o rutas locales relativas, rechazando HTTP inseguro)
+  // localhost en producción: rechazo estricto (Anti-SSRF fail-closed)
   const prevEnv = process.env.NODE_ENV;
   try {
     process.env.NODE_ENV = 'production';
     assert.equal(validateImageUrl('http://localhost:3000/images/pokemon.png'), false);
-    assert.equal(validateImageUrl('https://localhost:3000/images/pokemon.png'), true);
+    assert.equal(validateImageUrl('https://localhost:3000/images/pokemon.png'), false);
+    assert.equal(validateImageUrl('https://127.0.0.1:3000/images/pokemon.png'), false);
   } finally {
     process.env.NODE_ENV = prevEnv;
   }
@@ -70,13 +72,19 @@ test('🛡️ Seguridad: validateImageUrl rechaza IPs privadas RFC 1918, IMDS e 
   assert.equal(validateImageUrl('https://172.31.255.255/malicious.png'), false);
   assert.equal(validateImageUrl('https://192.168.1.1/malicious.png'), false);
 
-  // Cloud Metadata IMDS
+  // Cloud Metadata IMDS y normalización FQDN con punto
   assert.equal(validateImageUrl('https://169.254.169.254/latest/meta-data'), false);
+  assert.equal(validateImageUrl('https://169.254.169.254./latest/meta-data'), false);
   assert.equal(validateImageUrl('https://metadata.google.internal/computeMetadata/v1/'), false);
+  assert.equal(validateImageUrl('https://metadata.google.internal./computeMetadata/v1/'), false);
 
-  // Loopback / Non-routable
+  // Loopback / Non-routable / IPv6 hex / NAT64
   assert.equal(validateImageUrl('https://0.0.0.0/test.png'), false);
   assert.equal(validateImageUrl('https://[::1]/test.png'), false);
+  assert.equal(validateImageUrl('https://[::ffff:7f00:1]/test.png'), false);
+  assert.equal(validateImageUrl('https://[::ffff:a9fe:a9fe]/test.png'), false);
+  assert.equal(validateImageUrl('https://[64:ff9b::127.0.0.1]/test.png'), false);
+  assert.equal(validateImageUrl('https://[64:ff9b::a9fe:a9fe]/test.png'), false);
 });
 
 test('🛡️ Seguridad: validatePokemonPayload rechaza valores numéricos corruptos con sufijos de texto', () => {

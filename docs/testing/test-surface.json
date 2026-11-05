@@ -3768,6 +3768,31 @@
       "description": "Verifica errorMessage (backend y frontend) y errorStatus, que extrae el código HTTP solo si el error lo expone como número."
     },
     {
+      "path": "tests/unit/failclosed_storage_contract.test.ts",
+      "suite": "unit",
+      "type": "Unit / Security",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Storage / Persistencia Fail-Closed & Redis",
+      "targetArtifacts": [
+        "apps/backend/src/services/postgres.ts",
+        "apps/backend/src/services/cache.ts",
+        "apps/backend/src/services/pokemon.repository.ts",
+        "apps/backend/src/db/connection-url.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Valida la arquitectura fail-closed de almacenamiento y rate limiting: reconocimiento de POSTGRES_* y REDIS_HOST, denegación 503 ante caída de BD en producción, prevención de envenenamiento de caché y validación TLS estricta por defecto."
+    },
+    {
       "path": "tests/unit/hcl_parser.test.ts",
       "suite": "unit",
       "type": "Unit",

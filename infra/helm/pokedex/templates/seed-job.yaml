@@ -55,6 +55,8 @@ spec:
             capabilities:
               drop:
                 - ALL
+            seccompProfile:
+              type: RuntimeDefault
           command: ["node", "dist/seed.js"]
           envFrom:
             - configMapRef:
@@ -62,6 +64,10 @@ spec:
             - secretRef:
                 name: {{ include "pokedex.secretName" . }}
           env:
+            - name: POSTGRES_HOST
+              value: "postgres-service"
+            - name: POSTGRES_PORT
+              value: {{ .Values.postgresql.port | quote }}
             - name: SEED_DATASET
               value: {{ .Values.seedJob.dataset | default "sample" | quote }}
             - name: FORCE_SEED

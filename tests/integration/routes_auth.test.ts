@@ -134,7 +134,16 @@ test('🚪 POST /auth/logout: limpia la cookie y revoca el token, que deja de se
   const { cookie } = await login();
   assert.equal((await call('/api/v1/auth/session', { headers: { cookie } })).body.authenticated, true);
 
-  const out = await call('/api/v1/auth/logout', { method: 'POST', headers: { cookie } });
+  // Intento de logout por cookie sin Origin ni Referer debe ser rechazado por CSRF (AUD-SEC-AUTHCSRF-001)
+  const csrfBlocked = await call('/api/v1/auth/logout', { method: 'POST', headers: { cookie } });
+  assert.equal(csrfBlocked.status, 403);
+  assert.match(csrfBlocked.body.detail, /CSRF/);
+
+  // Logout legítimo con cabecera Origin autorizada
+  const out = await call('/api/v1/auth/logout', {
+    method: 'POST',
+    headers: { cookie, origin: 'http://localhost:3000' },
+  });
   assert.equal(out.status, 200);
   assert.match(out.body.detail, /revocado/);
   assert.match(out.headers.get('set-cookie') ?? '', /pokedex_admin_session=;.*Max-Age=0/);
@@ -152,7 +161,10 @@ test('🚪 POST /auth/logout: sin token responde 200 de forma idempotente', asyn
 test('🚪 POST /auth/logout: un token con firma apócrifa responde 400', async () => {
   const forged = await call('/api/v1/auth/logout', {
     method: 'POST',
-    headers: { cookie: 'pokedex_admin_session=eyJyb2xlIjoiYWRtaW4ifQ.firmafalsa' },
+    headers: {
+      cookie: 'pokedex_admin_session=eyJyb2xlIjoiYWRtaW4ifQ.firmafalsa',
+      origin: 'http://localhost:3000',
+    },
   });
   assert.equal(forged.status, 400);
   assert.match(forged.body.detail, /inválido|apócrifa/);

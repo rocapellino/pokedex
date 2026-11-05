@@ -306,6 +306,26 @@ export const PokemonPayloadSchema = z.record(z.string(), z.unknown()).superRefin
       claves.add(clave);
     }
   }
+
+  // 12. Hábitat a nivel raíz (AUD-SEC-INPUT-001)
+  if (body.habitat !== undefined && body.habitat !== null) {
+    if (typeof body.habitat !== 'string') {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'El hábitat debe ser un texto de máximo 50 caracteres' });
+      return;
+    }
+    const hab = body.habitat.trim();
+    if (hab.length > 50) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'El hábitat no puede exceder los 50 caracteres' });
+      return;
+    }
+    if (SCRIPT_PATTERN.test(hab)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'El campo hábitat contiene código HTML o scripts no permitidos (prevención XSS)',
+      });
+      return;
+    }
+  }
 });
 
 export type PokemonPayload = z.infer<typeof PokemonPayloadSchema>;

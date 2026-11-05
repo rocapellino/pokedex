@@ -84,7 +84,7 @@ export function extractSessionTokenFromRequest(req: Request): string {
 export function buildSessionCookie(token: string, expiresInSeconds: number): string {
   const value = encodeURIComponent(token.trim());
   const secure = process.env.NODE_ENV === 'production' || process.env.SECURE_COOKIES === 'true';
-  const maxAgeSeconds = Math.max(1, Math.floor(expiresInSeconds));
+  const maxAgeSeconds = Math.max(0, Math.floor(expiresInSeconds));
   const parts = [`pokedex_admin_session=${value}`, 'Path=/', `Max-Age=${maxAgeSeconds}`, 'HttpOnly', 'SameSite=Lax'];
 
   if (secure) {
@@ -92,6 +92,10 @@ export function buildSessionCookie(token: string, expiresInSeconds: number): str
   }
 
   return parts.join('; ');
+}
+
+export function buildLogoutCookie(): string {
+  return buildSessionCookie('', 0);
 }
 
 /**
@@ -109,8 +113,8 @@ function extractApiKey(req: Request): string {
   return '';
 }
 
-function validateSessionCsrf(req: Request): { status: number; detail: string } | null {
-  // Mitigación CSRF para mutaciones respaldadas por cookie de sesión (AUD-SEC-CSRF-001).
+export function validateSessionCsrf(req: Request): { status: number; detail: string } | null {
+  // Mitigación CSRF para mutaciones respaldadas por cookie de sesión (AUD-SEC-CSRF-001 / AUD-SEC-AUTHCSRF-001).
   // El token proviene de la cookie solo si no hay Bearer (extractSessionTokenFromRequest
   // prioriza la cabecera Authorization, que un sitio ajeno no puede fijar).
   const isMutative = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method);
@@ -135,7 +139,9 @@ function validateSessionCsrf(req: Request): { status: number; detail: string } |
   try {
     const originUrl = new URL(originHeader);
     const originHost = originUrl.origin;
-    const allowed = getConfiguredCorsOrigins() || DEFAULT_DEV_CORS_ORIGINS;
+    const isProduction = process.env.NODE_ENV === 'production';
+    // En producción nunca caer en DEFAULT_DEV_CORS_ORIGINS si CORS_ORIGINS no está configurado (AUD-SEC-AUTHCSRF-001)
+    const allowed = getConfiguredCorsOrigins() || (isProduction ? [] : DEFAULT_DEV_CORS_ORIGINS);
     // Igualdad exacta de host[:puerto]: una comparación por subcadena aceptaba
     // orígenes como `https://<host>.evil.test`.
     const isSameHost = Boolean(req.headers.host) && originUrl.host === req.headers.host;

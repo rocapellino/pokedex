@@ -144,6 +144,9 @@ networks:
     name: pokedex-frontend-net
     driver: bridge
     internal: false  # Permite al contenedor web publicar el puerto hacia el host
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
   backend-net:
     name: pokedex-backend-net
     driver: bridge

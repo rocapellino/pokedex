@@ -5,20 +5,28 @@ import { Redis } from 'ioredis';
 import { logger } from '../utils/logger.js';
 import { errorMessage } from '../utils/errors.js';
 
-const REDIS_URL =
-  process.env.REDIS_URL ||
-  (process.env.REDIS_HOST
-    ? `redis://${process.env.REDIS_PASSWORD ? `:${encodeURIComponent(process.env.REDIS_PASSWORD)}@` : ''}${process.env.REDIS_HOST}:${process.env.REDIS_PORT || 6379}`
-    : undefined);
+export function getRedisUrl(): string | undefined {
+  return (
+    process.env.REDIS_URL ||
+    (process.env.REDIS_HOST
+      ? `redis://${process.env.REDIS_PASSWORD ? `:${encodeURIComponent(process.env.REDIS_PASSWORD)}@` : ''}${process.env.REDIS_HOST}:${process.env.REDIS_PORT || 6379}`
+      : undefined)
+  );
+}
+
+export function isRedisConfigured(): boolean {
+  return Boolean(getRedisUrl());
+}
 
 let redisClient: Redis | null = null;
 let isRedisConnected = false;
 
 export async function connectRedis(): Promise<boolean> {
-  if (!REDIS_URL) return false;
+  const redisUrl = getRedisUrl();
+  if (!redisUrl) return false;
   try {
     if (!redisClient) {
-      redisClient = new Redis(REDIS_URL, {
+      redisClient = new Redis(redisUrl, {
         maxRetriesPerRequest: 1,
         lazyConnect: true,
         connectTimeout: 2000,

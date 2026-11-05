@@ -2,8 +2,8 @@
 // Fachada Unificada de Almacenamiento & Persistencia (PostgreSQL, Redis & Memoria)
 // Arquitectura Modular Desacoplada (IMP-ARC-001)
 // ==============================================================================
-import { connectPg, closePg, isPgConnectedStatus, getLastKnownPgCount } from './postgres.js';
-import { connectRedis, closeRedis, isCacheConnected } from './cache.js';
+import { connectPg, closePg, isPgConnectedStatus, getLastKnownPgCount, getDatabaseUrl } from './postgres.js';
+import { connectRedis, closeRedis, isCacheConnected, isRedisConfigured } from './cache.js';
 import { getMemoryMapSize } from './pokemon.repository.js';
 
 let heartbeatTimer: NodeJS.Timeout | null = null;
@@ -15,10 +15,10 @@ let heartbeatTimer: NodeJS.Timeout | null = null;
 export function startStorageHeartbeat(intervalMs = 5000): void {
   if (heartbeatTimer) return;
   heartbeatTimer = setInterval(async () => {
-    if (process.env.DATABASE_URL && !isPgConnectedStatus()) {
+    if (getDatabaseUrl() && !isPgConnectedStatus()) {
       await connectPg();
     }
-    if (process.env.REDIS_URL || (process.env.REDIS_HOST && !isCacheConnected())) {
+    if (isRedisConfigured() && !isCacheConnected()) {
       await connectRedis();
     }
   }, intervalMs);
@@ -35,8 +35,8 @@ export function stopStorageHeartbeat(): void {
   }
 }
 
-export async function initStorage(): Promise<void> {
-  await Promise.all([connectPg(), connectRedis()]);
+export async function initStorage(options?: { directPg?: boolean }): Promise<void> {
+  await Promise.all([connectPg({ direct: options?.directPg }), connectRedis()]);
   startStorageHeartbeat();
 }
 
@@ -84,6 +84,7 @@ export function getStorageHealth(): {
 export { getDrizzleDb, getPostgresVersion, syncPokedexIdSequence } from './postgres.js';
 
 export {
+  DatabaseUnavailableError,
   getAllPokemons,
   getPokemonById,
   savePokemon,
