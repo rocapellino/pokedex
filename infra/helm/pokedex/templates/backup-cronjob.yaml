@@ -45,6 +45,8 @@ spec:
             runAsUser: 70
             runAsGroup: 70
             fsGroup: 70
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: db-backup
               image: "{{ .Values.backup.image.repository }}{{ if .Values.backup.image.digest }}{{ if .Values.backup.image.tag }}:{{ .Values.backup.image.tag }}{{ end }}@{{ .Values.backup.image.digest }}{{ else }}:{{ .Values.backup.image.tag }}{{ end }}"
@@ -52,6 +54,8 @@ spec:
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
+                seccompProfile:
+                  type: RuntimeDefault
                 capabilities:
                   drop:
                     - ALL

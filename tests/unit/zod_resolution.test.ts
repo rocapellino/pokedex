@@ -2,9 +2,11 @@
  * ==============================================================================
  * Resolución de zod en el monorepo (AUD-DEP-ZOD-001)
  * ==============================================================================
- * La raíz hoistea zod 3 (lo arrastra `lighthouse` vía `chromium-bidi`) y el backend usa zod 4 anidado
- * en `apps/backend/node_modules`. Mientras solo el backend importe zod, la resolución es correcta; si
- * otro paquete lo importara, resolvería zod 3 sin avisar y los esquemas se comportarían distinto.
+ * El monorepo fija zod 4 en package.json mediante overrides y el backend usa zod 4
+ * en apps/backend/node_modules. Mientras solo el backend importe zod, la resolución es
+ * limpia y los contratos en @pokedex/contracts permanecen agnósticos y desacoplados.
+ * Si otro paquete importara zod fuera del backend, violaría el principio de diseño de
+ * contratos puros de TypeScript.
  * ==============================================================================
  */
 
@@ -55,6 +57,6 @@ test('📦 AUD-DEP-ZOD-001: solo el backend importa zod; fuera de él resolverí
   assert.deepEqual(
     outsiders,
     [],
-    'Estos archivos importan zod fuera del backend y resolverían la copia de la raíz (zod 3): declarar zod en su workspace',
+    'Estos archivos importan zod fuera del backend; los esquemas compartidos deben residir en @pokedex/contracts como tipos puros de TypeScript (AUD-DEP-ZOD-001)',
   );
 });

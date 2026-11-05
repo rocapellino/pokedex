@@ -42,6 +42,17 @@ export const PLATFORM_FILE_METADATA: Record<string, FileMetadata> = {
     description:
       'Fixture de Playwright que identifica a cada proyecto con una IP de documentación distinta (X-Forwarded-For) para no agotar el límite de 300 peticiones por minuto del backend.',
   },
+  'tests/gitops/cronjob_security_contract.test.ts': {
+    type: 'Contract / GitOps',
+    targetDomain: 'GitOps / Hardening de CronJobs (AUD-INF-CRONSEC-001)',
+    targetArtifacts: [
+      'infra/helm/pokedex/templates/backup-cronjob.yaml',
+      'infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml',
+      'infra/helm/pokedex/templates/backup-restore-verify-cronjob.yaml',
+    ],
+    description:
+      'Comprueba que los CronJobs configuren seccompProfile RuntimeDefault tanto en pod como en contenedor y utilicen el helper canónico pokedex.secretName (AUD-INF-CRONSEC-001).',
+  },
   'tests/gitops/environment_http_contract.test.ts': {
     type: 'Contract / GitOps',
     targetDomain: 'GitOps / Contrato HTTP por Entorno',

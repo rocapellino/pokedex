@@ -68,14 +68,19 @@ rules:
     paths:
       - ".agents/aas/**"
       - ".agents/skills/*/SKILL.md"
+      - ".agents/**/*.ts"
+      - ".agents/evals/**"
+      - ".agents/hooks.json"
       - "scripts/aas-governance.ts"
       - "tests/contracts/governance/aas_governance.test.ts"
     triggers:
       agent_governance: true
+      tests: true
       linting: true
       documentation: true
       security:
         secrets: true
+        sast: true
 
   mcp_governance:
     description: "Arquitectura, catálogo, políticas, adaptadores y pruebas de gobernanza MCP"
@@ -101,7 +106,7 @@ rules:
       - "SECURITY.md"
       - "AGENTS.md"
       - "docs/**"
-      - ".agents/**"
+      - ".agents/**/*.md"
       - ".markdownlint.json"
       - ".markdownlintignore"
       - "LICENSE"
@@ -184,6 +189,7 @@ rules:
     triggers:
       helm: true
       kubernetes: true
+      tests: true
       security:
         secrets: true
         iac: true
@@ -198,6 +204,7 @@ rules:
       - "taskfiles/**.yaml"
     triggers:
       opentofu: true
+      tests: true
       security:
         secrets: true
         iac: true
@@ -211,6 +218,7 @@ rules:
       - "taskfiles/**.yaml"
     triggers:
       ansible: true
+      tests: true
       security:
         secrets: true
         iac: true

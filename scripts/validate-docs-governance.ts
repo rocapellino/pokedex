@@ -144,7 +144,11 @@ export function validateDocsGovernance(rootDir: string = process.cwd()): Governa
         message: 'Contiene enlaces absolutos con esquema local "file:///" prohibidos por portabilidad.',
       });
     }
-    // Regla: Detección de enlaces relativos rotos
+    // Regla: Detección de enlaces relativos rotos (excluye snapshots históricos inmutables en docs/audits/ conforme a AGENTS.md §1 y documentation-governance.md §3)
+    if (relFile.startsWith('docs/audits/')) {
+      continue;
+    }
+
     const linkTargets = extractMarkdownLinkTargets(content);
     for (const rawTarget of linkTargets) {
       if (

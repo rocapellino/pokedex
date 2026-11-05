@@ -2236,6 +2236,30 @@
       "description": "Valida el pin de targetRevision de ArgoCD a un tag SemVer y el pipeline de promoción sobre release-tag.yaml parseado: fases promote y tag, PR atómico desde rama bot, tag anclado al commit de promoción, concurrencia y tareas de Taskfile."
     },
     {
+      "path": "tests/gitops/cronjob_security_contract.test.ts",
+      "suite": "gitops",
+      "type": "Contract / GitOps",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "GitOps / Hardening de CronJobs (AUD-INF-CRONSEC-001)",
+      "targetArtifacts": [
+        "infra/helm/pokedex/templates/backup-cronjob.yaml",
+        "infra/helm/pokedex/templates/backup-gdrive-cronjob.yaml",
+        "infra/helm/pokedex/templates/backup-restore-verify-cronjob.yaml"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:gitops"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Comprueba que los CronJobs configuren seccompProfile RuntimeDefault tanto en pod como en contenedor y utilicen el helper canónico pokedex.secretName (AUD-INF-CRONSEC-001)."
+    },
+    {
       "path": "tests/gitops/environment_http_contract.test.ts",
       "suite": "gitops",
       "type": "Contract / GitOps",
