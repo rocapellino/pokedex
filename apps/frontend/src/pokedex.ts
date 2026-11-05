@@ -6,24 +6,13 @@
 import {
   countAdvancedFilters,
   currentFilterState,
-  getAbility,
-  getAbilityIndex,
   getAllPokemons,
-  getClassification,
   getCurrentPage,
   getCurrentSort,
   getCurrentSortDir,
   getFilteredPokemons,
-  getMinStat,
-  getSelectedTypes,
-  hasActiveFiltersState,
   ITEMS_PER_PAGE,
-  resetFilterState,
-  SEARCH_DEBOUNCE_MS,
-  setAbility,
-  setAbilityIndex,
   setAllPokemons,
-  setClassification,
   setCurrentGeneration,
   setCurrentPage,
   setCurrentSort,
@@ -33,35 +22,37 @@ import {
   setOnlyWithMega,
   setSearchQuery,
   setSelectedTypes,
+  setClassification,
+  setAbility,
+  getAbilityIndex,
 } from './components/catalog-state.js';
 import {
-  initFiltersControls,
-  renderFiltersCount,
-  setFiltersPanelOpen,
-  syncTypeDropdown,
-} from './components/filters-panel.js';
+  cancelDebounceTimers,
+  registerApplyFilters,
+  renderAbilityOptions,
+  renderActiveFilters,
+  renderSortDirection,
+  syncAbilityControl,
+  syncClassControl,
+  syncSortControl,
+  syncStatControls,
+  syncTypeControl,
+} from './components/catalog-controls.js';
+import { setFiltersPanelOpen } from './components/filters-panel.js';
+import { initInteractiveListeners as setupListeners } from './components/catalog-listeners.js';
 import {
   closeDetailModal,
   openDetailModal as openDetailModalComponent,
-  renderActiveFilterChips,
   renderPokemonCard,
-  selectMegaTab,
-  toggleMegaDisclosure,
 } from './components/index.js';
-import {
-  collectAbilities,
-  isClassificationFilter,
-  matchesCatalogFilters,
-  type CatalogFilters,
-} from './shared/catalog-filters.js';
-import { defaultSortDirection, isSortKey, isStatKey, MAX_STAT_MIN, sortPokemons } from './shared/catalog-sort.js';
+import { matchesCatalogFilters, type CatalogFilters } from './shared/catalog-filters.js';
+import { sortPokemons } from './shared/catalog-sort.js';
 import { commitFiltersToUrl, urlMatchesFilters, type HistoryMode } from './shared/filter-history.js';
 import { parseFilterParams } from './shared/filter-url.js';
 import {
   errorMessage,
   FALLBACK_IMAGE,
   fetchAllPokemons,
-  focusFirstEnabledControl,
   formatPokemonId,
   getGeneration,
   getTypeColor,
@@ -75,13 +66,9 @@ import {
   showToast,
   TYPE_COLORS,
 } from './shared/index.js';
-import { autoHideStickyHeader } from './shared/sticky-autohide.js';
-import { trackStickyHeight } from './shared/sticky-header.js';
 
+export * from './components/catalog-controls.js';
 export { showToast, getTypeColor, getGeneration, normalizeStr, TYPE_COLORS, formatPokemonId, closeDetailModal };
-
-let searchTimer: ReturnType<typeof setTimeout> | undefined;
-let statTimer: ReturnType<typeof setTimeout> | undefined;
 
 export function openDetailModal(id: number): void {
   openDetailModalComponent(id, getAllPokemons());
@@ -135,6 +122,9 @@ export function applyFilters(history: HistoryMode = 'push', page = 1): void {
   commitFiltersToUrl(currentFilterState(), history);
 }
 
+// Registrar callback para que los controles invoquen applyFilters de forma desacoplada
+registerApplyFilters(applyFilters);
+
 /**
  * Aplica al estado y a los controles los filtros que vienen en la URL (enlace compartido o recarga).
  */
@@ -163,186 +153,6 @@ export function restoreFiltersFromUrl(): number {
   syncTypeControl();
   if (countAdvancedFilters() > 0) setFiltersPanelOpen(true);
   return state.page;
-}
-
-function renderAdvancedFiltersCount(): void {
-  renderFiltersCount(countAdvancedFilters());
-}
-
-/** Rellena el autocompletado con las habilidades del catálogo y reconstruye el índice de nombres. */
-function renderAbilityOptions(): void {
-  const names = collectAbilities(getAllPokemons());
-  setAbilityIndex(new Map(names.map((name) => [normalizeStr(name), name])));
-  const list = document.getElementById('abilityOptions');
-  if (!list) return;
-  list.replaceChildren(
-    ...names.map((name) => {
-      const option = document.createElement('option');
-      option.value = name;
-      return option;
-    }),
-  );
-}
-
-function syncAbilityControl(): void {
-  const input = document.getElementById('abilityFilter') as HTMLInputElement | null;
-  if (!input) return;
-  input.value = getAbility() ?? '';
-  input.removeAttribute('aria-invalid');
-}
-
-export function handleAbilityChange(): void {
-  const input = document.getElementById('abilityFilter') as HTMLInputElement | null;
-  const typed = input?.value.trim() ?? '';
-  const match = getAbilityIndex().get(normalizeStr(typed)) ?? null;
-  const changed = match !== getAbility();
-  setAbility(match);
-  if (input) {
-    if (match && input.value !== match) input.value = match;
-    if (typed && !match) input.setAttribute('aria-invalid', 'true');
-    else input.removeAttribute('aria-invalid');
-  }
-  if (changed) applyFilters();
-}
-
-function syncClassControl(): void {
-  const select = document.getElementById('classFilter') as HTMLSelectElement | null;
-  if (select) select.value = getClassification() ?? '';
-}
-
-export function handleClassFilterChange(): void {
-  const select = document.getElementById('classFilter') as HTMLSelectElement | null;
-  setClassification(isClassificationFilter(select?.value) ? select.value : null);
-  applyFilters();
-}
-
-function syncStatControls(): void {
-  const stat = getMinStat();
-  const key = document.getElementById('statFilter') as HTMLSelectElement | null;
-  if (key) key.value = stat?.key ?? '';
-  const min = document.getElementById('statMin') as HTMLInputElement | null;
-  if (min) min.value = stat ? String(stat.min) : '';
-}
-
-export function handleSortChange(): void {
-  const select = document.getElementById('sortFilter') as HTMLSelectElement | null;
-  const newSort = isSortKey(select?.value) ? select.value : 'id';
-  setCurrentSort(newSort);
-  setCurrentSortDir(defaultSortDirection(newSort));
-  applyFilters();
-}
-
-export function handleSortDirectionToggle(): void {
-  setCurrentSortDir(getCurrentSortDir() === 'asc' ? 'desc' : 'asc');
-  applyFilters();
-}
-
-function syncSortControl(): void {
-  const select = document.getElementById('sortFilter') as HTMLSelectElement | null;
-  if (select) select.value = getCurrentSort();
-}
-
-function renderSortDirection(): void {
-  const button = document.getElementById('sortDirection');
-  if (!button) return;
-  const dir = getCurrentSortDir();
-  const text = dir === 'asc' ? 'Ascendente' : 'Descendente';
-  button.textContent = `${dir === 'asc' ? '↑' : '↓'} ${text}`;
-  button.setAttribute('aria-label', `Sentido del orden: ${text.toLowerCase()}. Pulsar para invertirlo`);
-}
-
-export function handleStatFilterChange(history: HistoryMode = 'push'): void {
-  clearTimeout(statTimer);
-  const key = (document.getElementById('statFilter') as HTMLSelectElement | null)?.value;
-  const min = Number.parseInt((document.getElementById('statMin') as HTMLInputElement | null)?.value ?? '', 10);
-  setMinStat(isStatKey(key) && min >= 1 ? { key, min: Math.min(min, MAX_STAT_MIN) } : null);
-  applyFilters(history);
-}
-
-function handleStatMinDebounced(): void {
-  clearTimeout(statTimer);
-  statTimer = setTimeout(() => handleStatFilterChange('replace'), SEARCH_DEBOUNCE_MS);
-}
-
-export function handleSearch(history: HistoryMode = 'push'): void {
-  clearTimeout(searchTimer);
-  const input = document.getElementById('searchInput') as HTMLInputElement | null;
-  setSearchQuery(input ? input.value : '');
-  applyFilters(history);
-}
-
-function handleSearchDebounced(): void {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => handleSearch('replace'), SEARCH_DEBOUNCE_MS);
-}
-
-function syncTypeControl(): void {
-  syncTypeDropdown(getSelectedTypes());
-}
-
-export function toggleTypeFilter(type: string): void {
-  let selected = getSelectedTypes();
-  if (type === 'all') {
-    selected = [];
-  } else {
-    const target = normalizeStr(type);
-    const exists = selected.some((t) => normalizeStr(t) === target);
-    selected = exists ? selected.filter((t) => normalizeStr(t) !== target) : [...selected, type];
-  }
-  setSelectedTypes(selected);
-  syncTypeControl();
-  applyFilters();
-}
-
-export function hasActiveFilters(): boolean {
-  return hasActiveFiltersState();
-}
-
-export function clearAllFilters(): void {
-  clearTimeout(searchTimer);
-  clearTimeout(statTimer);
-  resetFilterState();
-
-  const input = document.getElementById('searchInput') as HTMLInputElement | null;
-  if (input) input.value = '';
-  const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
-  if (select) select.value = 'all';
-  const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
-  if (checkbox) checkbox.checked = false;
-  syncStatControls();
-  syncClassControl();
-  syncAbilityControl();
-
-  syncTypeControl();
-  applyFilters();
-}
-
-export function renderActiveFilters(): void {
-  renderActiveFilterChips({
-    handleSearch,
-    toggleTypeFilter,
-    handleGenerationChange,
-    handleMegaFilterChange,
-    syncAbilityControl,
-    syncClassControl,
-    syncStatControls,
-    syncSortControl,
-    applyFilters,
-    hasActiveFilters,
-    renderAdvancedFiltersCount,
-  });
-}
-
-export function handleMegaFilterChange(): void {
-  const checkbox = document.getElementById('megaFilter') as HTMLInputElement | null;
-  setOnlyWithMega(Boolean(checkbox?.checked));
-  applyFilters();
-}
-
-export function handleGenerationChange(): void {
-  const select = document.getElementById('generationFilter') as HTMLSelectElement | null;
-  setCurrentGeneration(select ? select.value : 'all');
-  applyFilters();
 }
 
 export function renderNoResults(): SafeHtml {
@@ -431,110 +241,18 @@ window.addEventListener(
 
 function handleHistoryNavigation(): void {
   if (getAllPokemons().length === 0 || urlMatchesFilters(currentFilterState())) return;
-  clearTimeout(searchTimer);
-  clearTimeout(statTimer);
+  cancelDebounceTimers();
   applyFilters('replace', restoreFiltersFromUrl());
 }
 
 export function initInteractiveListeners(): void {
-  window.addEventListener('popstate', handleHistoryNavigation);
-  trackStickyHeight();
-  autoHideStickyHeader();
-
-  const searchInput = document.getElementById('searchInput');
-  if (searchInput) {
-    searchInput.addEventListener('input', handleSearchDebounced);
-  }
-
-  document.getElementById('btnClearFilters')?.addEventListener('click', clearAllFilters);
-
-  document.getElementById('megaFilter')?.addEventListener('change', handleMegaFilterChange);
-  document.getElementById('classFilter')?.addEventListener('change', handleClassFilterChange);
-  document.getElementById('abilityFilter')?.addEventListener('input', handleAbilityChange);
-  document.getElementById('sortFilter')?.addEventListener('change', handleSortChange);
-  document.getElementById('sortDirection')?.addEventListener('click', handleSortDirectionToggle);
-  document.getElementById('statFilter')?.addEventListener('change', () => handleStatFilterChange());
-  document.getElementById('statMin')?.addEventListener('input', handleStatMinDebounced);
-
-  const generationFilter = document.getElementById('generationFilter');
-  if (generationFilter) {
-    generationFilter.addEventListener('change', handleGenerationChange);
-  }
-
-  initFiltersControls(toggleTypeFilter);
-
-  const pokemonGrid = document.getElementById('pokemonGrid');
-  if (pokemonGrid) {
-    pokemonGrid.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement | null;
-      const retryBtn = target?.closest('#btnRetryConnection');
-      if (retryBtn) {
-        void loadPokemons();
-        return;
-      }
-      if (target?.closest('#btnClearFiltersEmpty')) {
-        clearAllFilters();
-        return;
-      }
-      const card = target?.closest('.pokemon-card');
-      if (card) {
-        const id = Number(card.getAttribute('data-pokemon-id'));
-        if (id) openDetailModal(id);
-      }
-    });
-  }
-
-  const detailModal = document.getElementById('detailModal');
-  if (detailModal) {
-    detailModal.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement | null;
-      if (target === detailModal || target?.closest('.btn-icon') || target?.closest('[data-close-modal]')) {
-        closeDetailModal();
-      }
-    });
-  }
-
-  const detailContent = document.getElementById('detailContent');
-  if (detailContent) {
-    detailContent.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement | null;
-      if (target?.closest('.mega-toggle')) {
-        toggleMegaDisclosure(detailContent);
-        return;
-      }
-      const megaTab = target?.closest('.mega-tab');
-      if (megaTab) {
-        selectMegaTab(detailContent, Number(megaTab.getAttribute('data-mega-index')));
-        return;
-      }
-      const node = target?.closest('.evolution-node-item');
-      if (node) {
-        const evolId = Number(node.getAttribute('data-evol-id'));
-        if (evolId) openDetailModal(evolId);
-      }
-    });
-  }
-
-  if (detailContent) {
-    detailContent.addEventListener('keydown', (e) => {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
-      const node = (e.target as HTMLElement | null)?.closest('.evolution-node-item[role="button"]');
-      if (!node) return;
-      e.preventDefault();
-      const evolId = Number(node.getAttribute('data-evol-id'));
-      if (evolId) openDetailModal(evolId);
-    });
-  }
-
-  document.getElementById('skipToPagination')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    focusFirstEnabledControl(document.getElementById('paginationBar'));
+  setupListeners({
+    loadPokemons,
+    openDetailModal,
+    closeDetailModal,
+    changePage,
+    handleHistoryNavigation,
   });
-
-  const btnPrev = document.getElementById('btnPrevPage');
-  if (btnPrev) btnPrev.addEventListener('click', () => changePage(-1));
-  const btnNext = document.getElementById('btnNextPage');
-  if (btnNext) btnNext.addEventListener('click', () => changePage(1));
 }
 
 // Inicialización

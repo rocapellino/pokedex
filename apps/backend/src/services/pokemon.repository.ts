@@ -1,7 +1,7 @@
 // ==============================================================================
 // Repositorio de Dominio Pokémon (Drizzle ORM con Fallback Resiliente en Memoria)
 // ==============================================================================
-import { eq, ilike, and, asc, count, sql } from 'drizzle-orm';
+import { eq, ilike, and, or, asc, count, sql } from 'drizzle-orm';
 import type { MegaEvolution, Pokemon, PokemonClassification } from '../types.js';
 import type { SampleTextAlignment, SampleTextSnapshot } from '../data/seed-catalog.js';
 import { initialPokemons } from '../data/initialPokemons.js';
@@ -66,7 +66,12 @@ export async function getAllPokemons(
     try {
       const conditions = [];
       if (type) {
-        conditions.push(ilike(pokedexEntries.tipo, type));
+        conditions.push(
+          or(
+            ilike(pokedexEntries.tipo, type),
+            sql`EXISTS (SELECT 1 FROM jsonb_array_elements_text(${pokedexEntries.data}->'tipos') elem WHERE elem ILIKE ${type})`,
+          ),
+        );
       }
       if (search) {
         conditions.push(ilike(pokedexEntries.nombre, `%${search}%`));

@@ -38,7 +38,7 @@ Adaptadores Específicos"]
 ### Separación Estricta de Responsabilidades
 
 1. **Registro Canónico ([`registry.yaml`](registry.yaml)):** Fuente única de verdad de servidores autorizados, versiones fijas y metadatos.
-2. **Políticas de Seguridad ([`policies.yaml`](policies.yaml)):** Definición de perfiles (`development`, `code-quality`, `github`, `infrastructure-readonly`, `infrastructure-write`, `ci`).
+2. **Políticas de Seguridad ([`policies.yaml`](policies.yaml)):** Definición de perfiles (`development`, `code-quality`, `github`, `infrastructure-readonly`, `infrastructure-write`, `ci`, `security-readonly`, `documentation-readonly`).
 3. **Especificación de Clientes ([`clients.yaml`](clients.yaml)):** Declaración de clientes verificados y rutas de destino.
 4. **Validación y Contratos ([`schema.json`](schema.json)):** Validación determinista y prevención de configuraciones inseguras.
 5. **Generador y Adaptadores ([`scripts/mcp/generate.ts`](../scripts/mcp/generate.ts)):** Emisión reproducible e idempotente de configuraciones locales vía adaptadores especializados (`claude.ts`, `antigravity.ts`, `cursor.ts`, `vscode.ts`, `generic.ts`).
@@ -53,7 +53,7 @@ Adaptadores Específicos"]
 | `code-quality` | Análisis estático de código y calidad en SonarQube | outbound | `read-only-repo` | No | Habilitado |
 | `github` | Repositorios, issues y PRs autorizados (`rocapellino/pokedex`) | outbound | none | No | Habilitado |
 | `infrastructure-readonly` | Consulta de métricas, telemetría y observabilidad | outbound | none | No | Habilitado |
-| `infrastructure-write` | Operaciones de escritura en K8s o cloud | none | none | Sí | **Deshabilitado** |
+| `infrastructure-write` | Operaciones de escritura en K8s o cloud | outbound | `temp-only` | Sí | **Deshabilitado** |
 | `ci` | Validación en GitHub Actions sin secretos operativos | isolated | `read-only-repo` | No | Habilitado |
 | `security-readonly` | Análisis de seguridad de dependencias, imágenes OCI e infra | outbound | `read-only-repo` | No | Habilitado |
 | `documentation-readonly` | Consulta de documentación técnica y APIs versionadas | outbound | none | No | Habilitado |

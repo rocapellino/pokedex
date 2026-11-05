@@ -164,7 +164,8 @@ export function formatSecretScanningTitle(alert: GitHubSecretScanningAlert): str
   return `[GitHub Secret #${alert.number}] Detección de ${sanitize(typeName)}`;
 }
 
-const LINEAR_API_URL = 'https://api.linear.app/graphql';
+import { fetchLinear } from './lib/linear.ts';
+
 const GITHUB_API_URL = 'https://api.github.com';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
@@ -175,29 +176,7 @@ export function isDryRun(): boolean {
 
 const TARGET_TEAM_KEY = process.env.LINEAR_TEAM_KEY || 'PEX';
 
-export async function fetchLinear<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    Authorization: process.env.LINEAR_API_KEY || '',
-  };
-
-  const response = await fetch(LINEAR_API_URL, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ query, variables }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Linear API HTTP Error ${response.status}: ${await response.text()}`);
-  }
-
-  const result = (await response.json()) as { data?: T; errors?: unknown[] };
-  if (result.errors && result.errors.length > 0) {
-    throw new Error(`Linear GraphQL Error: ${JSON.stringify(result.errors)}`);
-  }
-
-  return result.data as T;
-}
+export { fetchLinear };
 
 export async function fetchGitHub<T>(endpoint: string): Promise<T | null> {
   const url = `${GITHUB_API_URL}${endpoint}`;

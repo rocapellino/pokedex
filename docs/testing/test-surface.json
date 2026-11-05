@@ -3815,6 +3815,28 @@
       "description": "Verifica que el lector de HCL ignora comentarios sin tocar las cadenas, conserva atributos tras bloques anidados y respeta interpolaciones, listas multilínea y etiquetas."
     },
     {
+      "path": "tests/unit/linear_client.test.ts",
+      "suite": "unit",
+      "type": "Unit",
+      "role": "TEST_FILE",
+      "runner": "node:test (tsx)",
+      "status": "ACTIVE",
+      "targetDomain": "Cliente GraphQL de Linear / Automatización",
+      "targetArtifacts": [
+        "scripts/lib/linear.ts"
+      ],
+      "npmCommands": [
+        "npm test",
+        "npm run test:all",
+        "npm run test:coverage",
+        "npm run test:unit"
+      ],
+      "ciWorkflows": [
+        ".github/workflows/ci.yaml (sonarcloud)"
+      ],
+      "description": "Verifica la autenticación, manejo de errores HTTP y errores GraphQL en el cliente compartido de la API de Linear."
+    },
+    {
       "path": "tests/unit/mcp/mcp_audit_hitl.test.ts",
       "suite": "unit",
       "type": "Unit",

@@ -32,6 +32,13 @@ export const FILE_METADATA_CATALOG: Record<string, FileMetadata> = {
     description:
       'Verifica que parsePaginationLimit, parsePaginationOffset y parsePagination acotan limit a 100 y offset a 10000.',
   },
+  'tests/unit/linear_client.test.ts': {
+    type: 'Unit',
+    targetDomain: 'Cliente GraphQL de Linear / Automatización',
+    targetArtifacts: ['scripts/lib/linear.ts'],
+    description:
+      'Verifica la autenticación, manejo de errores HTTP y errores GraphQL en el cliente compartido de la API de Linear.',
+  },
   'tests/contracts/governance/audit_freshness.test.ts': {
     type: 'Contract / Governance',
     targetDomain: 'Gobernanza Documental / Auditorías Históricas',

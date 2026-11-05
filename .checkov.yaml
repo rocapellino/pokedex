@@ -2,5 +2,5 @@
 # Configuración Centralizada de Checkov (Seguridad IaC / Helm)
 # ==============================================================================
 skip-path:
-  - "infra/k8s/kyverno-test"
-  - "infra/k8s/jobs"
+  - "infra/k8s/kyverno-test" # Manifiestos intencionalmente no conformes para evals de admisión Kyverno
+  - "infra/k8s/jobs"         # Blueprints y jobs efímeros de simulación histórica aislados del cluster activo
