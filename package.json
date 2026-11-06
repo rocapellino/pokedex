@@ -3,7 +3,7 @@
   "version": "1.119.16",
   "private": true,
   "type": "module",
-  "packageManager": "npm@12.2.1",
+  "packageManager": "npm@12.2.2",
   "engines": {
     "node": ">=24"
   },
