@@ -128,7 +128,7 @@ jobs:
         # de Sigstore y ya es parte de la cadena de confianza de este repositorio
         # (mismo pin por SHA que usa `ci.yaml` para firmar la imagen OCI).
         if: steps.state.outputs.phase == 'tag' && !inputs.gitsign_refresh
-        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
 
       - name: 5. Verificar e Instalar Gitsign (Keyless Sigstore)
         # SEC-001: la descarga directa del ejecutable se verifica en dos niveles
@@ -361,7 +361,7 @@ jobs:
           steps.state.outputs.phase == 'promote' &&
           !inputs.gitsign_refresh &&
           steps.tag_version.outputs.new_tag
-        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
 
       - name: 8b. Resolver y Verificar los Digests de pokedex-api y pokedex-web
         # ci.yaml publica y firma ambas imágenes para este mismo commit con el tag
