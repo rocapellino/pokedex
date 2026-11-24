@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as yaml from 'js-yaml';
+import { blocksOf, readHcl } from '../../helpers/hcl.js';
 import { ROOT_DIR } from '../../helpers/repo.js';
 
 interface PackageRule {
@@ -444,4 +445,76 @@ test('🛡️ RENOVATE-007: los overrides de npm están completamente deshabilit
     'RENOVATE-007: no debe existir ninguna regla que reactive matchDepTypes: ["overrides"] (ni siquiera por vulnerabilidades), ' +
       'ya que npm install <pkg>@<ver> falla indefectiblemente con EOVERRIDE al intentar regenerar package-lock.json.',
   );
+});
+
+/**
+ * RENOVATE-008 — bloqueo contractual de upgrades major de Node.js (v26+) y separación de
+ * required_providers (versions.tf) frente a provider (providers.tf) en entornos OpenTofu para
+ * evitar advertencias falsas en checkForPendingVersions() del Dependency Dashboard.
+ */
+test('🛡️ RENOVATE-008: los major de Node.js (node, @types/node y actions/node-versions) están bloqueados en dockerfile, github-actions, npm y custom.regex', () => {
+  const config = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'renovate.json'), 'utf-8')) as {
+    packageRules: PackageRule[];
+  };
+  const blockers = config.packageRules.filter(
+    (rule) => rule.enabled === false && rule.matchUpdateTypes?.includes('major'),
+  );
+
+  for (const manager of ['dockerfile', 'github-actions', 'npm', 'custom.regex']) {
+    for (const pkg of ['node', '@types/node', 'actions/node-versions']) {
+      assert.ok(
+        blockers.some((rule) => rule.matchManagers?.includes(manager) && rule.matchPackageNames?.includes(pkg)),
+        `RENOVATE-008: falta una regla que bloquee los major de '${pkg}' para el gestor '${manager}' ` +
+          '(enabled: false con matchUpdateTypes: major)',
+      );
+    }
+  }
+});
+
+test('🛡️ RENOVATE-008: los entornos OpenTofu separan required_providers (versions.tf) de provider (providers.tf) para evitar warnings de Renovate', () => {
+  const envs = [
+    'infra/opentofu/environments/lab',
+    'infra/opentofu/environments/proxmox',
+    'infra/opentofu/environments/cloud-template',
+  ];
+
+  for (const envDir of envs) {
+    const absDir = path.join(ROOT_DIR, envDir);
+    const tfFiles = fs.readdirSync(absDir).filter((file) => file.endsWith('.tf'));
+
+    for (const file of tfFiles) {
+      const parsed = readHcl(path.join(envDir, file));
+      const hasRequiredProviders = blocksOf(parsed, 'terraform').some(
+        (tf) => blocksOf(tf, 'required_providers').length > 0,
+      );
+      const hasProviderBlock = blocksOf(parsed, 'provider').length > 0;
+
+      assert.equal(
+        hasRequiredProviders && hasProviderBlock,
+        false,
+        `RENOVATE-008: ${envDir}/${file} mezcla terraform.required_providers con bloques provider; ` +
+          'separarlos en versions.tf y providers.tf evita warnings en el Dependency Dashboard de Renovate.',
+      );
+    }
+  }
+
+  for (const envDir of ['infra/opentofu/environments/lab', 'infra/opentofu/environments/proxmox']) {
+    const versionsPath = path.join(envDir, 'versions.tf');
+    assert.ok(fs.existsSync(path.join(ROOT_DIR, versionsPath)), `RENOVATE-008: falta ${versionsPath}`);
+    const versionsHcl = readHcl(versionsPath);
+    const hasRequiredProviders = blocksOf(versionsHcl, 'terraform').some(
+      (tf) => blocksOf(tf, 'required_providers').length > 0,
+    );
+    assert.ok(hasRequiredProviders, `RENOVATE-008: ${versionsPath} debe declarar terraform.required_providers`);
+
+    const providersPath = path.join(envDir, 'providers.tf');
+    assert.ok(fs.existsSync(path.join(ROOT_DIR, providersPath)), `RENOVATE-008: falta ${providersPath}`);
+    const providersHcl = readHcl(providersPath);
+    assert.ok(blocksOf(providersHcl, 'provider').length >= 1, `RENOVATE-008: ${providersPath} debe declarar provider`);
+    assert.equal(
+      blocksOf(providersHcl, 'terraform').length,
+      0,
+      `RENOVATE-008: ${providersPath} no debe declarar bloques terraform`,
+    );
+  }
 });

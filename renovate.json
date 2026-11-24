@@ -250,6 +250,14 @@
       "matchDepTypes": ["overrides"],
       "enabled": false,
       "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "RENOVATE-008: Node.js 24 LTS es el runtime contractual del monorepo (.tool-versions, package.json engines y Dockerfiles); se bloquean los upgrades major (Node.js v26+) en todos los gestores manteniendo digests, parches y minor",
+      "matchManagers": ["dockerfile", "github-actions", "npm", "custom.regex"],
+      "matchPackageNames": ["node", "@types/node", "actions/node-versions"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false,
+      "minimumReleaseAge": "7 days"
     }
   ]
 }

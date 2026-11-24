@@ -41,11 +41,13 @@ infra/opentofu/
 │   ├── proxmox/                   # [ACTIVE] Backend On-Premise: LXC K3s de pre-prod, Vault y Bastion
 │   │   ├── main.tf
 │   │   ├── providers.tf
-│   │   └── variables.tf
+│   │   ├── variables.tf
+│   │   └── versions.tf
 │   ├── lab/                       # [SUPPORTED] Entorno de laboratorio para VMs efímeras de prueba
 │   │   ├── main.tf
 │   │   ├── providers.tf
-│   │   └── variables.tf
+│   │   ├── variables.tf
+│   │   └── versions.tf
 │   └── cloud-template/            # [BLUEPRINT] Base agnóstica del blueprint prod cloud (ADR-030)
 │       ├── main.tf
 │       └── variables.tf
