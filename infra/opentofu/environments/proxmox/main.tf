@@ -23,6 +23,9 @@ resource "proxmox_virtual_environment_container" "k8s_nodes" {
   description = "Nodo Kubernetes (k3s) en Contenedor LXC [Pre-Prod] (OpenTofu Managed)"
   tags        = ["kubernetes", "lxc", "onprem", "pokedex", var.environment_tier]
 
+  # AUD-IAC-LXC-001 / ADR-030: K3s dentro de LXC en Proxmox requiere contenedor
+  # privilegiado para montajes de containerd/overlayfs, cgroups y reglas iptables;
+  # compensado con aislamiento de host, firewall LXC activo, PSS Restricted y NetworkPolicies.
   unprivileged  = false
   started       = true
   start_on_boot = true

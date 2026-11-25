@@ -202,6 +202,16 @@ test('🧹 CLEAN-001: las allowlist de Terraform historico quedan justificadas',
     'Debe conservarse la allowlist historica de Terraform',
   );
   assert.match(raw, /CLEAN-001/, 'La allowlist historica debe referenciar CLEAN-001 y su justificacion');
+  assert.match(
+    raw,
+    /AUD-CFG-GITLEAKS-001[\s\S]*sealed-secrets/,
+    'AUD-CFG-GITLEAKS-001: rutas historicas retiradas deben documentar su retencion para --log-opts',
+  );
+  assert.match(
+    raw,
+    /CLEAN-001\s*\/\s*AUD-CFG-GITLEAKS-001[\s\S]*minioadmin_secure_password/,
+    'AUD-CFG-GITLEAKS-001: la excepcion historica minioadmin_secure_password debe documentar CLEAN-001',
+  );
   assert.match(raw, /infra\/opentofu/, 'Debe mantenerse la allowlist vigente de OpenTofu');
 });
 

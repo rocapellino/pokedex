@@ -23,12 +23,15 @@ paths = [
   # protegiendo. No afectan al escaneo normal, que opera sobre --source=.
   '''(?i)^infra/terraform/.*/(variables|outputs)\.tf$''',
   '''(?i)^infra/terraform/.*\.tfvars\.example$''',
-  # K8s / Helm — SealedSecrets cifrados con clave pública del controlador (actual e histórico)
+  # CLEAN-001 / AUD-CFG-GITLEAKS-001: rutas históricas retiradas del working tree
+  # vigente. Se conservan explícitamente para escaneos del historial completo (--log-opts)
+  # sin suprimir detecciones en código ni manifiestos activos bajo --source=.
+  # K8s / Helm — SealedSecrets cifrados con clave pública del controlador (histórico)
   '''(?i)^infra/helm/pokedex/templates/sealed-secrets\.ya?ml$''',
   '''(?i)^infra/k8s/01-sealed-secrets\.ya?ml$''',
-  # Ansible — inventario de ejemplo
+  # Ansible — inventario de ejemplo histórico
   '''(?i)^infra/ansible/inventory/hosts\.ini$''',
-  # SecretStores simulados / mock de testing
+  # SecretStores simulados / mock históricos de testing
   '''(?i)^infra/k8s/secretstores/.*\.ya?ml$''',
 ]
 commits = [
@@ -45,6 +48,7 @@ regexes = [
   '''(?i)pokedex-internal-hmac-session-secret-entropy''',
   '''(?i)redis_secure_password_k8s''',
   '''(?i)redis_dev_secret_password''',
+  # CLEAN-001 / AUD-CFG-GITLEAKS-001: placeholder histórico fuera del árbol vigente; conservado para --log-opts
   '''(?i)minioadmin_secure_password''',
   '''(?i)ci-validation-dummy-pass''',
   '''(?i)^ci-key$''',
