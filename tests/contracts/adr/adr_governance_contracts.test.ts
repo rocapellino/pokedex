@@ -340,3 +340,13 @@ test('🛡️ Resiliencia & Deuda de Código: ADR-027 formaliza convergencia en 
   );
   assert.ok(dbTs.includes('invalidateCache'), 'db.ts debe implementar invalidateCache con versionado atómico');
 });
+
+test('🛡️ AUD-INF-CILIUM-002: CiliumNetworkPolicy restringe ingressController por namespace k8s', () => {
+  const ciliumPath = path.join(ROOT_DIR, 'infra/helm/pokedex/templates/cilium-network-policies.yaml');
+  const ciliumContent = fs.readFileSync(ciliumPath, 'utf-8');
+  assert.match(
+    ciliumContent,
+    /-\s*with\s+\.Values\.networkPolicies\.ingressController[\s\S]*?"k8s:io\.kubernetes\.pod\.namespace":\s*\{\{\s*\.namespace\s*\|\s*quote\s*\}\}[\s\S]*?toYaml\s+\.podLabels/,
+    'La regla de ingressController en CiliumNetworkPolicy debe incluir "k8s:io.kubernetes.pod.namespace": {{ .namespace | quote }}',
+  );
+});

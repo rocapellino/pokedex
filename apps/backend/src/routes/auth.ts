@@ -69,7 +69,6 @@ authRouter.post(
       return res.status(csrfError.status).json({ detail: csrfError.detail });
     }
     const token = extractSessionTokenFromRequest(req);
-    res.setHeader('Set-Cookie', buildLogoutCookie());
     if (token) {
       const revokeResult = await revokeSessionTokenDetailed(token);
       if (!revokeResult.success) {
@@ -86,6 +85,7 @@ authRouter.post(
         }
       }
     }
+    res.setHeader('Set-Cookie', buildLogoutCookie());
     return res.status(200).json({
       detail: 'Sesión finalizada y token revocado correctamente.',
     });

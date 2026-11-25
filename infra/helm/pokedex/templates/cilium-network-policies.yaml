@@ -21,9 +21,10 @@ spec:
               protocol: TCP
     {{- if .Values.ingress.enabled }}
     {{- with .Values.networkPolicies.ingressController }}
-    # 2. Ingress Controller directo a la API (/api/ y /pokemons, AUD-ARCH-NET-001 / AUD-INF-CILIUM-001)
+    # 2. Ingress Controller directo a la API (/api/ y /pokemons, AUD-ARCH-NET-001 / AUD-INF-CILIUM-002)
     - fromEndpoints:
         - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": {{ .namespace | quote }}
             {{- toYaml .podLabels | nindent 12 }}
       toPorts:
         - ports:

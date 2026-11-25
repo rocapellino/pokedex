@@ -74,6 +74,20 @@ test('🛡️ Helm & Gobernanza: ServiceMonitor existe en Helm y ADR-007 documen
     'Debe usar apiVersion monitoring.coreos.com/v1',
   );
   assert.ok(smContent.includes('path: /metrics'), 'Debe apuntar a /metrics');
+  assert.ok(
+    smContent.includes('key: METRICS_BEARER_TOKEN'),
+    'ServiceMonitor debe referenciar key: METRICS_BEARER_TOKEN',
+  );
+  assert.ok(
+    smContent.includes('.Values.externalSecrets.metricsToken'),
+    'ServiceMonitor debe contemplar .Values.externalSecrets.metricsToken',
+  );
+  assert.ok(
+    smContent.includes('.Values.secrets.metricsBearerToken'),
+    'ServiceMonitor debe contemplar .Values.secrets.metricsBearerToken',
+  );
+  assert.ok(!smContent.includes('.Values.auth.metricsToken'), 'No debe referenciar .Values.auth.metricsToken');
+  assert.doesNotMatch(smContent, /key:\s*METRICS_TOKEN\b/, 'No debe usar la clave obsoleta METRICS_TOKEN');
 
   const _adrContent = fs.readFileSync(adrPath, 'utf-8');
 
