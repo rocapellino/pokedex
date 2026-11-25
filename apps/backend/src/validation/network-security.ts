@@ -34,12 +34,7 @@ export function isPrivateOrRestrictedIp(hostname: string): boolean {
     return true;
   }
 
-  // 2. Loopback names
-  if (host === 'localhost') {
-    return true;
-  }
-
-  // 3. IPv4 check
+  // 2. IPv4 check
   const ipv4Match = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);
   if (ipv4Match) {
     const o0 = Number(ipv4Match[1]);
@@ -161,13 +156,14 @@ export function validateImageUrl(value: unknown): boolean {
     const host = rawHost.replace(/\.+$/, '');
     const isProduction = process.env.NODE_ENV === 'production';
 
-    // Loopback / localhost: solo HTTP está bloqueado en producción (prevención SSRF contra sidecars o puertos locales)
-    const isLocalhost = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+    // Loopback / localhost: prohibido en producción (tanto HTTP como HTTPS, AUD-SEC-URLVAL-002);
+    // permitido solo en desarrollo/test para tooling local.
+    const isLocalhost = host === 'localhost' || host === '127.0.0.1';
     if (isLocalhost) {
-      if (parsed.protocol === 'http:') {
-        return !isProduction;
+      if (isProduction) {
+        return false;
       }
-      return parsed.protocol === 'https:';
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
     }
 
     // Protocolo externo debe ser HTTPS obligatorio

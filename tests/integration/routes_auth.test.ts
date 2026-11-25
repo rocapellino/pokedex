@@ -168,4 +168,5 @@ test('🚪 POST /auth/logout: un token con firma apócrifa responde 400', async 
   });
   assert.equal(forged.status, 400);
   assert.match(forged.body.detail, /inválido|apócrifa/);
+  assert.equal(forged.headers.get('set-cookie'), null, 'no debe emitir Set-Cookie de logout si el token es inválido');
 });

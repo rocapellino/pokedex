@@ -20,9 +20,9 @@ spec:
       interval: {{ .Values.monitoring.serviceMonitor.interval | default "15s" | quote }}
       scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout | default "10s" | quote }}
       scheme: http
-      {{- if or .Values.monitoring.serviceMonitor.bearerTokenSecret (and .Values.auth .Values.auth.metricsToken) }}
+      {{- if or .Values.monitoring.serviceMonitor.bearerTokenSecret (and .Values.externalSecrets .Values.externalSecrets.enabled .Values.externalSecrets.metricsToken) (and .Values.secrets .Values.secrets.metricsBearerToken) }}
       bearerTokenSecret:
         name: {{ include "pokedex.secretName" . }}
-        key: METRICS_TOKEN
+        key: METRICS_BEARER_TOKEN
       {{- end }}
 {{- end }}

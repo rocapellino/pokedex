@@ -191,6 +191,16 @@ test('🛡️ Helm Security: CiliumNetworkPolicy aísla la API en L7 con una all
     const dnsRule = cnp.spec.egress.find((r: any) => r.toEndpoints?.[0]?.matchLabels?.['k8s-app'] === 'kube-dns');
     assert.deepEqual(dnsRule.toPorts[0].rules.dns, [{ matchPattern: '*' }], 'el DNS pasa por inspección de nombres');
 
+    const ingressControllerRule = cnp.spec.ingress.find(
+      (r: any) => r.fromEndpoints?.[0]?.matchLabels?.['app.kubernetes.io/name'] === 'ingress-nginx',
+    );
+    assert.ok(ingressControllerRule, 'debe permitir tráfico entrante desde ingressController');
+    assert.equal(
+      ingressControllerRule.fromEndpoints[0].matchLabels['k8s:io.kubernetes.pod.namespace'],
+      'ingress-nginx',
+      'AUD-INF-CILIUM-002: ingressController debe fijar namespace k8s:io.kubernetes.pod.namespace',
+    );
+
     const openRules = cnp.spec.egress.filter((r: any) => r.toCIDR || r.toCIDRSet || r.toEntities);
     assert.deepEqual(openRules, [], 'la política no puede abrir CIDR ni entidades (world) sin pasar por FQDN');
   }
