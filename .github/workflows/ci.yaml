@@ -498,13 +498,71 @@ jobs:
           echo "✅ SBOM CycloneDX validado como artefacto obligatorio y conforme."
 
   # =======================================================
+  # 3b. BARRERA DE PIPELINES HERMANOS ANTES DE PUBLICAR
+  # =======================================================
+  publish-gate:
+    name: "🚦 Validar Pipelines Hermanos antes de Publicar"
+    # AUD-CI-PUBDAG-002: publish permanece en ci.yaml (identidad OIDC Cosign),
+    # pero en push a main espera a que Infra CI y Frontend Web CI del mismo run concluyan con éxito.
+    needs: [code-quality, sonarcloud, semgrep, build-docker, trivy-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      actions: read
+    steps:
+      - name: Esperar finalización exitosa de Infra CI y Frontend Web CI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          REQUIRED_PREFIXES=("⚙️ Infra CI /" "🌐 Frontend Web CI /")
+          MAX_ATTEMPTS=90
+          for attempt in $(seq 1 "${MAX_ATTEMPTS}"); do
+            JOBS_JSON=$(gh api --paginate --slurp "repos/${REPO}/actions/runs/${RUN_ID}/jobs?per_page=100" --jq '[.[].jobs[]]')
+            PENDING=0
+            FAILED=""
+            for prefix in "${REQUIRED_PREFIXES[@]}"; do
+              MATCHES=$(printf '%s' "${JOBS_JSON}" | jq --arg p "${prefix}" '[.[] | select(.name | startswith($p))]')
+              COUNT=$(printf '%s' "${MATCHES}" | jq 'length')
+              if [ "${COUNT}" -eq 0 ]; then
+                PENDING=1
+                continue
+              fi
+              STILL_RUNNING=$(printf '%s' "${MATCHES}" | jq '[.[] | select(.status != "completed")] | length')
+              if [ "${STILL_RUNNING}" -gt 0 ]; then
+                PENDING=1
+              fi
+              BAD=$(printf '%s' "${MATCHES}" | jq -r '.[] | select(.status == "completed" and (.conclusion != "success" and .conclusion != "skipped")) | "\(.name)=\(.conclusion)"')
+              if [ -n "${BAD}" ]; then
+                FAILED="${FAILED}${BAD}"$'\n'
+              fi
+            done
+            if [ -n "${FAILED}" ]; then
+              echo "❌ AUD-CI-PUBDAG-002: Abortando publicación por fallo en pipelines hermanos:"
+              printf '%s\n' "${FAILED}"
+              exit 1
+            fi
+            if [ "${PENDING}" -eq 0 ]; then
+              echo "✅ AUD-CI-PUBDAG-002: Infra CI y Frontend Web CI concluyeron correctamente."
+              exit 0
+            fi
+            echo "⏳ Intento ${attempt}/${MAX_ATTEMPTS}: esperando finalización de Infra CI y Frontend Web CI..."
+            sleep 15
+          done
+          echo "❌ AUD-CI-PUBDAG-002: Timeout esperando a Infra CI y Frontend Web CI."
+          exit 1
+
+  # =======================================================
   # 4. PUBLISH (Solo en rama main tras pasar Trivy, SonarCloud y Quality Gates)
   # =======================================================
   publish:
     name: "📦 Publicar Imagen y Helm Chart a GHCR"
     # AUD-CI-PUBDAG-001: sonarcloud ejecuta la suite de pruebas unitarias/integración con PostgreSQL
     # y Redis. code-quality, sonarcloud y semgrep deben culminar con éxito antes de publicar o firmar.
-    needs: [code-quality, sonarcloud, semgrep, build-docker, trivy-scan]
+    needs: [code-quality, sonarcloud, semgrep, build-docker, trivy-scan, publish-gate]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 20

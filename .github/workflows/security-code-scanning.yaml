@@ -79,7 +79,6 @@ jobs:
           recursive: true
           format: sarif
           output-file: hadolint.sarif
-          no-fail: true
 
       - name: 3. Subir reporte SARIF de Hadolint a GitHub Code Scanning
         if: always()
@@ -111,6 +110,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-iac.sarif'
           severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '1'
 
       - name: 3. Subir reporte SARIF de IaC a GitHub Code Scanning
         if: always()

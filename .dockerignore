@@ -38,6 +38,8 @@ secrets/
 # ==============================================================================
 backups/
 *.sql*
+# Preservar migraciones SQL versionadas de Drizzle requeridas en el build del backend (AUD-CFG-DOCKERIGN-002)
+!apps/backend/src/db/migrations/*.sql
 *_data/
 
 # ==============================================================================
@@ -61,6 +63,9 @@ Taskfile.yaml
 .task/
 .pre-commit-config.yaml
 .gitleaks.toml
+taskfiles/
+docker-compose*.yaml
+scratch/
 
 # ==============================================================================
 # Artefactos de pruebas, cobertura y reportes
@@ -87,6 +92,8 @@ commitlint.config.js
 .idea/
 *.swp
 *.swo
+.claude/
+.cursor/
 
 # ==============================================================================
 # Paquetes y archivos comprimidos

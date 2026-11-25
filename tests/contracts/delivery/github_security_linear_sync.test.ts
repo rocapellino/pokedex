@@ -315,4 +315,10 @@ test('🛡️ GitHub Code Scanning SAST: workflow YAML de njsscan, hadolint y Tr
   assert.match(content, /hadolint-action/);
   assert.match(content, /trivy-action/);
   assert.match(content, /upload-sarif/);
+  assert.doesNotMatch(content, /no-fail:\s*true/, 'AUD-CI-GATES-002: hadolint no debe silenciar fallos');
+  assert.match(
+    content,
+    /exit-code:\s*['"]?1['"]?/,
+    'AUD-CI-GATES-002: trivy-iac debe bloquear el merge ante vulnerabilidades',
+  );
 });

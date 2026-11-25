@@ -286,6 +286,11 @@ test('🛡️ Helm Security: el perfil de referencia exige Zero-Trust L7 (Cilium
   assert.equal(prod.networkPolicies.egress.antiSsrf, true);
   assert.equal(prod.ciliumNetworkPolicy.enabled, true, 'ciliumNetworkPolicy debe estar habilitada');
   assert.deepEqual(prod.ciliumNetworkPolicy.fqdnAllowlist, FQDN_ALLOWLIST);
+  assert.equal(
+    prod.externalSecrets.remoteRef.key,
+    'pokedex/prod',
+    'AUD-INF-VALUES-001: values.prod.yaml debe usar pokedex/prod sin prefijo secret/data/',
+  );
 });
 
 test('🛡️ GITOPS-002: los entornos desplegables no deben declarar reglas de Ingress sin host', () => {
