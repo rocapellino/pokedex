@@ -40,6 +40,19 @@ test('🛡️ AI Security [Unit]: sanitizeAIHtml rechaza pseudo-protocolos en hr
 
   const dataHtml = '<a href="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==">Payload</a>';
   assert.equal(sanitizeAIHtml(dataHtml), '');
+
+  // AUD-SCR-TESTS-001: bypasses de pseudo-protocolo codificados con entidades HTML y caracteres de control
+  assert.equal(
+    sanitizeAIHtml('<a href="&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;:alert(1)">Dec</a>'),
+    '',
+  );
+  assert.equal(sanitizeAIHtml('<a href="&#x6a;avascript:alert(1)">Hex</a>'), '');
+  assert.equal(sanitizeAIHtml('<a href="javascript&colon;alert(1)">Colon</a>'), '');
+  assert.equal(sanitizeAIHtml('<a href="java&#x09;script:alert(1)">Tab</a>'), '');
+
+  // Texto escapado previamente con escapeHtml() debe preservarse intacto en fallbacks
+  const safeEscaped = '<p>&lt;script&gt;hola&lt;/script&gt;</p>';
+  assert.equal(sanitizeAIHtml(safeEscaped), safeEscaped);
 });
 
 test('🛡️ AI Security [Unit]: sanitizeAIHtml rechaza manejadores de eventos inline (onload, onclick, onerror)', () => {

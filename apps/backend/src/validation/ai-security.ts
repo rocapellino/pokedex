@@ -6,6 +6,19 @@ export const AIMockupResponseSchema = z.object({
   explanation: z.string().max(1000).optional(),
 });
 
+const NAMED_ENTITIES: Record<string, string> = { colon: ':', tab: '\t', newline: '\n', amp: '&' };
+
+/** Decodifica entidades HTML en atributos en 2 pasadas (omite `&lt;`/`&gt;` por `escapeHtml()`). */
+function decodeHtmlEntitiesForAttr(input: string): string {
+  const pass = (s: string) =>
+    s.replace(/&#(\d+);?|&#x([0-9a-f]+);?|&(colon|tab|newline|amp);/gi, (m, d, h, n) => {
+      if (n) return NAMED_ENTITIES[n.toLowerCase()];
+      const cp = Number.parseInt(d ?? h, d ? 10 : 16);
+      return cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : m;
+    });
+  return pass(pass(input));
+}
+
 /**
  * Sanitiza y valida estructuralmente fragmentos HTML generados por modelos de IA.
  * Neutraliza vectores ejecutables (<script>, eventos inline on*, esquemas javascript/vbscript, iframes).
@@ -27,12 +40,13 @@ export function sanitizeAIHtml(rawHtml: string): string {
     return '';
   }
 
-  // 3. Rechazo explícito de pseudo-protocolos en atributos (AUD-SEC-INPUT-001)
-  if (
-    /(?:href|src|action|formaction|xlink:href)\s*=\s*(?:["']\s*)?(?:javascript|vbscript|data\s*:\s*(?:text\/html|image\/svg\+xml))/i.test(
-      trimmed,
-    )
-  ) {
+  // 3. Rechazo explícito de pseudo-protocolos en atributos, incluyendo entidades HTML (AUD-SCR-TESTS-001)
+  const decodedAttr = Array.from(decodeHtmlEntitiesForAttr(trimmed), (ch) =>
+    ch.charCodeAt(0) > 0x1f && ch !== '\x7f' ? ch : '',
+  ).join('');
+  const pseudoProtoPattern =
+    /(?:href|src|action|formaction|xlink:href)\s*=\s*(?:["']\s*)?(?:javascript|vbscript|data\s*:\s*(?:text\/html|image\/svg\+xml))/i;
+  if (pseudoProtoPattern.test(trimmed) || pseudoProtoPattern.test(decodedAttr)) {
     console.warn('[AI Security] Salida de IA rechazada: contiene pseudo-protocolos peligrosos.');
     return '';
   }

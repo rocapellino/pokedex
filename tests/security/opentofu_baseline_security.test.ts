@@ -305,3 +305,12 @@ test('🛡️ Trivy IaC: sin excepciones huérfanas tras retirar el entorno aws 
     'Ningún escaneo Trivy debe consumir archivos de exclusión retirados',
   );
 });
+
+test('🛡️ AUD-IAC-LXC-001: unprivileged = false en Proxmox main.tf documenta su excepción operativa', () => {
+  const mainTf = fs.readFileSync(path.join(ROOT_DIR, 'infra/opentofu/environments/proxmox/main.tf'), 'utf-8');
+  assert.match(
+    mainTf,
+    /#\s*AUD-IAC-LXC-001[\s\S]{0,400}unprivileged\s*=\s*false/,
+    'main.tf debe justificar con comentario inline AUD-IAC-LXC-001 el uso de unprivileged = false',
+  );
+});

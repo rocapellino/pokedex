@@ -12,7 +12,9 @@
  */
 
 import * as fs from 'node:fs';
+import * as path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 import { fetchLinear } from './lib/linear.ts';
 
 const LINEAR_API_KEY = process.env.LINEAR_API_KEY || '';
@@ -34,7 +36,7 @@ interface LinearTeamNode {
   };
 }
 
-interface LinearIssueNode {
+export interface LinearIssueNode {
   id: string;
   identifier: string;
   title: string;
@@ -51,13 +53,13 @@ interface TeamResolution {
   canceledState?: LinearState;
 }
 
-interface CategorizedIssues {
+export interface CategorizedIssues {
   sonarBugsToClose: LinearIssueNode[];
   codeqlDuplicatesToCancel: LinearIssueNode[];
   otherTickets: LinearIssueNode[];
 }
 
-function chunkArray<T>(items: T[], size: number): T[][] {
+export function chunkArray<T>(items: T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let i = 0; i < items.length; i += size) {
     chunks.push(items.slice(i, i + size));
@@ -187,7 +189,7 @@ async function fetchOpenIssues(teamId: string): Promise<LinearIssueNode[]> {
   return issuesData.team?.issues?.nodes || [];
 }
 
-function categorizeIssues(openIssues: LinearIssueNode[]): CategorizedIssues {
+export function categorizeIssues(openIssues: LinearIssueNode[]): CategorizedIssues {
   const sonarBugsToClose: LinearIssueNode[] = [];
   const codeqlDuplicatesToCancel: LinearIssueNode[] = [];
   const otherTickets: LinearIssueNode[] = [];
@@ -300,9 +302,13 @@ async function main(): Promise<void> {
   console.log('🏁 Proceso de limpieza finalizado con éxito.');
 }
 
-try {
-  await main();
-} catch (err) {
-  console.error('💥 Error inesperado en la limpieza de Linear:', err);
-  process.exit(1);
+const isDirectExecution = Boolean(process.argv[1]) && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectExecution) {
+  try {
+    await main();
+  } catch (err) {
+    console.error('💥 Error inesperado en la limpieza de Linear:', err);
+    process.exit(1);
+  }
 }

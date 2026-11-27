@@ -11,7 +11,9 @@
  */
 
 import * as fs from 'node:fs';
+import * as path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 import { fetchLinear } from './lib/linear.ts';
 
 const LINEAR_API_KEY = process.env.LINEAR_API_KEY || '';
@@ -23,7 +25,7 @@ interface LinearState {
   type: string;
 }
 
-interface LinearTeamNode {
+export interface LinearTeamNode {
   id: string;
   key: string;
   name: string;
@@ -32,7 +34,7 @@ interface LinearTeamNode {
   };
 }
 
-interface LinearIssueNode {
+export interface LinearIssueNode {
   id: string;
   identifier: string;
   title: string;
@@ -54,8 +56,34 @@ interface LinearIssueNode {
   };
 }
 
-function sanitizeMarkdownCell(text: string): string {
+export function sanitizeMarkdownCell(text: string): string {
   return text.replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
+}
+
+export function buildIssuesSummaryMarkdown(
+  team: Pick<LinearTeamNode, 'name' | 'key'>,
+  openIssues: LinearIssueNode[],
+): string {
+  let summaryMarkdown = `## 📋 Tickets Abiertos en Linear (${team.name} - ${team.key})\n\n`;
+  summaryMarkdown += `**Total de tickets abiertos:** ${openIssues.length}\n\n`;
+
+  if (openIssues.length === 0) {
+    summaryMarkdown += '🎉 *No hay tickets abiertos pendientes en este equipo.*\n';
+    return summaryMarkdown;
+  }
+
+  summaryMarkdown += '| ID | Título | Estado | Prioridad | Asignado | Etiquetas | URL |\n';
+  summaryMarkdown += '| :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n';
+
+  for (const issue of openIssues) {
+    const stateName = issue.state?.name || 'Desconocido';
+    const assigneeName = issue.assignee?.name || 'Sin asignar';
+    const labels = (issue.labels?.nodes || []).map((l) => l.name).join(', ') || '-';
+    const priority = issue.priorityLabel || `P${issue.priority}`;
+    summaryMarkdown += `| [${issue.identifier}](${issue.url}) | ${sanitizeMarkdownCell(issue.title)} | \`${stateName}\` | ${priority} | ${assigneeName} | ${labels} | [Link](${issue.url}) |\n`;
+  }
+
+  return summaryMarkdown;
 }
 
 async function main(): Promise<void> {
@@ -139,16 +167,9 @@ async function main(): Promise<void> {
   const openIssues = issuesData.team?.issues?.nodes || [];
   console.log(`\n📊 Total de tickets abiertos en el equipo ${selectedTeam.key}: ${openIssues.length}`);
 
-  let summaryMarkdown = `## 📋 Tickets Abiertos en Linear (${selectedTeam.name} - ${selectedTeam.key})\n\n`;
-  summaryMarkdown += `**Total de tickets abiertos:** ${openIssues.length}\n\n`;
-
   if (openIssues.length === 0) {
     console.log('🎉 No hay tickets abiertos pendientes en este equipo.');
-    summaryMarkdown += '🎉 *No hay tickets abiertos pendientes en este equipo.*\n';
   } else {
-    summaryMarkdown += '| ID | Título | Estado | Prioridad | Asignado | Etiquetas | URL |\n';
-    summaryMarkdown += '| :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n';
-
     for (const issue of openIssues) {
       const stateName = issue.state?.name || 'Desconocido';
       const assigneeName = issue.assignee?.name || 'Sin asignar';
@@ -159,10 +180,10 @@ async function main(): Promise<void> {
       console.log(`  Estado: ${stateName} (${issue.state?.type}) | Prioridad: ${priority} | Asignado: ${assigneeName}`);
       console.log(`  Etiquetas: ${labels}`);
       console.log(`  URL: ${issue.url}`);
-
-      summaryMarkdown += `| [${issue.identifier}](${issue.url}) | ${sanitizeMarkdownCell(issue.title)} | \`${stateName}\` | ${priority} | ${assigneeName} | ${labels} | [Link](${issue.url}) |\n`;
     }
   }
+
+  const summaryMarkdown = buildIssuesSummaryMarkdown(selectedTeam, openIssues);
 
   // 3. Escribir a GITHUB_STEP_SUMMARY si está disponible
   const stepSummaryFile = process.env.GITHUB_STEP_SUMMARY;
@@ -178,9 +199,13 @@ async function main(): Promise<void> {
   console.log('\n🏁 Consulta finalizada con éxito.');
 }
 
-try {
-  await main();
-} catch (err) {
-  console.error('💥 Error inesperado durante la consulta de Linear:', err);
-  process.exit(1);
+const isDirectExecution = Boolean(process.argv[1]) && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectExecution) {
+  try {
+    await main();
+  } catch (err) {
+    console.error('💥 Error inesperado durante la consulta de Linear:', err);
+    process.exit(1);
+  }
 }
