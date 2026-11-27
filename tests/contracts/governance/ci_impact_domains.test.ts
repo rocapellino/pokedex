@@ -202,6 +202,19 @@ test('🎯 CI-001: la configuración del motor es global, igual que el motor', (
   );
 });
 
+test('🎯 AUD-CI-IMPACT-002: scripts/lib/linear.ts está clasificado en sync_tooling y no cae en unknown', () => {
+  const result = analyzeChangeImpact({
+    files: ['scripts/lib/linear.ts'],
+    configPath: CONFIG_PATH,
+  });
+
+  assert.equal(result.hasChanges, true);
+  assert.equal(result.isUnknown, false, 'scripts/lib/linear.ts no debe activar fail-closed por ruta desconocida');
+  assert.equal(result.isGlobal, false, 'scripts/lib/linear.ts no es una ruta global');
+  assert.equal(result.triggers.tests, true, 'sync_tooling debe activar tests');
+  assert.equal(result.triggers.security_secrets, true, 'security_secrets siempre debe estar activo');
+});
+
 test('🎯 CI-001: la matriz de impacto identifica correctamente el perfil prod cloud', () => {
   const matrix = fs.readFileSync(
     path.join(ROOT_DIR, '.agents', 'skills', '_shared', 'change-impact-matrix.md'),

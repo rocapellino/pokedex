@@ -323,6 +323,7 @@ rules:
   sync_tooling:
     description: "Scripts de sincronización y telemetría externa (Linear, SonarQube)"
     paths:
+      - "scripts/lib/linear.ts"
       - "scripts/github-security-linear-sync.ts"
       - "scripts/sonar-linear-sync.ts"
     triggers:

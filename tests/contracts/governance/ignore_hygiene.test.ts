@@ -287,3 +287,19 @@ test('🧹 Repository Hygiene: excepciones formalizadas y protocolo obligatorio 
   assert.match(ruleContent, /reporte final/i, 'repository-hygiene.md debe exigir reportar excepciones');
   assert.match(agentsMd, /reporte final/i, 'AGENTS.md debe exigir reportar excepciones');
 });
+
+test('🐳 AUD-CFG-DOCKERIGN-002: .dockerignore preserva migraciones SQL y excluye tooling local/IDE', () => {
+  const dockerignore = fs.readFileSync(path.join(ROOT_DIR, '.dockerignore'), 'utf-8');
+  const lines = dockerignore.split(/\r?\n/).map((line) => line.trim());
+
+  for (const required of [
+    '!apps/backend/src/db/migrations/*.sql',
+    'taskfiles/',
+    'docker-compose*.yaml',
+    '.claude/',
+    '.cursor/',
+    'scratch/',
+  ]) {
+    assert.ok(lines.includes(required), `.dockerignore debe declarar explícitamente '${required}'`);
+  }
+});

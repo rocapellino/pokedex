@@ -138,3 +138,21 @@ La siguiente tabla establece qué Quality Gates y qué skills son **bloqueantes 
 >
 > Ante un patrón de exclusión no clasificado aplica la **política fail-closed**: se
 > inhibe la optimización y se despacha Full CI.
+
+---
+
+## 5. Skills Orquestadores y Transversales
+
+Las siguientes skills operan transversalmente sobre todo el repositorio u orquestan flujos multi-dominio, por lo que no se restringen a una sola ruta de archivos de la Sección 4:
+
+| Skill | Alcance | Cuándo se invoca |
+| :--- | :--- | :--- |
+| `repo-audit` | Auditoría estática y operativa por lotes | Verificaciones exhaustivas multi-subsistema sin mutar el árbol base |
+| `repo-context` | Levantamiento rápido de inventario y estado | Inicio de sesión o diagnóstico previo a diagnosticar cambios |
+| `repo-fix` | Flujo gobernado de corrección end-to-end | Resolución de bugs o hallazgos verificados con pruebas y worktree |
+| `repo-impact` | Evaluación determinista de radio de impacto | Antes y después de editar código, workflows o documentación |
+| `repo-maintenance` | Higiene de temporales, worktrees y dependencias | Limpieza periódica del workspace, `tmp/` y rotación/deuda operativa |
+| `repo-metrics` | Métricas de cobertura, calidad y rendimiento | Revisión de umbrales de test surface, SonarCloud y bundles |
+| `repo-modernize` | Actualizaciones mayores de runtime y stack | Migraciones planificadas de Node.js, PostgreSQL, Vite o TypeScript |
+| `repo-refactor` | Refactorización estructural segura | Descomposición de módulos grandes sin alterar contratos públicos |
+| `repo-tool-exec` | Ejecución aislada y portable de herramientas | Invocación de CLIs del catálogo en host o contenedor fallback |

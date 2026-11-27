@@ -696,3 +696,25 @@ test('🔒 AUD-CI-PUBDAG-001: publish espera a sonarcloud (tests con BD/Redis), 
   assert.ok(needs.includes('semgrep'), 'publish debe depender de semgrep');
   assert.ok(needs.includes('trivy-scan'), 'publish debe depender de trivy-scan');
 });
+
+test('🔒 AUD-CI-PUBDAG-002: publish espera vía publish-gate a Infra CI y Frontend Web CI en push a main', () => {
+  const ci = workflow('ci.yaml');
+  const orchestrator = workflow('change-impact.yaml');
+
+  assert.equal(
+    orchestrator.jobs['ci-core'].permissions?.actions,
+    'read',
+    'ci-core debe propagar actions: read para que publish-gate consulte el estado de pipelines hermanos',
+  );
+
+  const gate = ci.jobs['publish-gate'];
+  assert.ok(gate, 'ci.yaml debe definir el job publish-gate');
+  assert.equal(gate.permissions?.actions, 'read', 'publish-gate debe declarar permissions.actions: read');
+  const gateScript = scriptsOf(gate.steps ?? []).join('\n');
+  assert.match(gateScript, /⚙️ Infra CI \//, 'publish-gate debe vigilar Infra CI');
+  assert.match(gateScript, /🌐 Frontend Web CI \//, 'publish-gate debe vigilar Frontend Web CI');
+
+  const publishJob = ci.jobs.publish;
+  const needs: string[] = Array.isArray(publishJob.needs) ? publishJob.needs : [publishJob.needs];
+  assert.ok(needs.includes('publish-gate'), 'publish debe depender de publish-gate');
+});
